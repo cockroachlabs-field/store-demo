@@ -216,7 +216,6 @@ public class StartupRunner implements ApplicationRunner {
         try (FileOutputStream acctOut = new FileOutputStream(ACCT_GZ);
              Writer acctWriter = new OutputStreamWriter(new GZIPOutputStream(acctOut), StandardCharsets.UTF_8)) {
 
-
             Faker faker = new Faker(new Locale("en-US"));
 
             final Date start = Date.valueOf(LocalDate.of(1980, 01, 01));
@@ -237,7 +236,6 @@ public class StartupRunner implements ApplicationRunner {
 
             try (FileOutputStream authOut = new FileOutputStream(AUTH_GZ);
                  Writer authWriter = new OutputStreamWriter(new GZIPOutputStream(authOut), StandardCharsets.UTF_8)) {
-
 
                 for (int ac = 0; ac < acctRowCount; ac++) {
 
@@ -270,7 +268,6 @@ public class StartupRunner implements ApplicationRunner {
 
 
                     if (authTotalCount < authRowCount) {
-
 
                         if (faker.random().nextBoolean()) {
 
