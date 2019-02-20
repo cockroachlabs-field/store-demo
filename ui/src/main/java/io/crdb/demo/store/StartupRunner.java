@@ -287,8 +287,6 @@ public class StartupRunner implements ApplicationRunner {
                                 // AUTH_ID
                                 final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
 
-
-
                                 // AUTH_STAT_CD - will always default to "0"; essentially approved
                                 final String authorizationStatus = "0";
 
@@ -321,9 +319,6 @@ public class StartupRunner implements ApplicationRunner {
 
                             balance = Double.toString(newBalance);
                         }
-
-
-
                     }
 
                     final String account = Joiner.on('|')
@@ -336,7 +331,6 @@ public class StartupRunner implements ApplicationRunner {
                                     lastUpdatedUserId,
                                     lastBalanceInquiry,
                                     zipCode);
-
 
                     acctTotalCount++;
 
