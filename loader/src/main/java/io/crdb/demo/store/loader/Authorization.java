@@ -1,4 +1,4 @@
-package io.crdb.demo.store;
+package io.crdb.demo.store.loader;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

@@ -1,4 +1,4 @@
-package io.crdb.demo.store;
+package io.crdb.demo.store.loader;
 
 import com.github.javafaker.Faker;
 import com.google.common.base.Joiner;

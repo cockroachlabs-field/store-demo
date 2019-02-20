@@ -17,7 +17,8 @@
     </properties>
 
     <modules>
-        <module>ui</module>
+        <module>loader</module>
+        <module>runner</module>
     </modules>
 
 </project>

@@ -1,13 +1,13 @@
-package io.crdb.demo.store;
+package io.crdb.demo.store.loader;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class StoreDemoApplication {
+public class LoaderApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(StoreDemoApplication.class, args);
+		SpringApplication.run(LoaderApplication.class, args);
 	}
 
 }
