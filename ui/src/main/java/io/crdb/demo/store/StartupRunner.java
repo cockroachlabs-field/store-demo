@@ -51,7 +51,7 @@ public class StartupRunner implements ApplicationRunner {
 
 
         if (args.containsOption("create")) {
-            createRecords();
+            createData();
         }
 
         if (args.containsOption("load")) {
@@ -80,14 +80,31 @@ public class StartupRunner implements ApplicationRunner {
                 while ((line = br.readLine()) != null) {
                     final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
 
+                    // ACCT_NBR
                     ps.setString(1, columns.get(0));
+
+                    // ACCT_TYPE_IND
                     ps.setString(2, columns.get(1));
+
+                    // ACCT_BAL_AMT
                     ps.setBigDecimal(3, new BigDecimal(columns.get(2)));
+
+                    // ACCT_STAT_CD
                     ps.setInt(4, Integer.parseInt(columns.get(3)));
+
+                    // CRT_TS
                     ps.setTimestamp(5, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(4)).getTime()));
+
+                    // LAST_UPD_TS
                     ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
+
+                    // LAST_UPD_USER_ID
                     ps.setString(7, columns.get(6));
+
+                    // ACTVT_INQ_TS
                     ps.setTimestamp(8, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(7)).getTime()));
+
+                    // ZIPCODE
                     ps.setString(9, columns.get(8));
 
                     ps.addBatch();
@@ -132,14 +149,31 @@ public class StartupRunner implements ApplicationRunner {
                 while ((line = br.readLine()) != null) {
                     final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
 
+                    // ACCT_NBR
                     ps.setString(1, columns.get(0));
+
+                    // REQUEST_ID
                     ps.setObject(2, UUID.fromString(columns.get(1)));
+
+                    // AUTH_ID
                     ps.setString(3, columns.get(2));
+
+                    // AUTH_AMT
                     ps.setBigDecimal(4, new BigDecimal(columns.get(3)));
+
+                    // AUTH_STAT_CD
                     ps.setInt(5, Integer.parseInt(columns.get(4)));
+
+                    // CRT_TS
                     ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
+
+                    // LAST_UPD_TS
                     ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(6)).getTime()));
+
+                    // LAST_UPD_USER_ID
                     ps.setString(8, columns.get(7));
+
+                    // ZIPCODE
                     ps.setString(9, columns.get(8));
 
                     ps.addBatch();
@@ -166,11 +200,18 @@ public class StartupRunner implements ApplicationRunner {
     }
 
 
-    private void createRecords() throws IOException {
+    private void createData() throws IOException {
         final Integer acctRowCount = environment.getProperty("table.acct.row-count", Integer.class, 1000000);
         final Integer authRowCount = environment.getProperty("table.auth.row-count", Integer.class, 1000);
 
         logger.debug("creating {} acct records and {} auth records", acctRowCount, authRowCount);
+
+        File acctFile = new File(ACCT_GZ);
+
+        if (acctFile.exists()) {
+            final boolean deleted = acctFile.delete();
+            logger.debug("deleted file {}: {}", ACCT_GZ, deleted);
+        }
 
         try (FileOutputStream acctOut = new FileOutputStream(ACCT_GZ);
              Writer acctWriter = new OutputStreamWriter(new GZIPOutputStream(acctOut), StandardCharsets.UTF_8)) {
@@ -187,22 +228,103 @@ public class StartupRunner implements ApplicationRunner {
             int authTotalCount = 0;
             int acctTotalCount = 0;
 
+            File authFile = new File(AUTH_GZ);
+
+            if (authFile.exists()) {
+                final boolean deleted = authFile.delete();
+                logger.debug("deleted file {}: {}", AUTH_GZ, deleted);
+            }
+
             try (FileOutputStream authOut = new FileOutputStream(AUTH_GZ);
                  Writer authWriter = new OutputStreamWriter(new GZIPOutputStream(authOut), StandardCharsets.UTF_8)) {
 
 
                 for (int ac = 0; ac < acctRowCount; ac++) {
 
-
+                    // ACCT_NBR
                     final String accountNumber = RandomStringUtils.randomAlphanumeric(25);
+
+                    // ACCT_TYPE_IND
                     final String type = "HD";
-                    final String balance = Double.toString(faker.number().randomDouble(2, -1000, 5000));
+
+                    // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
+                    String balance = "100.00";
+
+                    // ACCT_STAT_CD
                     final String status = "1";
+
+                    // CRT_TS
                     final String createdTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+
+                    // LAST_UPD_TS
                     final String lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+
+                    // LAST_UPD_USER_ID
                     final String lastUpdatedUserId = RandomStringUtils.randomAlphanumeric(8);
+
+                    // ACTVT_INQ_TS
                     final String lastBalanceInquiry = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+
+                    // ZIPCODE
                     final String zipCode = faker.address().zipCode();
+
+
+                    if (authTotalCount < authRowCount) {
+
+
+                        if (faker.random().nextBoolean()) {
+
+                            int count = faker.random().nextInt(1, 10);
+
+                            // AUTH_AMT - for simplicity we are always going authorize $5
+                            final String authorizationAmount = "5.00";
+
+                            for (int au = 0; au < count; au++) {
+
+                                // REQUEST_ID
+                                final String requestId = UUID.randomUUID().toString();
+
+                                // AUTH_ID
+                                final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
+
+
+
+                                // AUTH_STAT_CD - will always default to "0"; essentially approved
+                                final String authorizationStatus = "0";
+
+                                // CRT_TS
+                                final String authorizationCreatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+
+                                // LAST_UPD_TS
+                                final String authorizationLastUpdatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+
+                                // LAST_UPD_USER_ID
+                                final String authorizationLastUpdatedUserId = RandomStringUtils.randomAlphanumeric(8);
+
+                                final String auth = Joiner.on('|')
+                                        .join(accountNumber,
+                                                requestId,
+                                                authorizationId,
+                                                authorizationAmount,
+                                                authorizationStatus,
+                                                authorizationCreatedTimestamp,
+                                                authorizationLastUpdatedTimestamp,
+                                                authorizationLastUpdatedUserId,
+                                                zipCode);
+
+                                authTotalCount++;
+
+                                authWriter.write(auth + '\n');
+                            }
+
+                            double newBalance = Double.valueOf(balance) - (Double.valueOf(authorizationAmount) * count);
+
+                            balance = Double.toString(newBalance);
+                        }
+
+
+
+                    }
 
                     final String account = Joiner.on('|')
                             .join(accountNumber,
@@ -219,32 +341,6 @@ public class StartupRunner implements ApplicationRunner {
                     acctTotalCount++;
 
                     acctWriter.write(account + '\n');
-
-                    if (authTotalCount <= authRowCount) {
-
-                        if (ac != 0 && (ac % 100 == 0)) {
-
-                            int count = faker.random().nextInt(1, 10);
-
-                            for (int au = 0; au < count; au++) {
-
-                                final String auth = Joiner.on('|')
-                                        .join(accountNumber,
-                                                UUID.randomUUID().toString(),
-                                                RandomStringUtils.randomAlphanumeric(64),
-                                                Double.toString(faker.number().randomDouble(2, 0, 1000)),
-                                                Integer.toString(faker.number().numberBetween(0, 2)),
-                                                TIMESTAMP_FORMAT.format(faker.date().between(start, end)),
-                                                TIMESTAMP_FORMAT.format(faker.date().between(start, end)),
-                                                RandomStringUtils.randomAlphanumeric(8),
-                                                zipCode);
-
-                                authTotalCount++;
-
-                                authWriter.write(auth + '\n');
-                            }
-                        }
-                    }
                 }
             }
 
