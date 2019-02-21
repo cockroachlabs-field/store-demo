@@ -36,6 +36,7 @@ public class StartupRunner implements ApplicationRunner {
 
 
     private static final String RUNNER = "RUNNER";
+    public static final String RETRY_SQL_STATE = "40001";
 
     @Autowired
     private DataSource dataSource;
@@ -121,21 +122,25 @@ public class StartupRunner implements ApplicationRunner {
     private double getAvailableBalance(String accountNumber) {
         double availableBalance = 0.0;
 
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
+        try (Connection connection = dataSource.getConnection()) {
 
-            ps.setString(1, accountNumber);
+            try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
 
-            try (ResultSet rs = ps.executeQuery()) {
+                ps.setString(1, accountNumber);
 
-                if (rs != null) {
-                    if (rs.next()) {
-                        double accountBalance = rs.getDouble(1);
-                        double holds = rs.getDouble(2);
+                try (ResultSet rs = ps.executeQuery()) {
 
-                        availableBalance = accountBalance - holds;
+                    if (rs != null) {
+                        if (rs.next()) {
+                            double accountBalance = rs.getDouble(1);
+                            double holds = rs.getDouble(2);
+
+                            availableBalance = accountBalance - holds;
+                        }
                     }
                 }
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
             }
 
         } catch (SQLException e) {
@@ -148,60 +153,88 @@ public class StartupRunner implements ApplicationRunner {
     }
 
     private Authorization createAuthorization(String accountNumber, double purchaseAmount, String locality) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
 
-            final Timestamp now = new Timestamp(System.currentTimeMillis());
+        Authorization auth = null;
 
-            Authorization auth = new Authorization();
-            auth.setAccountNumber(accountNumber);
-            auth.setRequestId(UUID.randomUUID());
-            auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
-            auth.setAuthorizationAmount(new BigDecimal(purchaseAmount));
-            auth.setAuthorizationStatus(0);
-            auth.setCreatedTimestamp(now);
-            auth.setLastUpdatedTimestamp(now);
-            auth.setLastUpdatedUserId(RUNNER);
-            auth.setState(locality);
+        try (Connection connection = dataSource.getConnection()) {
 
-            // ACCT_NBR
-            ps.setString(1, auth.getAccountNumber());
+            connection.setAutoCommit(false);
 
-            // REQUEST_ID
-            ps.setObject(2, auth.getRequestId());
+            Savepoint sp = connection.setSavepoint("cockroach_restart");
 
-            // AUTH_ID
-            ps.setString(3, auth.getAuthorizationId());
+            while (true) {
 
-            // AUTH_AMT
-            ps.setBigDecimal(4, auth.getAuthorizationAmount());
+                try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
 
-            // AUTH_STAT_CD
-            ps.setInt(5, auth.getAuthorizationStatus());
+                    final Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            // CRT_TS
-            ps.setTimestamp(6, auth.getCreatedTimestamp());
+                    auth = new Authorization();
+                    auth.setAccountNumber(accountNumber);
+                    auth.setRequestId(UUID.randomUUID());
+                    auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
+                    auth.setAuthorizationAmount(new BigDecimal(purchaseAmount));
+                    auth.setAuthorizationStatus(0);
+                    auth.setCreatedTimestamp(now);
+                    auth.setLastUpdatedTimestamp(now);
+                    auth.setLastUpdatedUserId(RUNNER);
+                    auth.setState(locality);
 
-            // LAST_UPD_TS
-            ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
+                    // ACCT_NBR
+                    ps.setString(1, auth.getAccountNumber());
 
-            // LAST_UPD_USER_ID
-            ps.setString(8, auth.getLastUpdatedUserId());
+                    // REQUEST_ID
+                    ps.setObject(2, auth.getRequestId());
 
-            // STATE
-            ps.setString(9, auth.getState());
+                    // AUTH_ID
+                    ps.setString(3, auth.getAuthorizationId());
 
-            final int updateCount = ps.executeUpdate();
+                    // AUTH_AMT
+                    ps.setBigDecimal(4, auth.getAuthorizationAmount());
 
-            logger.debug("{} records created in authorization table for account {} and locality {}", updateCount, accountNumber, locality);
+                    // AUTH_STAT_CD
+                    ps.setInt(5, auth.getAuthorizationStatus());
 
-            return auth;
+                    // CRT_TS
+                    ps.setTimestamp(6, auth.getCreatedTimestamp());
+
+                    // LAST_UPD_TS
+                    ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
+
+                    // LAST_UPD_USER_ID
+                    ps.setString(8, auth.getLastUpdatedUserId());
+
+                    // STATE
+                    ps.setString(9, auth.getState());
+
+                    final int updateCount = ps.executeUpdate();
+
+                    logger.debug("{} records created in authorization table for account {} and locality {}", updateCount, accountNumber, locality);
+
+                    break;
+
+                } catch (SQLException e) {
+                    logger.error(e.getMessage(), e);
+
+                    String sqlState = e.getSQLState();
+
+                    if (RETRY_SQL_STATE.equals(sqlState)) {
+                        connection.rollback(sp);
+                    } else {
+                        throw e;
+                    }
+                }
+
+            }
+
+            connection.commit();
+
+            connection.setAutoCommit(true);
 
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
 
-        return null;
+        return auth;
     }
 
 
@@ -210,28 +243,55 @@ public class StartupRunner implements ApplicationRunner {
 
             Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
-                ps.setInt(1, 1);
-                ps.setTimestamp(2, now);
-                ps.setString(3, authorization.getLastUpdatedUserId());
-                ps.setString(4, authorization.getAccountNumber());
-                ps.setObject(5, authorization.getRequestId());
+            connection.setAutoCommit(false);
 
-                ps.executeUpdate();
+            Savepoint sp = connection.setSavepoint("cockroach_restart");
+
+            while (true) {
+
+                try {
+
+                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
+                        ps.setInt(1, 1);
+                        ps.setTimestamp(2, now);
+                        ps.setString(3, authorization.getLastUpdatedUserId());
+                        ps.setString(4, authorization.getAccountNumber());
+                        ps.setObject(5, authorization.getRequestId());
+
+                        ps.executeUpdate();
+                    }
+
+                    now = new Timestamp(System.currentTimeMillis());
+
+                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
+                        ps.setBigDecimal(1, new BigDecimal(newBalance));
+                        ps.setTimestamp(2, now);
+                        ps.setString(3, authorization.getLastUpdatedUserId());
+                        ps.setString(4, authorization.getAccountNumber());
+
+                        ps.executeUpdate();
+                    }
+
+                    logger.debug("update to accounts is complete");
+
+                    break;
+
+                } catch (SQLException e) {
+                    logger.error(e.getMessage(), e);
+
+                    String sqlState = e.getSQLState();
+
+                    if (RETRY_SQL_STATE.equals(sqlState)) {
+                        connection.rollback(sp);
+                    } else {
+                        throw e;
+                    }
+                }
             }
 
-            now = new Timestamp(System.currentTimeMillis());
+            connection.commit();
 
-            try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
-                ps.setBigDecimal(1, new BigDecimal(newBalance));
-                ps.setTimestamp(2, now);
-                ps.setString(3, authorization.getLastUpdatedUserId());
-                ps.setString(4, authorization.getAccountNumber());
-
-                ps.executeUpdate();
-            }
-
-            logger.debug("update to accounts is complete");
+            connection.setAutoCommit(true);
 
 
         } catch (SQLException e) {
