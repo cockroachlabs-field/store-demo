@@ -276,7 +276,7 @@ public class StartupRunner implements ApplicationRunner {
                     final String type = "HD";
 
                     // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
-                    String balance = "100.00";
+                    double balance = 100.00;
 
                     // ACCT_STAT_CD
                     final String status = "1";
@@ -307,7 +307,7 @@ public class StartupRunner implements ApplicationRunner {
                             int count = faker.random().nextInt(1, 10);
 
                             // AUTH_AMT - for simplicity we are always going authorize $5
-                            final String authorizationAmount = "5.00";
+                            final double authorizationAmount = 5.00;
 
                             java.util.Date authorizationCreatedTS = null;
 
@@ -319,8 +319,18 @@ public class StartupRunner implements ApplicationRunner {
                                 // AUTH_ID
                                 final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
 
-                                // AUTH_STAT_CD - will always default to "1"; 1 means account balance applied
-                                final String authorizationStatus = "1";
+                                // AUTH_STAT_CD - if 1 apply to balance, if 0 its a hold
+
+                                final boolean applyBalance = faker.random().nextBoolean();
+
+                                String authorizationStatus;
+
+                                if (applyBalance) {
+                                    authorizationStatus = "1";
+                                    balance -= authorizationAmount;
+                                } else {
+                                    authorizationStatus = "0";
+                                }
 
                                 // CRT_TS
                                 if (authorizationCreatedTS == null) {
@@ -352,10 +362,6 @@ public class StartupRunner implements ApplicationRunner {
 
                                 authWriter.write(auth + '\n');
                             }
-
-                            double newBalance = Double.valueOf(balance) - (Double.valueOf(authorizationAmount) * count);
-
-                            balance = Double.toString(newBalance);
 
                             lastBalanceInquiry = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
                             lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
