@@ -41,6 +41,7 @@ public class StartupRunner implements ApplicationRunner {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
     private static final String ACCT_GZ = "acct.gz";
     private static final String AUTH_GZ = "auth.gz";
+    public static final String USER_ID = "LOADER";
 
     @Autowired
     private DataSource dataSource;
@@ -266,6 +267,8 @@ public class StartupRunner implements ApplicationRunner {
 
                 for (int ac = 0; ac < acctRowCount; ac++) {
 
+                    final java.util.Date createdDate = faker.date().between(start, end);
+
                     // ACCT_NBR
                     final String accountNumber = RandomStringUtils.randomAlphanumeric(25);
 
@@ -282,7 +285,7 @@ public class StartupRunner implements ApplicationRunner {
                     final String expirationDate = null;
 
                     // CRT_TS
-                    final String createdTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+                    final String createdTimestamp = TIMESTAMP_FORMAT.format(createdDate);
 
                     // LAST_UPD_TS
                     String lastUpdatedTimestamp = null;
@@ -306,6 +309,8 @@ public class StartupRunner implements ApplicationRunner {
                             // AUTH_AMT - for simplicity we are always going authorize $5
                             final String authorizationAmount = "5.00";
 
+                            java.util.Date authorizationCreatedTS = null;
+
                             for (int au = 0; au < count; au++) {
 
                                 // REQUEST_ID
@@ -314,17 +319,23 @@ public class StartupRunner implements ApplicationRunner {
                                 // AUTH_ID
                                 final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
 
-                                // AUTH_STAT_CD - will always default to "0"; essentially approved
-                                final String authorizationStatus = "0";
+                                // AUTH_STAT_CD - will always default to "1"; 1 means account balance applied
+                                final String authorizationStatus = "1";
 
                                 // CRT_TS
-                                final String authorizationCreatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+                                if (authorizationCreatedTS == null) {
+                                    authorizationCreatedTS = faker.date().between(createdDate, end);
+                                } else {
+                                    authorizationCreatedTS = faker.date().between(authorizationCreatedTS, end);
+                                }
+
+                                final String authorizationCreatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
 
                                 // LAST_UPD_TS
-                                final String authorizationLastUpdatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+                                final String authorizationLastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
 
                                 // LAST_UPD_USER_ID
-                                final String authorizationLastUpdatedUserId = RandomStringUtils.randomAlphanumeric(8);
+                                final String authorizationLastUpdatedUserId = USER_ID;
 
                                 final String auth = Joiner.on('|').useForNull("")
                                         .join(accountNumber,
@@ -346,10 +357,9 @@ public class StartupRunner implements ApplicationRunner {
 
                             balance = Double.toString(newBalance);
 
-                            final Date rightNow = Date.valueOf(LocalDate.now());
-                            lastBalanceInquiry = TIMESTAMP_FORMAT.format(rightNow);
-                            lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(rightNow);
-                            lastUpdatedUserId = "LOADER";
+                            lastBalanceInquiry = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+                            lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+                            lastUpdatedUserId = USER_ID;
                         }
                     }
 
