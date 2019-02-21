@@ -19,6 +19,7 @@
     <modules>
         <module>loader</module>
         <module>runner</module>
+        <module>common</module>
     </modules>
 
 </project>
