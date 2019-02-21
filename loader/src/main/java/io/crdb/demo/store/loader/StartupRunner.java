@@ -41,7 +41,7 @@ public class StartupRunner implements ApplicationRunner {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
     private static final String ACCT_GZ = "acct.gz";
     private static final String AUTH_GZ = "auth.gz";
-    public static final String USER_ID = "LOADER";
+    private static final String USER_ID = "LOADER";
 
     @Autowired
     private DataSource dataSource;
@@ -71,7 +71,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final Integer batchSize = environment.getProperty("loader.batch.size", Integer.class);
+        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
@@ -246,7 +246,7 @@ public class StartupRunner implements ApplicationRunner {
 
             Faker faker = new Faker(new Locale("en-US"));
 
-            final Date start = Date.valueOf(LocalDate.of(1980, 01, 01));
+            final Date start = Date.valueOf(LocalDate.of(1980, 1, 1));
             final Date end = Date.valueOf(LocalDate.now());
 
             StopWatch sw = new StopWatch();

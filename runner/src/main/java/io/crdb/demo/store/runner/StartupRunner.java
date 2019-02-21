@@ -98,18 +98,18 @@ public class StartupRunner implements ApplicationRunner {
 
         for (String accountNumber : accountNumbers) {
 
-            double purchaseAmmount = 5.00;
+            double purchaseAmount = 5.00;
 
             Double availableBalance = getAvailableBalance(accountNumber);
 
             // for now we are ignoring balance
-            Authorization authorization = createAuthorization(accountNumber, purchaseAmmount, locality);
+            Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
 
-            if (availableBalance < purchaseAmmount) {
-                logger.warn("available balance is not sufficient {} for purchase amount {}", availableBalance, purchaseAmmount);
+            if (availableBalance < purchaseAmount) {
+                logger.warn("available balance is not sufficient {} for purchase amount {}", availableBalance, purchaseAmount);
             }
 
-            double newBalance = availableBalance - purchaseAmmount;
+            double newBalance = availableBalance - purchaseAmount;
 
             updateRecords(authorization, newBalance);
 
