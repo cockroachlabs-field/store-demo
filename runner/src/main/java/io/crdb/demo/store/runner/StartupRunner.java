@@ -16,6 +16,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 @Component
@@ -36,14 +38,18 @@ public class StartupRunner implements ApplicationRunner {
 
 
     private static final String RUNNER = "RUNNER";
-    public static final String RETRY_SQL_STATE = "40001";
+    private static final String RETRY_SQL_STATE = "40001";
 
-    @Autowired
     private DataSource dataSource;
 
-    @Autowired
     private Environment environment;
 
+
+    @Autowired
+    public StartupRunner(DataSource dataSource, Environment environment) {
+        this.dataSource = dataSource;
+        this.environment = environment;
+    }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -97,24 +103,30 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests(List<String> accountNumbers, String locality) {
 
+        final int nThreads = Runtime.getRuntime().availableProcessors();
+
+        logger.info("starting ExecutorService with {} threads", nThreads);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
+
         for (String accountNumber : accountNumbers) {
 
             double purchaseAmount = 5.00;
 
-            Double availableBalance = getAvailableBalance(accountNumber);
+            executorService.execute(() -> {
+                Double availableBalance = getAvailableBalance(accountNumber);
 
-            // for now we are ignoring balance
-            Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
+                // for now we are ignoring balance
+                Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
 
-            if (availableBalance < purchaseAmount) {
-                logger.warn("available balance is not sufficient {} for purchase amount {}", availableBalance, purchaseAmount);
-            }
+                double newBalance = availableBalance - purchaseAmount;
 
-            double newBalance = availableBalance - purchaseAmount;
-
-            updateRecords(authorization, newBalance);
+                updateRecords(authorization, newBalance);
+            });
 
         }
+
+        executorService.shutdown();
 
     }
 
