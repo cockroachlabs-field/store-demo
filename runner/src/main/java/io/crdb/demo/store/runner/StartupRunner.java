@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 @Component
@@ -39,6 +40,7 @@ public class StartupRunner implements ApplicationRunner {
 
     private static final String RUNNER = "RUNNER";
     private static final String RETRY_SQL_STATE = "40001";
+    private static final String SAVEPOINT = "cockroach_restart";
 
     private DataSource dataSource;
 
@@ -68,7 +70,7 @@ public class StartupRunner implements ApplicationRunner {
 
         List<String> accountNumbers = getAccountNumbers(locality);
 
-        logger.debug("returned {} accounts for this test with locality = {}", accountNumbers.size(), locality);
+        logger.info("returned {} accounts for this test with locality = {}", accountNumbers.size(), locality);
 
         if (accountNumbers.size() == 0) {
             logger.warn("unable to find any account numbers for locality {}", locality);
@@ -104,16 +106,23 @@ public class StartupRunner implements ApplicationRunner {
     private void runTests(List<String> accountNumbers, String locality) {
 
         final int nThreads = Runtime.getRuntime().availableProcessors();
+        final int accountsSize = accountNumbers.size();
+        final ThreadLocalRandom current = ThreadLocalRandom.current();
 
         logger.info("starting ExecutorService with {} threads", nThreads);
 
-        final ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
+        final ExecutorService poolService = Executors.newFixedThreadPool(nThreads);
 
-        for (String accountNumber : accountNumbers) {
+        long end = System.currentTimeMillis() + (1000 * 60 * 1);
+
+        while (System.currentTimeMillis() < end) {
 
             double purchaseAmount = 5.00;
 
-            executorService.execute(() -> {
+            poolService.execute(() -> {
+
+                String accountNumber = accountNumbers.get(current.nextInt(0, accountsSize));
+
                 Double availableBalance = getAvailableBalance(accountNumber);
 
                 // for now we are ignoring balance
@@ -126,7 +135,7 @@ public class StartupRunner implements ApplicationRunner {
 
         }
 
-        executorService.shutdown();
+        poolService.shutdown();
 
     }
 
@@ -159,7 +168,7 @@ public class StartupRunner implements ApplicationRunner {
             logger.error(e.getMessage(), e);
         }
 
-        logger.debug("available balance for [{}] is {}", accountNumber, availableBalance);
+        //logger.trace("available balance for [{}] is {}", accountNumber, availableBalance);
 
         return availableBalance;
     }
@@ -172,9 +181,11 @@ public class StartupRunner implements ApplicationRunner {
 
             connection.setAutoCommit(false);
 
-            Savepoint sp = connection.setSavepoint("cockroach_restart");
+            int retryCount = 1;
 
             while (true) {
+
+                Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
                 try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
 
@@ -220,25 +231,29 @@ public class StartupRunner implements ApplicationRunner {
 
                     final int updateCount = ps.executeUpdate();
 
-                    logger.debug("{} records created in authorization table for account {} and locality {}", updateCount, accountNumber, locality);
+                    connection.releaseSavepoint(sp);
+
+                    connection.commit();
+
+                    //logger.trace("attempt {}: {} records created in authorization table for account {} and locality {}", retryCount, updateCount, accountNumber, locality);
 
                     break;
 
                 } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
 
                     String sqlState = e.getSQLState();
 
                     if (RETRY_SQL_STATE.equals(sqlState)) {
+                        logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+
                         connection.rollback(sp);
+                        retryCount++;
                     } else {
                         throw e;
                     }
                 }
 
             }
-
-            connection.commit();
 
             connection.setAutoCommit(true);
 
@@ -257,9 +272,11 @@ public class StartupRunner implements ApplicationRunner {
 
             connection.setAutoCommit(false);
 
-            Savepoint sp = connection.setSavepoint("cockroach_restart");
+            int retryCount = 1;
 
             while (true) {
+
+                Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
                 try {
 
@@ -284,24 +301,27 @@ public class StartupRunner implements ApplicationRunner {
                         ps.executeUpdate();
                     }
 
-                    logger.debug("update to accounts is complete");
+                    connection.releaseSavepoint(sp);
+
+                    connection.commit();
+
+                    //logger.trace("attempt {}: update to accounts is complete", retryCount);
 
                     break;
 
                 } catch (SQLException e) {
-                    logger.error(e.getMessage(), e);
-
                     String sqlState = e.getSQLState();
 
                     if (RETRY_SQL_STATE.equals(sqlState)) {
+                        logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+
                         connection.rollback(sp);
+                        retryCount++;
                     } else {
                         throw e;
                     }
                 }
             }
-
-            connection.commit();
 
             connection.setAutoCommit(true);
 
