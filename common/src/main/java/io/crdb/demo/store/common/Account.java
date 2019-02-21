@@ -15,7 +15,7 @@ public class Account {
     private Timestamp lastUpdatedTimestamp;
     private String lastUpdatedUserId;
     private Timestamp lastBalanceInquiry;
-    private String zipCode;
+    private String state;
 
     public String getAccountNumber() {
         return accountNumber;
@@ -89,11 +89,11 @@ public class Account {
         this.lastBalanceInquiry = lastBalanceInquiry;
     }
 
-    public String getZipCode() {
-        return zipCode;
+    public String getState() {
+        return state;
     }
 
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
+    public void setState(String state) {
+        this.state = state;
     }
 }

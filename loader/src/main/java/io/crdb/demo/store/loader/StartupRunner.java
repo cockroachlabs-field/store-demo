@@ -4,6 +4,7 @@ import com.github.javafaker.Faker;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ public class StartupRunner implements ApplicationRunner {
     private static final Logger logger = LoggerFactory.getLogger(StartupRunner.class);
     private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat(TIMESTAMP_PATTERN);
+
+    private static final String DATE_PATTERN = "yyyy-MM-dd";
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
     private static final String ACCT_GZ = "acct.gz";
     private static final String AUTH_GZ = "auth.gz";
 
@@ -65,7 +69,7 @@ public class StartupRunner implements ApplicationRunner {
         StopWatch sw = new StopWatch("load acct");
         sw.start();
 
-        final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, ZIPCODE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         final Integer batchSize = environment.getProperty("loader.batch.size", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
@@ -92,20 +96,43 @@ public class StartupRunner implements ApplicationRunner {
                     // ACCT_STAT_CD
                     ps.setInt(4, Integer.parseInt(columns.get(3)));
 
-                    // CRT_TS
-                    ps.setTimestamp(5, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(4)).getTime()));
+                    // EXPIR_DT
+                    final String expirationDate = columns.get(4);
+                    if (StringUtils.isNotBlank(expirationDate)) {
+                        ps.setDate(5, new java.sql.Date(DATE_FORMAT.parse(expirationDate).getTime()));
+                    } else {
+                        ps.setDate(5, null);
+                    }
 
-                    // LAST_UPD_TS
+                    // CRT_TS
                     ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
 
+                    // LAST_UPD_TS
+                    final String lastUpdatedTimestamp = columns.get(6);
+                    if (StringUtils.isNotBlank(lastUpdatedTimestamp)) {
+                        ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(lastUpdatedTimestamp).getTime()));
+                    } else {
+                        ps.setTimestamp(7, null);
+                    }
+
                     // LAST_UPD_USER_ID
-                    ps.setString(7, columns.get(6));
+                    final String lastUpdatedUserId = columns.get(7);
+                    if (StringUtils.isNotBlank(lastUpdatedUserId)) {
+                        ps.setString(8, lastUpdatedUserId);
+                    } else {
+                        ps.setString(8, null);
+                    }
 
                     // ACTVT_INQ_TS
-                    ps.setTimestamp(8, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(7)).getTime()));
+                    final String inquiryTimestamp = columns.get(8);
+                    if (StringUtils.isNotBlank(inquiryTimestamp)) {
+                        ps.setTimestamp(9, new Timestamp(TIMESTAMP_FORMAT.parse(inquiryTimestamp).getTime()));
+                    } else {
+                        ps.setTimestamp(9, null);
+                    }
 
-                    // ZIPCODE
-                    ps.setString(9, columns.get(8));
+                    // STATE
+                    ps.setString(10, columns.get(9));
 
                     ps.addBatch();
 
@@ -134,7 +161,7 @@ public class StartupRunner implements ApplicationRunner {
         StopWatch sw = new StopWatch("load auth");
         sw.start();
 
-        final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ZIPCODE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         final Integer batchSize = environment.getProperty("loader.batch.size", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
@@ -173,7 +200,7 @@ public class StartupRunner implements ApplicationRunner {
                     // LAST_UPD_USER_ID
                     ps.setString(8, columns.get(7));
 
-                    // ZIPCODE
+                    // STATE
                     ps.setString(9, columns.get(8));
 
                     ps.addBatch();
@@ -251,20 +278,23 @@ public class StartupRunner implements ApplicationRunner {
                     // ACCT_STAT_CD
                     final String status = "1";
 
+                    // EXPIR_DT
+                    final String expirationDate = null;
+
                     // CRT_TS
                     final String createdTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
 
                     // LAST_UPD_TS
-                    final String lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+                    String lastUpdatedTimestamp = null;
 
                     // LAST_UPD_USER_ID
-                    final String lastUpdatedUserId = RandomStringUtils.randomAlphanumeric(8);
+                    String lastUpdatedUserId = null;
 
                     // ACTVT_INQ_TS
-                    final String lastBalanceInquiry = TIMESTAMP_FORMAT.format(faker.date().between(start, end));
+                    String lastBalanceInquiry = null;
 
-                    // ZIPCODE
-                    final String zipCode = faker.address().zipCode();
+                    // STATE
+                    final String state = faker.address().stateAbbr();
 
 
                     if (authTotalCount < authRowCount) {
@@ -296,7 +326,7 @@ public class StartupRunner implements ApplicationRunner {
                                 // LAST_UPD_USER_ID
                                 final String authorizationLastUpdatedUserId = RandomStringUtils.randomAlphanumeric(8);
 
-                                final String auth = Joiner.on('|')
+                                final String auth = Joiner.on('|').useForNull("")
                                         .join(accountNumber,
                                                 requestId,
                                                 authorizationId,
@@ -305,7 +335,7 @@ public class StartupRunner implements ApplicationRunner {
                                                 authorizationCreatedTimestamp,
                                                 authorizationLastUpdatedTimestamp,
                                                 authorizationLastUpdatedUserId,
-                                                zipCode);
+                                                state);
 
                                 authTotalCount++;
 
@@ -315,19 +345,25 @@ public class StartupRunner implements ApplicationRunner {
                             double newBalance = Double.valueOf(balance) - (Double.valueOf(authorizationAmount) * count);
 
                             balance = Double.toString(newBalance);
+
+                            final Date rightNow = Date.valueOf(LocalDate.now());
+                            lastBalanceInquiry = TIMESTAMP_FORMAT.format(rightNow);
+                            lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(rightNow);
+                            lastUpdatedUserId = "LOADER";
                         }
                     }
 
-                    final String account = Joiner.on('|')
+                    final String account = Joiner.on('|').useForNull("")
                             .join(accountNumber,
                                     type,
                                     balance,
                                     status,
+                                    expirationDate,
                                     createdTimestamp,
                                     lastUpdatedTimestamp,
                                     lastUpdatedUserId,
                                     lastBalanceInquiry,
-                                    zipCode);
+                                    state);
 
                     acctTotalCount++;
 
