@@ -1,20 +1,19 @@
-package io.crdb.demo.store.loader;
+package io.crdb.demo.store.common;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.UUID;
 
-public class Account {
+public class Authorization {
 
     private String accountNumber;
-    private String type;
-    private BigDecimal balance;
-    private Integer status;
-    private Date expirationDate;
+    private UUID requestId;
+    private String authorizationId;
+    private BigDecimal authorizationAmount;
+    private Integer authorizationStatus;
     private Timestamp createdTimestamp;
     private Timestamp lastUpdatedTimestamp;
     private String lastUpdatedUserId;
-    private Timestamp lastBalanceInquiry;
     private String zipCode;
 
     public String getAccountNumber() {
@@ -25,36 +24,36 @@ public class Account {
         this.accountNumber = accountNumber;
     }
 
-    public String getType() {
-        return type;
+    public UUID getRequestId() {
+        return requestId;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRequestId(UUID requestId) {
+        this.requestId = requestId;
     }
 
-    public BigDecimal getBalance() {
-        return balance;
+    public String getAuthorizationId() {
+        return authorizationId;
     }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    public void setAuthorizationId(String authorizationId) {
+        this.authorizationId = authorizationId;
     }
 
-    public Integer getStatus() {
-        return status;
+    public BigDecimal getAuthorizationAmount() {
+        return authorizationAmount;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setAuthorizationAmount(BigDecimal authorizationAmount) {
+        this.authorizationAmount = authorizationAmount;
     }
 
-    public Date getExpirationDate() {
-        return expirationDate;
+    public Integer getAuthorizationStatus() {
+        return authorizationStatus;
     }
 
-    public void setExpirationDate(Date expirationDate) {
-        this.expirationDate = expirationDate;
+    public void setAuthorizationStatus(Integer authorizationStatus) {
+        this.authorizationStatus = authorizationStatus;
     }
 
     public Timestamp getCreatedTimestamp() {
@@ -79,14 +78,6 @@ public class Account {
 
     public void setLastUpdatedUserId(String lastUpdatedUserId) {
         this.lastUpdatedUserId = lastUpdatedUserId;
-    }
-
-    public Timestamp getLastBalanceInquiry() {
-        return lastBalanceInquiry;
-    }
-
-    public void setLastBalanceInquiry(Timestamp lastBalanceInquiry) {
-        this.lastBalanceInquiry = lastBalanceInquiry;
     }
 
     public String getZipCode() {
