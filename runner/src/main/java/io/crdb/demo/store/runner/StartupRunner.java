@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
 
 
 @Component
@@ -105,23 +104,17 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests(List<String> accountNumbers, String locality) {
 
-        final int nThreads = Runtime.getRuntime().availableProcessors();
-        final int accountsSize = accountNumbers.size();
-        final ThreadLocalRandom current = ThreadLocalRandom.current();
+        final int threadCount = Runtime.getRuntime().availableProcessors();
 
-        logger.info("starting ExecutorService with {} threads", nThreads);
+        logger.info("starting ExecutorService with {} threads", threadCount);
 
-        final ExecutorService poolService = Executors.newFixedThreadPool(nThreads);
+        final ExecutorService poolService = Executors.newFixedThreadPool(threadCount);
 
-        long end = System.currentTimeMillis() + (1000 * 60 * 1);
+        double purchaseAmount = 5.00;
 
-        while (System.currentTimeMillis() < end) {
-
-            double purchaseAmount = 5.00;
+        for (String accountNumber : accountNumbers) {
 
             poolService.execute(() -> {
-
-                String accountNumber = accountNumbers.get(current.nextInt(0, accountsSize));
 
                 Double availableBalance = getAvailableBalance(accountNumber);
 
@@ -131,9 +124,11 @@ public class StartupRunner implements ApplicationRunner {
                 double newBalance = availableBalance - purchaseAmount;
 
                 updateRecords(authorization, newBalance);
+
             });
 
         }
+
 
         poolService.shutdown();
 
