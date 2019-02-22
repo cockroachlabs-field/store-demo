@@ -59,9 +59,8 @@ public class StartupRunner implements ApplicationRunner {
         this.environment = environment;
 
         availableBalanceTimer = Timer.builder("runner.available_balance")
-                .publishPercentileHistogram()
-                .publishPercentiles(0.5, 0.95)
                 .description("query available balance")
+                .publishPercentileHistogram()
                 .register(meterRegistry);
 
         createAuthorizationTimer = meterRegistry.timer("runner.create_auth");
