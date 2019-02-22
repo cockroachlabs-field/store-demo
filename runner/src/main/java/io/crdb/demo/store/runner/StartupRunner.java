@@ -60,6 +60,7 @@ public class StartupRunner implements ApplicationRunner {
 
         availableBalanceTimer = Timer.builder("runner.available_balance")
                 .description("query available balance")
+                .publishPercentiles(0.5, 0.95)
                 .publishPercentileHistogram()
                 .register(meterRegistry);
 
