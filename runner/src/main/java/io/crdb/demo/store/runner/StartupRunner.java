@@ -1,6 +1,8 @@
 package io.crdb.demo.store.runner;
 
 import io.crdb.demo.store.common.Authorization;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +48,24 @@ public class StartupRunner implements ApplicationRunner {
     private Environment environment;
 
 
+    private final Timer availableBalanceTimer;
+    private final Timer createAuthorizationTimer;
+    private final Timer updateRecordsTimer;
+
+
     @Autowired
-    public StartupRunner(DataSource dataSource, Environment environment) {
+    public StartupRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry) {
         this.dataSource = dataSource;
         this.environment = environment;
+
+        availableBalanceTimer = Timer.builder("runner.available_balance")
+                .publishPercentileHistogram()
+                .publishPercentiles(0.5, 0.95)
+                .description("query available balance")
+                .register(meterRegistry);
+
+        createAuthorizationTimer = meterRegistry.timer("runner.create_auth");
+        updateRecordsTimer = meterRegistry.timer("runner.update_auth");
     }
 
     @Override
@@ -129,6 +145,7 @@ public class StartupRunner implements ApplicationRunner {
 
         }
 
+        logger.info("shutting down ExecutorService");
 
         poolService.shutdown();
 
@@ -136,36 +153,42 @@ public class StartupRunner implements ApplicationRunner {
 
 
     private double getAvailableBalance(String accountNumber) {
-        double availableBalance = 0.0;
 
-        try (Connection connection = dataSource.getConnection()) {
+        return availableBalanceTimer.record(() -> {
 
-            try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
+            double availableBalance = 0.0;
 
-                ps.setString(1, accountNumber);
+            try (Connection connection = dataSource.getConnection()) {
 
-                try (ResultSet rs = ps.executeQuery()) {
+                try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
 
-                    if (rs != null) {
-                        if (rs.next()) {
-                            double accountBalance = rs.getDouble(1);
-                            double holds = rs.getDouble(2);
+                    ps.setString(1, accountNumber);
 
-                            availableBalance = accountBalance - holds;
+                    try (ResultSet rs = ps.executeQuery()) {
+
+                        if (rs != null) {
+                            if (rs.next()) {
+                                double accountBalance = rs.getDouble(1);
+                                double holds = rs.getDouble(2);
+
+                                availableBalance = accountBalance - holds;
+                            }
                         }
                     }
+                } catch (SQLException e) {
+                    logger.error(e.getMessage(), e);
                 }
+
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
             }
 
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
+            //logger.trace("available balance for [{}] is {}", accountNumber, availableBalance);
 
-        //logger.trace("available balance for [{}] is {}", accountNumber, availableBalance);
+            return availableBalance;
+        });
 
-        return availableBalance;
+
     }
 
     private Authorization createAuthorization(String accountNumber, double purchaseAmount, String locality) {
