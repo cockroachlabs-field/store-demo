@@ -36,6 +36,15 @@ services:
     depends_on:
       - crdb-1
 
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    build: ./prometheus
+    networks:
+      - crdb-net
+    ports:
+      - "9090:9090"
+
   lb:
     container_name: lb
     hostname: lb
