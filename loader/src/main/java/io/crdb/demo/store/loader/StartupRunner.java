@@ -163,7 +163,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final Integer batchSize = environment.getProperty("loader.batch.size", Integer.class);
+        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
@@ -229,8 +229,8 @@ public class StartupRunner implements ApplicationRunner {
 
 
     private void createData() throws IOException {
-        final Integer acctRowCount = environment.getProperty("table.acct.row-count", Integer.class, 1000000);
-        final Integer authRowCount = environment.getProperty("table.auth.row-count", Integer.class, 1000);
+        final int acctRowCount = environment.getProperty("table.acct.row-count", Integer.class, 1000000);
+        final int authRowCount = environment.getProperty("table.auth.row-count", Integer.class, 1000);
 
         logger.debug("creating {} acct records and {} auth records", acctRowCount, authRowCount);
 
