@@ -23,7 +23,7 @@ resource "google_compute_instance" "cockroach" {
     }
   }
 
-  metadata_startup_script = "${file("${path.module}/scripts/bootstrap.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/install.sh")}"
 
   network_interface {
     network = "${google_compute_network.vpc_network.self_link}"
@@ -32,6 +32,23 @@ resource "google_compute_instance" "cockroach" {
       // Include this section to give the VM an external ip address
     }
   }
+
+
+  provisioner "remote-exec" {
+    inline = [
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --join=${self.network_interface.0.network_ip}"
+    ]
+
+    connection {
+      timeout = "5s"
+      user = "timveil"
+      private_key = "${file("~/.ssh/google_compute_engine")}"
+    }
+
+  }
+
+  depends_on = [
+    "google_compute_firewall.ssh"]
 }
 
 resource "google_compute_network" "vpc_network" {
