@@ -9,5 +9,3 @@ sudo service ntp reload
 wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.5.linux-amd64.tgz | tar  xvz
 
 sudo cp -i cockroach-v2.1.5.linux-amd64/cockroach /usr/local/bin
-
-#cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background

@@ -4,7 +4,7 @@ provider "google" {
 }
 
 
-resource "google_compute_instance" "cockroach" {
+resource "google_compute_instance" "google_cockroach" {
 
   count = 3
 
@@ -26,39 +26,22 @@ resource "google_compute_instance" "cockroach" {
   metadata_startup_script = "${file("${path.module}/scripts/install.sh")}"
 
   network_interface {
-    network = "${google_compute_network.vpc_network.self_link}"
+    network = "${google_compute_network.google_vpc_network.self_link}"
 
     access_config {
       // Include this section to give the VM an external ip address
     }
   }
-
-
-  provisioner "remote-exec" {
-    inline = [
-      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --join=${self.network_interface.0.network_ip}"
-    ]
-
-    connection {
-      timeout = "5s"
-      user = "timveil"
-      private_key = "${file("~/.ssh/google_compute_engine")}"
-    }
-
-  }
-
-  depends_on = [
-    "google_compute_firewall.ssh"]
 }
 
-resource "google_compute_network" "vpc_network" {
+resource "google_compute_network" "google_vpc_network" {
   name = "crdb-network"
   auto_create_subnetworks = "true"
 }
 
-resource "google_compute_firewall" "sql" {
+resource "google_compute_firewall" "google_sql" {
   name = "allow-crdb-sql"
-  network = "${google_compute_network.vpc_network.self_link}"
+  network = "${google_compute_network.google_vpc_network.self_link}"
 
   allow {
     protocol = "tcp"
@@ -70,9 +53,9 @@ resource "google_compute_firewall" "sql" {
     "cockroach"]
 }
 
-resource "google_compute_firewall" "ui" {
+resource "google_compute_firewall" "google_ui" {
   name = "allow-crdb-ui"
-  network = "${google_compute_network.vpc_network.self_link}"
+  network = "${google_compute_network.google_vpc_network.self_link}"
 
   allow {
     protocol = "tcp"
@@ -84,9 +67,9 @@ resource "google_compute_firewall" "ui" {
     "cockroach"]
 }
 
-resource "google_compute_firewall" "ssh" {
+resource "google_compute_firewall" "google_ssh" {
   name = "allow-ssh"
-  network = "${google_compute_network.vpc_network.self_link}"
+  network = "${google_compute_network.google_vpc_network.self_link}"
 
   allow {
     protocol = "tcp"
@@ -98,14 +81,44 @@ resource "google_compute_firewall" "ssh" {
     "cockroach"]
 }
 
-output "google_cockroach_ips" {
-  value = "${join(",", google_compute_instance.cockroach.*.network_interface.0.access_config.0.nat_ip)}"
+output "google_cockroach_public_ips" {
+  description = "Public IP's of Cockroach Nodes"
+  value = "${join(",", google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip)}"
+}
+
+output "google_cockroach_private_ips" {
+  description = "Private IP's of Cockroach Nodes"
+  value = "${join(",", google_compute_instance.google_cockroach.*.network_interface.0.network_ip)}"
 }
 
 output "google_cockroach_instances" {
-  value = "${join(",", google_compute_instance.cockroach.*.name)}"
+  description = "Names of Cockroach Nodes"
+  value = "${join(",", google_compute_instance.google_cockroach.*.name)}"
 }
 
 output "google_admin_urls" {
-  value = "${join(",", formatlist("http://%s:8080/", google_compute_instance.cockroach.*.network_interface.0.access_config.0.nat_ip))}"
+  description = "Admin URL's for Cockroach Nodes"
+  value = "${join(",", formatlist("http://%s:8080/", google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip))}"
+}
+
+resource "null_resource" "google_start_cluster" {
+
+  count = 3
+
+  connection {
+    user = "timveil"
+    host = "${element(google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip, count.index)}"
+    private_key = "${file("~/.ssh/google_compute_engine")}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --advertise-addr=${element(google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip, count.index)} --join=${join(",", google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip)}",
+      "sleep 20"
+    ]
+  }
+
+  depends_on = [
+    "google_compute_firewall.google_ssh"]
+
 }
