@@ -3,15 +3,13 @@ provider "google" {
   project = "cockroach-tv"
 }
 
-// Terraform plugin for creating random ids
-resource "random_id" "instance_id" {
-  byte_length = 8
-}
-
 
 // A single Google Cloud Engine instance
 resource "google_compute_instance" "default" {
-  name = "crdb-vm-${random_id.instance_id.hex}"
+
+  count=3
+
+  name = "crdb-gcp-${count.index}"
   machine_type = "n1-standard-4"
   zone = "us-west1-a"
 
@@ -23,8 +21,7 @@ resource "google_compute_instance" "default" {
     }
   }
 
-  // Make sure flask is installed on all new instances for later steps
-  metadata_startup_script = "sudo apt-get update"
+  metadata_startup_script = "${file("${path.module}/scripts/bootstrap.sh")}"
 
   network_interface {
     network = "default"
