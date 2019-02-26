@@ -105,6 +105,9 @@ resource "null_resource" "google_start_cluster" {
 
   count = 3
 
+  depends_on = [
+    "google_compute_firewall.google_ssh"]
+
   connection {
     user = "timveil"
     host = "${element(google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip, count.index)}"
@@ -118,12 +121,14 @@ resource "null_resource" "google_start_cluster" {
     ]
   }
 
-  depends_on = [
-    "google_compute_firewall.google_ssh"]
+
 
 }
 
 resource "null_resource" "google_init_cluster" {
+
+  depends_on = [
+    "null_resource.google_start_cluster"]
 
   connection {
     user = "timveil"
@@ -137,7 +142,6 @@ resource "null_resource" "google_init_cluster" {
     ]
   }
 
-  depends_on = [
-    "null_resource.google_start_cluster"]
+
 
 }
