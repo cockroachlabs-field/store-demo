@@ -12,8 +12,7 @@ resource "google_compute_instance" "google_cockroach" {
   machine_type = "n1-standard-4"
   zone = "us-east4-a"
 
-  tags = [
-    "cockroach"]
+  tags = ["cockroach"]
 
   boot_disk {
     initialize_params {
@@ -45,12 +44,10 @@ resource "google_compute_firewall" "google_sql" {
 
   allow {
     protocol = "tcp"
-    ports = [
-      "26257"]
+    ports = ["26257"]
   }
 
-  target_tags = [
-    "cockroach"]
+  target_tags = ["cockroach"]
 }
 
 resource "google_compute_firewall" "google_ui" {
@@ -59,12 +56,10 @@ resource "google_compute_firewall" "google_ui" {
 
   allow {
     protocol = "tcp"
-    ports = [
-      "8080"]
+    ports = ["8080"]
   }
 
-  target_tags = [
-    "cockroach"]
+  target_tags = ["cockroach"]
 }
 
 resource "google_compute_firewall" "google_ssh" {
@@ -73,40 +68,17 @@ resource "google_compute_firewall" "google_ssh" {
 
   allow {
     protocol = "tcp"
-    ports = [
-      "22"]
+    ports = ["22"]
   }
 
-  target_tags = [
-    "cockroach"]
-}
-
-output "google_cockroach_public_ips" {
-  description = "Public IP's of Cockroach Nodes"
-  value = "${join(",", google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip)}"
-}
-
-output "google_cockroach_private_ips" {
-  description = "Private IP's of Cockroach Nodes"
-  value = "${join(",", google_compute_instance.google_cockroach.*.network_interface.0.network_ip)}"
-}
-
-output "google_cockroach_instances" {
-  description = "Names of Cockroach Nodes"
-  value = "${join(",", google_compute_instance.google_cockroach.*.name)}"
-}
-
-output "google_admin_urls" {
-  description = "Admin URL's for Cockroach Nodes"
-  value = "${join(",", formatlist("http://%s:8080/", google_compute_instance.google_cockroach.*.network_interface.0.access_config.0.nat_ip))}"
+  target_tags = ["cockroach"]
 }
 
 resource "null_resource" "google_start_cluster" {
 
   count = 3
 
-  depends_on = [
-    "google_compute_firewall.google_ssh"]
+  depends_on = ["google_compute_firewall.google_ssh"]
 
   connection {
     user = "timveil"
@@ -121,14 +93,11 @@ resource "null_resource" "google_start_cluster" {
     ]
   }
 
-
-
 }
 
 resource "null_resource" "google_init_cluster" {
 
-  depends_on = [
-    "null_resource.google_start_cluster"]
+  depends_on = ["null_resource.google_start_cluster"]
 
   connection {
     user = "timveil"
@@ -137,11 +106,7 @@ resource "null_resource" "google_init_cluster" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "cockroach init --insecure"
-    ]
+    inline = ["cockroach init --insecure"]
   }
-
-
 
 }
