@@ -122,3 +122,22 @@ resource "null_resource" "google_start_cluster" {
     "google_compute_firewall.google_ssh"]
 
 }
+
+resource "null_resource" "google_init_cluster" {
+
+  connection {
+    user = "timveil"
+    host = "${google_compute_instance.google_cockroach.0.network_interface.0.access_config.0.nat_ip}"
+    private_key = "${file("~/.ssh/google_compute_engine")}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cockroach init --insecure"
+    ]
+  }
+
+  depends_on = [
+    "null_resource.google_start_cluster"]
+
+}
