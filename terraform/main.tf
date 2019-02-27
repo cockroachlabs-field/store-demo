@@ -1,3 +1,11 @@
+# todo: project and file should be variables
+# todo: counts should be variables
+# todo: can output be multiline?
+
+# ---------------------------------------------------------------------------------------------------------------------
+# setup gcp providers
+# ---------------------------------------------------------------------------------------------------------------------
+
 provider "google" {
   credentials = "${file("gcp-account.json")}"
   project = "cockroach-tv"
@@ -28,11 +36,6 @@ provider "google" {
   project = "cockroach-tv"
 
   credentials = "${file("gcp-account.json")}"
-}
-
-variable "providers" {
-  type = "list"
-  default = ["google.east", "google.west", "google.central"]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -81,7 +84,7 @@ resource "google_compute_firewall" "google_ssh" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# provision gcp instances
+# provision gcp resources
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "google_compute_instance" "google_east_cockroach" {
@@ -103,7 +106,32 @@ resource "google_compute_instance" "google_east_cockroach" {
 
   scratch_disk {}
 
-  metadata_startup_script = "${file("${path.module}/scripts/install.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/install-crdb.sh")}"
+
+  network_interface {
+    network = "${google_compute_network.google_vpc_network.self_link}"
+
+    access_config {}
+  }
+
+}
+
+resource "google_compute_instance" "google_east_client" {
+
+  name = "crdb-gcp-east-client"
+  machine_type = "n1-standard-4"
+  provider = "google.east"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+      size = "350"
+    }
+  }
+
+  scratch_disk {}
+
+  metadata_startup_script = "${file("${path.module}/scripts/install-client.sh")}"
 
   network_interface {
     network = "${google_compute_network.google_vpc_network.self_link}"
@@ -132,7 +160,7 @@ resource "google_compute_instance" "google_west_cockroach" {
 
   scratch_disk {}
 
-  metadata_startup_script = "${file("${path.module}/scripts/install.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/install-crdb.sh")}"
 
   network_interface {
     network = "${google_compute_network.google_vpc_network.self_link}"
@@ -141,6 +169,35 @@ resource "google_compute_instance" "google_west_cockroach" {
   }
 
 }
+
+resource "google_compute_instance" "google_west_client" {
+
+  name = "crdb-gcp-west-client"
+  machine_type = "n1-standard-4"
+  provider = "google.west"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+      size = "350"
+    }
+  }
+
+  scratch_disk {}
+
+  metadata_startup_script = "${file("${path.module}/scripts/install-client.sh")}"
+
+  network_interface {
+    network = "${google_compute_network.google_vpc_network.self_link}"
+
+    access_config {}
+  }
+
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# locals
+# ---------------------------------------------------------------------------------------------------------------------
 
 locals {
   google_public_ips = "${concat(google_compute_instance.google_east_cockroach.*.network_interface.0.access_config.0.nat_ip, google_compute_instance.google_west_cockroach.*.network_interface.0.access_config.0.nat_ip)}"
@@ -151,8 +208,6 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 # start gcp cluster
 # ---------------------------------------------------------------------------------------------------------------------
-
-# todo: think i need to create a master list of instances and use that here
 
 resource "null_resource" "google_start_cluster" {
 
@@ -180,6 +235,8 @@ resource "null_resource" "google_start_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 # init gcp cluster
 # ---------------------------------------------------------------------------------------------------------------------
+
+# todo this becomes generic; depends on azure and google but will call into google to start
 
 resource "null_resource" "google_init_cluster" {
 
