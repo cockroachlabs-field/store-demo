@@ -310,13 +310,14 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
   location = "centralus"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface.*.id, count.index)}"]
-  vm_size = "Standard_D12_v2"
+  vm_size = "Standard_L4s"
 
   storage_os_disk {
     name = "sd-os-disk-${count.index}"
-    caching = "ReadWrite"
+    caching = "None"
     create_option = "FromImage"
     disk_size_gb = 350
+    managed_disk_type = "Premium_LRS"
   }
 
   storage_image_reference {
