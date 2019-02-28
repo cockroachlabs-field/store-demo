@@ -229,7 +229,7 @@ resource "azurerm_public_ip" "sd_public_ip" {
   name = "sd-public-ip-${count.index}"
   location = "centralus"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 
 }
 
