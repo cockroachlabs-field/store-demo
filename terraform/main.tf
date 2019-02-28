@@ -310,7 +310,7 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
   location = "centralus"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface.*.id, count.index)}"]
-  vm_size = "Standard_D13_v2"
+  vm_size = "Standard_D12_v2"
 
   storage_os_disk {
     name = "sd-os-disk-${count.index}"
