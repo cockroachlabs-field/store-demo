@@ -4,7 +4,7 @@ output "google_cockroach_public_ips" {
 }
 output "azure_cockroach_public_ips" {
   description = "Public IP's of Cockroach Nodes in Azure"
-  value = "${join(",", local.azure_public_ips)}"
+  value = "${join(",", data.azurerm_public_ip.sd_public_ip.*.ip_address)}"
 }
 
 output "google_cockroach_private_ips" {

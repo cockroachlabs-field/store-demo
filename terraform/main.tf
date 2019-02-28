@@ -229,16 +229,9 @@ resource "azurerm_public_ip" "sd_public_ip" {
   name = "sd-public-ip-${count.index}"
   location = "centralus"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  allocation_method = "Dynamic"
+  public_ip_address_allocation = "Dynamic"
+
 }
-
-data "azurerm_public_ip" "sd_public_ip" {
-  count = 3
-
-  name = "${element(azurerm_public_ip.sd_public_ip.*.name, count.index)}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-}
-
 
 resource "azurerm_network_security_group" "sd_security_group" {
   name = "sd-network-security-group"
@@ -320,7 +313,7 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
   vm_size = "Standard_D13_v2"
 
   storage_os_disk {
-    name = "sd_os_disk-${count.index}"
+    name = "sd-os-disk-${count.index}"
     caching = "ReadWrite"
     create_option = "FromImage"
     disk_size_gb = 350
@@ -348,18 +341,23 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
 
 }
 
+data "azurerm_public_ip" "sd_public_ip" {
+  count = 3
+
+  name = "${element(azurerm_public_ip.sd_public_ip.*.name, count.index)}"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+
+  depends_on = ["azurerm_virtual_machine.sd_cockroach_node"]
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # locals
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-  # Google
   google_public_ips = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.access_config.0.nat_ip, google_compute_instance.sd_west_cockroach_node.*.network_interface.0.access_config.0.nat_ip)}"
   google_private_ips = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.network_ip, google_compute_instance.sd_west_cockroach_node.*.network_interface.0.network_ip)}"
   google_dns_names = "${concat(google_compute_instance.sd_east_cockroach_node.*.name, google_compute_instance.sd_west_cockroach_node.*.name)}"
-
-  # Azure
-  azure_public_ips = "${data.azurerm_public_ip.sd_public_ip.*.ip_address}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -394,16 +392,16 @@ resource "null_resource" "google_start_cluster" {
 # install azure cluster
 # ---------------------------------------------------------------------------------------------------------------------
 
-
+# Azure
 resource "null_resource" "azure_install_cluster" {
 
   count = 3
 
-  depends_on = ["azurerm_virtual_machine.sd_cockroach_node", "null_resource.google_start_cluster"]
+  depends_on = ["data.azurerm_public_ip.sd_public_ip", "azurerm_virtual_machine.sd_cockroach_node", "null_resource.google_start_cluster"]
 
   connection {
-    user = "timveil"
-    host = "${element(local.azure_public_ips, count.index)}"
+    user = "azureuser"
+    host = "${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)}"
     private_key = "${file("~/.ssh/id_rsa")}"
     timeout = "30s"
   }
@@ -412,7 +410,7 @@ resource "null_resource" "azure_install_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.5.linux-amd64.tgz | tar  xvz",
       "sudo cp -i cockroach-v2.1.5.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --advertise-addr=${element(local.azure_public_ips, count.index)} --join=${join(",", local.google_public_ips)}",
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips)}",
       "sleep 20"
     ]
   }
