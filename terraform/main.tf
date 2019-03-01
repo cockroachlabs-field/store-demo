@@ -440,7 +440,7 @@ resource "null_resource" "google_prep_west_cluster" {
 
   connection {
     user = "${var.gcp_user}"
-    host = "${element(local.google_private_ips_west, count.index)}"
+    host = "${element(local.google_public_ips_west, count.index)}"
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
