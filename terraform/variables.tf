@@ -1,3 +1,56 @@
+# ---------------------------------------------------------------------------------------------------------------------
+# required
+# ---------------------------------------------------------------------------------------------------------------------
+
 variable "gcp_project_name" {
-  type = "string"
+  description = "your google project name"
+}
+
+variable "gcp_user" {
+  description = "user used to ssh into google instances"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# optional
+# ---------------------------------------------------------------------------------------------------------------------
+
+
+variable "region_node_count" {
+  default = 3
+}
+
+variable "storage_disk_size" {
+  default = 350
+}
+
+variable "os_disk_size" {
+  default = 350
+}
+
+variable "gcp_machine_type" {
+  default = "n1-standard-16"
+}
+variable "gcp_machine_type_client" {
+  default = "n1-standard-4"
+}
+
+variable "azure_machine_type" {
+  default = "Standard_DS15_v2"
+}
+
+variable "gcp_private_key_path" {
+  default = "~/.ssh/google_compute_engine"
+}
+
+variable "azure_private_key_path" {
+  default = "~/.ssh/id_rsa"
+}
+
+variable "azure_public_key_path" {
+  default = "~/.ssh/id_rsa.pub"
+}
+
+
+variable "azure_user" {
+  default = "azureuser"
 }

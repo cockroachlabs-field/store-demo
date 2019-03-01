@@ -87,10 +87,10 @@ resource "google_compute_firewall" "sd_ssh" {
 
 resource "google_compute_instance" "sd_east_cockroach_node" {
 
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "crdb-gcp-east-${count.index}"
-  machine_type = "n1-standard-16"
+  machine_type = "${var.gcp_machine_type}"
   min_cpu_platform = "Intel Skylake"
   provider = "google.east"
 
@@ -99,7 +99,7 @@ resource "google_compute_instance" "sd_east_cockroach_node" {
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-9"
-      size = "350"
+      size = "${var.os_disk_size}"
     }
   }
 
@@ -124,7 +124,7 @@ resource "google_compute_instance" "sd_east_client" {
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-9"
-      size = "350"
+      size = "${var.os_disk_size}"
     }
   }
 
@@ -142,10 +142,10 @@ resource "google_compute_instance" "sd_east_client" {
 
 resource "google_compute_instance" "sd_west_cockroach_node" {
 
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "crdb-gcp-west-${count.index}"
-  machine_type = "n1-standard-16"
+  machine_type = "${var.gcp_machine_type}"
   min_cpu_platform = "Intel Skylake"
   provider = "google.west"
 
@@ -154,7 +154,7 @@ resource "google_compute_instance" "sd_west_cockroach_node" {
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-9"
-      size = "350"
+      size = "${var.os_disk_size}"
     }
   }
 
@@ -173,13 +173,13 @@ resource "google_compute_instance" "sd_west_cockroach_node" {
 resource "google_compute_instance" "sd_west_client" {
 
   name = "crdb-gcp-west-client"
-  machine_type = "n1-standard-4"
+  machine_type = "${var.gcp_machine_type_client}"
   provider = "google.west"
 
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-9"
-      size = "350"
+      size = "${var.os_disk_size}"
     }
   }
 
@@ -220,7 +220,7 @@ resource "azurerm_subnet" "sd_subnet" {
 }
 
 resource "azurerm_public_ip" "sd_public_ip" {
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "sd-public-ip-${count.index}"
   location = "${azurerm_resource_group.sd_resource_group.location}"
@@ -282,7 +282,7 @@ resource "random_id" "sd_randomId" {
 }
 
 resource "azurerm_network_interface" "sd_network_interface" {
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "sd-network-interface-${count.index}"
   location = "${azurerm_resource_group.sd_resource_group.location}"
@@ -299,20 +299,20 @@ resource "azurerm_network_interface" "sd_network_interface" {
 }
 
 resource "azurerm_virtual_machine" "sd_cockroach_node" {
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "sd-azure-central-${count.index}"
 
   location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface.*.id, count.index)}"]
-  vm_size = "Standard_DS15_v2"
+  vm_size = "${var.azure_machine_type}"
 
   storage_os_disk {
     name = "sd-os-disk-${count.index}"
     caching = "None"
     create_option = "FromImage"
-    disk_size_gb = 350
+    disk_size_gb = "${var.os_disk_size}"
     managed_disk_type = "Premium_LRS"
   }
 
@@ -325,21 +325,21 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
 
   os_profile {
     computer_name = "sd-azure-central-${count.index}"
-    admin_username = "azureuser"
+    admin_username = "${var.azure_user}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path = "/home/azureuser/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/id_rsa.pub")}"
+      path = "/home/${var.azure_user}/.ssh/authorized_keys"
+      key_data = "${file(var.azure_public_key_path)}"
     }
   }
 
 }
 
 data "azurerm_public_ip" "sd_public_ip" {
-  count = 3
+  count = "${var.region_node_count}"
 
   name = "${element(azurerm_public_ip.sd_public_ip.*.name, count.index)}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
@@ -365,16 +365,16 @@ locals {
 
 resource "null_resource" "google_start_east_cluster" {
 
-  count = 3
+  count = "${var.region_node_count}"
 
   depends_on = [
     "google_compute_firewall.sd_ssh",
     "google_compute_instance.sd_east_cockroach_node"]
 
   connection {
-    user = "timveil"
+    user = "${var.gcp_user}"
     host = "${element(local.google_public_ips_east, count.index)}"
-    private_key = "${file("~/.ssh/google_compute_engine")}"
+    private_key = "${file(var.gcp_private_key_path)}"
   }
 
   provisioner "remote-exec" {
@@ -388,7 +388,7 @@ resource "null_resource" "google_start_east_cluster" {
 
 resource "null_resource" "google_start_west_cluster" {
 
-  count = 3
+  count = "${var.region_node_count}"
 
   depends_on = [
     "google_compute_firewall.sd_ssh",
@@ -396,9 +396,9 @@ resource "null_resource" "google_start_west_cluster" {
     "null_resource.google_start_east_cluster"]
 
   connection {
-    user = "timveil"
+    user = "${var.gcp_user}"
     host = "${element(local.google_public_ips_west, count.index)}"
-    private_key = "${file("~/.ssh/google_compute_engine")}"
+    private_key = "${file(var.gcp_private_key_path)}"
   }
 
   provisioner "remote-exec" {
@@ -418,7 +418,7 @@ resource "null_resource" "google_start_west_cluster" {
 # Azure
 resource "null_resource" "azure_install_cluster" {
 
-  count = 3
+  count = "${var.region_node_count}"
 
   depends_on = [
     "data.azurerm_public_ip.sd_public_ip",
@@ -426,9 +426,9 @@ resource "null_resource" "azure_install_cluster" {
     "null_resource.google_start_west_cluster"]
 
   connection {
-    user = "azureuser"
+    user = "${var.azure_user}"
     host = "${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)}"
-    private_key = "${file("~/.ssh/id_rsa")}"
+    private_key = "${file(var.azure_private_key_path)}"
     timeout = "2m"
   }
 
@@ -452,9 +452,9 @@ resource "null_resource" "global_init_cluster" {
   depends_on = ["null_resource.azure_install_cluster"]
 
   connection {
-    user = "timveil"
+    user = "${var.gcp_user}"
     host = "${element(local.google_public_ips_east, 0)}"
-    private_key = "${file("~/.ssh/google_compute_engine")}"
+    private_key = "${file(var.gcp_private_key_path)}"
   }
 
   provisioner "remote-exec" {
