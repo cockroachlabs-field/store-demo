@@ -225,7 +225,6 @@ resource "azurerm_public_ip" "sd_public_ip" {
   location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   allocation_method = "Dynamic"
-
 }
 
 resource "azurerm_network_security_group" "sd_security_group" {
@@ -256,7 +255,6 @@ resource "azurerm_network_security_group" "sd_security_group" {
     source_address_prefix = "*"
     destination_address_prefix = "*"
   }
-
 
   security_rule {
     name = "UI"
