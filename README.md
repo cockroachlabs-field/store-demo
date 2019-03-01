@@ -11,16 +11,13 @@ http://localhost:8082/actuator/metrics/runner.update_auth
 
 
 terraform init -upgrade
-terraform plan -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -refresh=true
-terraform plan -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -refresh=true -target azurerm_resource_group.sd_resource_group -out run.plan
+terraform refresh -var-file="store-demo.tfvars"
+terraform plan -var-file="store-demo.tfvars"
 
-terraform apply -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -auto-approve -refresh=true
-terraform apply -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -var="region_node_count=1" -auto-approve -refresh=true
+terraform apply -var-file="store-demo.tfvars" -auto-approve
 
-terraform refresh -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil"
 
-terraform destroy -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -auto-approve
-terraform destroy -var="gcp_project_name=cockroach-tv" -var="gcp_user=timveil" -auto-approve -target azurerm_resource_group.sd_resource_group
+terraform destroy -var-file="store-demo.tfvars" -auto-approve
 
 
 ## Run 1

@@ -10,6 +10,14 @@ variable "gcp_user" {
   description = "user used to ssh into google instances"
 }
 
+variable "crdb_license_org" {
+  description = "crdb license org"
+}
+
+variable "crdb_license_key" {
+  description = "crdb license key"
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # optional
 # ---------------------------------------------------------------------------------------------------------------------

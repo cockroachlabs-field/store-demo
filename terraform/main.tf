@@ -576,7 +576,11 @@ resource "null_resource" "global_init_cluster" {
   }
 
   provisioner "remote-exec" {
-    inline = ["cockroach init --insecure"]
+    inline = ["cockroach init --insecure",
+      "sleep ${var.provision_sleep}",
+      "cockroach sql --insecure --execute=\"SET CLUSTER SETTING cluster.organization = '${var.crdb_license_org}';\"",
+      "cockroach sql --insecure --execute=\"SET CLUSTER SETTING enterprise.license = '${var.crdb_license_key}';\""
+    ]
   }
 
 }
