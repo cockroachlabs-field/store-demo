@@ -377,7 +377,7 @@ resource "null_resource" "google_start_east_cluster" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update --fix-missing",
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar  xvz",
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
       "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-east1 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}",
       "sleep 20"
@@ -426,7 +426,7 @@ resource "null_resource" "google_start_west_cluster" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update --fix-missing",
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar  xvz",
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
       "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-west2 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}",
       "sleep 20"
@@ -482,7 +482,7 @@ resource "null_resource" "azure_install_cluster" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update --fix-missing",
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar  xvz",
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
       "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=southcentralus --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}",
       "sleep 20"
