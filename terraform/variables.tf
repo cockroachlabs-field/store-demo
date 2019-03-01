@@ -68,3 +68,7 @@ variable "crdb_max_sql_memory" {
 variable "crdb_cache" {
   default = ".25"
 }
+
+variable "provision_sleep" {
+  default = "10"
+}
