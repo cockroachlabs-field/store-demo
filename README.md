@@ -53,6 +53,40 @@ _elapsed_______tpmC____efc__avg(ms)__p50(ms)__p90(ms)__p95(ms)__p99(ms)_pMax(ms)
 ```
 
 ## Run 2
+This run is after significant changes, increased instance types, fixed disks, synced clocks, implemented locality, etc.
+
+```bash
+cockroach workload init tpcc
+```
+
+```bash
+cockroach workload run tpcc --duration=10m
+```
+```
+_elapsed___errors_____ops(total)___ops/sec(cum)__avg(ms)__p50(ms)__p95(ms)__p99(ms)_pMax(ms)__total
+  600.0s        0             12            0.0   1180.0    872.4   2147.5   2281.7   2281.7  delivery
+  600.0s        0            123            0.2    987.7    838.9   1610.6   5905.6   6710.9  newOrder
+  600.0s        0             10            0.0    105.4     50.3    385.9    385.9    385.9  orderStatus
+  600.0s        0            136            0.2    487.9    335.5   1275.1   2415.9   2684.4  payment
+  600.0s        0             14            0.0    269.9    243.3    469.8    536.9    536.9  stockLevel
+
+_elapsed___errors_____ops(total)___ops/sec(cum)__avg(ms)__p50(ms)__p95(ms)__p99(ms)_pMax(ms)__result
+  600.0s        0            295            0.5    701.1    604.0   1476.4   3892.3   6710.9
+Audit check 9.2.1.7: SKIP: not enough delivery transactions to be statistically significant
+Audit check 9.2.2.5.1: SKIP: not enough orders to be statistically significant
+Audit check 9.2.2.5.2: SKIP: not enough orders to be statistically significant
+Audit check 9.2.2.5.3: SKIP: not enough orders to be statistically significant
+Audit check 9.2.2.5.4: SKIP: not enough payments to be statistically significant
+Audit check 9.2.2.5.5: SKIP: not enough payments to be statistically significant
+Audit check 9.2.2.5.6: SKIP: not enough order status transactions to be statistically significant
+
+_elapsed_______tpmC____efc__avg(ms)__p50(ms)__p90(ms)__p95(ms)__p99(ms)_pMax(ms)
+  600.0s       12.3  95.6%    987.7    838.9   1208.0   1610.6   5905.6   6710.9
+
+```
+
+
+## Optional
 
 ```bash
 cockroach workload init tpcc --warehouses=400 --drop
@@ -62,24 +96,3 @@ cockroach workload init tpcc --warehouses=400 --drop
 cockroach workload run tpcc --ramp=5m --warehouses=400 --active-warehouses=400 --duration=15m --split --scatter
 ```
 
-``` 
-before 
-azureuser@sd-azure-central-0:~$ lsblk
-NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-fd0      2:0    1    4K  0 disk
-sda      8:0    0  100G  0 disk
-└─sda1   8:1    0   30G  0 part /
-sdb      8:16   0  280G  0 disk
-└─sdb1   8:17   0  280G  0 part /mnt/resource
-sr0     11:0    1  628K  0 rom
-```
-
-
-
-sudo mkfs.ext4 -F /dev/sdc
-
-sudo mkdir -p /mnt/disks/cockroach
-
-sudo mount -o discard,defaults,nobarrier /dev/sdc /mnt/disks/cockroach
-
-sudo chmod a+w /mnt/disks/cockroach
