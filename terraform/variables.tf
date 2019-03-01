@@ -70,5 +70,5 @@ variable "crdb_cache" {
 }
 
 variable "provision_sleep" {
-  default = "10"
+  default = "20"
 }
