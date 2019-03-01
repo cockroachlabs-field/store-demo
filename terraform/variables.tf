@@ -42,6 +42,10 @@ variable "gcp_private_key_path" {
   default = "~/.ssh/google_compute_engine"
 }
 
+variable "gcp_credentials_file" {
+  default = "gcp-account.json"
+}
+
 variable "azure_private_key_path" {
   default = "~/.ssh/id_rsa"
 }

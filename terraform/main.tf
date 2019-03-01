@@ -7,8 +7,9 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "google" {
-  credentials = "${file("gcp-account.json")}"
   project = "${var.gcp_project_name}"
+
+  credentials = "${file(var.gcp_credentials_file)}"
 }
 
 provider "google" {
@@ -17,7 +18,7 @@ provider "google" {
   zone = "us-east1-b"
   project = "${var.gcp_project_name}"
 
-  credentials = "${file("gcp-account.json")}"
+  credentials = "${file(var.gcp_credentials_file)}"
 }
 
 provider "google" {
@@ -26,7 +27,7 @@ provider "google" {
   zone = "us-west2-b"
   project = "${var.gcp_project_name}"
 
-  credentials = "${file("gcp-account.json")}"
+  credentials = "${file(var.gcp_credentials_file)}"
 }
 
 provider "google" {
@@ -35,7 +36,7 @@ provider "google" {
   zone = "us-central1-b"
   project = "${var.gcp_project_name}"
 
-  credentials = "${file("gcp-account.json")}"
+  credentials = "${file(var.gcp_credentials_file)}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
