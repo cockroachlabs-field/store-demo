@@ -54,3 +54,14 @@ variable "azure_public_key_path" {
 variable "azure_user" {
   default = "azureuser"
 }
+
+variable "crdb_version" {
+  default = "v2.1.5"
+}
+
+variable "crdb_max_sql_memory" {
+  default = ".25"
+}
+variable "crdb_cache" {
+  default = ".25"
+}
