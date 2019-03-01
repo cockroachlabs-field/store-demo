@@ -305,19 +305,31 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
   network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface.*.id, count.index)}"]
   vm_size = "${var.azure_machine_type}"
 
+  delete_os_disk_on_termination = true
+  delete_data_disks_on_termination = true
+
   storage_os_disk {
     name = "sd-os-disk-${count.index}"
-    caching = "None"
     create_option = "FromImage"
+    caching = "None"
     disk_size_gb = "${var.os_disk_size}"
+    os_type = "Linux"
     managed_disk_type = "Premium_LRS"
   }
 
   storage_image_reference {
-    publisher = "credativ"
-    offer = "Debian"
-    sku = "9"
+    publisher = "Canonical"
+    offer = "UbuntuServer"
+    sku = "18.04-LTS"
     version = "latest"
+  }
+
+  storage_data_disk {
+    name = "sd-data-disk-${count.index}"
+    create_option = "Empty"
+    lun = 0
+    disk_size_gb = "${var.storage_disk_size}"
+    managed_disk_type = "Premium_LRS"
   }
 
   os_profile {
@@ -500,8 +512,7 @@ resource "null_resource" "google_build_west_client" {
 # start azure cluster and client
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Azure
-resource "null_resource" "azure_install_cluster" {
+resource "null_resource" "azure_prep_cluster" {
 
   count = "${var.region_node_count}"
 
@@ -518,11 +529,32 @@ resource "null_resource" "azure_install_cluster" {
   }
 
   provisioner "remote-exec" {
+    scripts = ["scripts/startup.sh",
+    "scripts/disks-azure.sh"]
+  }
+
+}
+
+resource "null_resource" "azure_install_cluster" {
+
+  count = "${var.region_node_count}"
+
+  depends_on = [
+    "null_resource.azure_prep_cluster"]
+
+  connection {
+    user = "${var.azure_user}"
+    host = "${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)}"
+    private_key = "${file(var.azure_private_key_path)}"
+    timeout = "2m"
+  }
+
+  provisioner "remote-exec" {
     inline = [
       "sudo apt-get update --fix-missing",
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=southcentralus --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=southcentralus --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}",
       "sleep ${var.provision_sleep}"
     ]
   }

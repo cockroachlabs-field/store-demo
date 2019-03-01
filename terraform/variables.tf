@@ -19,7 +19,7 @@ variable "region_node_count" {
 }
 
 variable "storage_disk_size" {
-  default = 350
+  default = 375
 }
 
 variable "os_disk_size" {

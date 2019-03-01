@@ -64,3 +64,25 @@ cockroach workload init tpcc --warehouses=400 --drop
 ```bash
 cockroach workload run tpcc --ramp=5m --warehouses=400 --active-warehouses=400 --duration=15m --split --scatter
 ```
+
+``` 
+before 
+azureuser@sd-azure-central-0:~$ lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk
+sda      8:0    0  100G  0 disk
+└─sda1   8:1    0   30G  0 part /
+sdb      8:16   0  280G  0 disk
+└─sdb1   8:17   0  280G  0 part /mnt/resource
+sr0     11:0    1  628K  0 rom
+```
+
+
+
+sudo mkfs.ext4 -F /dev/sdc
+
+sudo mkdir -p /mnt/disks/cockroach
+
+sudo mount -o discard,defaults,nobarrier /dev/sdc /mnt/disks/cockroach
+
+sudo chmod a+w /mnt/disks/cockroach
