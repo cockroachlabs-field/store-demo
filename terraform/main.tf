@@ -1,7 +1,3 @@
-# todo: project and file should be variables
-# todo: counts should be variables
-# todo: can output be multiline?
-
 # ---------------------------------------------------------------------------------------------------------------------
 # setup gcp providers
 # ---------------------------------------------------------------------------------------------------------------------
@@ -30,22 +26,12 @@ provider "google" {
   credentials = "${file(var.gcp_credentials_file)}"
 }
 
-provider "google" {
-  alias = "central"
-  region = "us-central1"
-  zone = "us-central1-b"
-  project = "${var.gcp_project_name}"
-
-  credentials = "${file(var.gcp_credentials_file)}"
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # setup azure provider
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "azurerm" {
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # provision gcp resources
@@ -97,14 +83,18 @@ resource "google_compute_instance" "sd_east_cockroach_node" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
       size = "${var.os_disk_size}"
+      type = "pd-ssd"
     }
   }
 
-  scratch_disk {}
+  // for crdb data
+  scratch_disk {
+    interface = "NVME"
+  }
 
-  metadata_startup_script = "${file("${path.module}/scripts/install-crdb.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/startup.sh")}"
 
   network_interface {
     network = "${google_compute_network.sd_compute_network.self_link}"
@@ -122,14 +112,18 @@ resource "google_compute_instance" "sd_east_client" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
       size = "${var.os_disk_size}"
+      type = "pd-ssd"
     }
   }
 
-  scratch_disk {}
+  // for client binary
+  scratch_disk {
+    interface = "NVME"
+  }
 
-  metadata_startup_script = "${file("${path.module}/scripts/install-client.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/startup.sh")}"
 
   network_interface {
     network = "${google_compute_network.sd_compute_network.self_link}"
@@ -150,14 +144,18 @@ resource "google_compute_instance" "sd_west_cockroach_node" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
       size = "${var.os_disk_size}"
+      type = "pd-ssd"
     }
   }
 
-  scratch_disk {}
+  // for crdb data
+  scratch_disk {
+    interface = "NVME"
+  }
 
-  metadata_startup_script = "${file("${path.module}/scripts/install-crdb.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/startup.sh")}"
 
   network_interface {
     network = "${google_compute_network.sd_compute_network.self_link}"
@@ -175,14 +173,18 @@ resource "google_compute_instance" "sd_west_client" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
       size = "${var.os_disk_size}"
+      type = "pd-ssd"
     }
   }
 
-  scratch_disk {}
+  // for client binary
+  scratch_disk {
+    interface = "NVME"
+  }
 
-  metadata_startup_script = "${file("${path.module}/scripts/install-client.sh")}"
+  metadata_startup_script = "${file("${path.module}/scripts/startup.sh")}"
 
   network_interface {
     network = "${google_compute_network.sd_compute_network.self_link}"
@@ -360,7 +362,7 @@ locals {
 # start gcp clusters and clients
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "null_resource" "google_start_east_cluster" {
+resource "null_resource" "google_prep_east_cluster" {
 
   count = "${var.region_node_count}"
 
@@ -375,11 +377,31 @@ resource "null_resource" "google_start_east_cluster" {
   }
 
   provisioner "remote-exec" {
+    scripts = ["scripts/disks.sh"]
+  }
+
+}
+
+
+resource "null_resource" "google_start_east_cluster" {
+
+  count = "${var.region_node_count}"
+
+  depends_on = [
+    "null_resource.google_prep_east_cluster"]
+
+  connection {
+    user = "${var.gcp_user}"
+    host = "${element(local.google_public_ips_east, count.index)}"
+    private_key = "${file(var.gcp_private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
     inline = [
       "sudo apt-get update --fix-missing",
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-east1 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-east1 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}",
       "sleep 20"
     ]
   }
@@ -400,10 +422,30 @@ resource "null_resource" "google_build_east_client" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get update",
+      "sudo apt-get update --fix-missing",
       "sudo apt-get install -yq default-jdk git",
       "sleep 20"
     ]
+  }
+
+}
+
+resource "null_resource" "google_prep_west_cluster" {
+
+  count = "${var.region_node_count}"
+
+  depends_on = [
+    "google_compute_firewall.sd_ssh",
+    "google_compute_instance.sd_west_cockroach_node"]
+
+  connection {
+    user = "${var.gcp_user}"
+    host = "${element(local.google_private_ips_west, count.index)}"
+    private_key = "${file(var.gcp_private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
+    scripts = ["scripts/disks.sh"]
   }
 
 }
@@ -413,9 +455,7 @@ resource "null_resource" "google_start_west_cluster" {
   count = "${var.region_node_count}"
 
   depends_on = [
-    "google_compute_firewall.sd_ssh",
-    "google_compute_instance.sd_west_cockroach_node",
-    "null_resource.google_start_east_cluster"]
+    "null_resource.google_prep_west_cluster"]
 
   connection {
     user = "${var.gcp_user}"
@@ -428,7 +468,7 @@ resource "null_resource" "google_start_west_cluster" {
       "sudo apt-get update --fix-missing",
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-west2 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=us-west2 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}",
       "sleep 20"
     ]
   }
@@ -449,7 +489,7 @@ resource "null_resource" "google_build_west_client" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get update",
+      "sudo apt-get update --fix-missing",
       "sudo apt-get install -yq default-jdk git",
       "sleep 20"
     ]
@@ -459,7 +499,7 @@ resource "null_resource" "google_build_west_client" {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# install azure cluster and client
+# start azure cluster and client
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Azure
