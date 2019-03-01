@@ -397,8 +397,7 @@ resource "null_resource" "google_start_east_cluster" {
 
   count = "${var.region_node_count}"
 
-  depends_on = [
-    "null_resource.google_prep_east_cluster"]
+  depends_on = ["null_resource.google_prep_east_cluster"]
 
   connection {
     user = "${var.gcp_user}"
@@ -464,8 +463,7 @@ resource "null_resource" "google_start_west_cluster" {
 
   count = "${var.region_node_count}"
 
-  depends_on = [
-    "null_resource.google_prep_west_cluster"]
+  depends_on = ["null_resource.google_prep_west_cluster"]
 
   connection {
     user = "${var.gcp_user}"
@@ -530,7 +528,7 @@ resource "null_resource" "azure_prep_cluster" {
 
   provisioner "remote-exec" {
     scripts = ["scripts/startup.sh",
-    "scripts/disks-azure.sh"]
+      "scripts/disks-azure.sh"]
   }
 
 }
@@ -539,8 +537,7 @@ resource "null_resource" "azure_install_cluster" {
 
   count = "${var.region_node_count}"
 
-  depends_on = [
-    "null_resource.azure_prep_cluster"]
+  depends_on = ["null_resource.azure_prep_cluster"]
 
   connection {
     user = "${var.azure_user}"
