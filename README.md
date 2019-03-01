@@ -9,6 +9,16 @@ http://localhost:8082/actuator/metrics/runner.create_auth
 http://localhost:8082/actuator/metrics/runner.update_auth
 
 
+
+terraform init -upgrade
+terraform plan -var="gcp_project_name=cockroach-tv" -refresh=true
+terraform plan -var="gcp_project_name=cockroach-tv" -refresh=true -target azurerm_resource_group.sd_resource_group -out run.plan
+terraform apply -var="gcp_project_name=cockroach-tv" -auto-approve -refresh=true
+terraform refresh -var="gcp_project_name=cockroach-tv"
+terraform destroy -var="gcp_project_name=cockroach-tv" -auto-approve
+terraform destroy -var="gcp_project_name=cockroach-tv" -auto-approve -target azurerm_resource_group.sd_resource_group
+
+
 ## Run 1
 Azure `Standard_D12_v2`
 
@@ -42,7 +52,6 @@ _elapsed_______tpmC____efc__avg(ms)__p50(ms)__p90(ms)__p95(ms)__p99(ms)_pMax(ms)
 ```
 
 ## Run 2
-Azure `Standard_D12_v2`
 
 ```bash
 cockroach workload init tpcc --warehouses=400 --drop
@@ -51,6 +60,3 @@ cockroach workload init tpcc --warehouses=400 --drop
 ```bash
 cockroach workload run tpcc --ramp=5m --warehouses=400 --active-warehouses=400 --duration=15m --split --scatter
 ```
-
-## Run 3
-moved to `Standard_L4s` on Azure and `Premium_LRS`, caching = `None`

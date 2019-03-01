@@ -1,23 +1,14 @@
-output "google_cockroach_public_ips" {
-  description = "Public IP's of Cockroach Nodes in GCP"
-  value = "${join(",", local.google_public_ips)}"
+output "google_cockroach_public_ips_east" {
+  description = "Public IP's of Cockroach Nodes in GCP - East"
+  value = "${join(",", local.google_public_ips_east)}"
 }
+
+output "google_cockroach_public_ips_west" {
+  description = "Public IP's of Cockroach Nodes in GCP - West"
+  value = "${join(",", local.google_public_ips_west)}"
+}
+
 output "azure_cockroach_public_ips" {
   description = "Public IP's of Cockroach Nodes in Azure"
   value = "${join(",", data.azurerm_public_ip.sd_public_ip.*.ip_address)}"
-}
-
-output "google_cockroach_private_ips" {
-  description = "Private IP's of Cockroach Nodes in GCP"
-  value = "${join(",", local.google_private_ips)}"
-}
-
-output "google_cockroach_instances" {
-  description = "Names of Cockroach Nodes in GCP"
-  value = "${join(",", local.google_dns_names)}"
-}
-
-output "google_admin_urls" {
-  description = "Admin URL's for Cockroach Nodes"
-  value = "${join(",", formatlist("http://%s:8080/", local.google_public_ips))}"
 }

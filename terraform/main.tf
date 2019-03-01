@@ -8,14 +8,14 @@
 
 provider "google" {
   credentials = "${file("gcp-account.json")}"
-  project = "cockroach-tv"
+  project = "${var.gcp_project_name}"
 }
 
 provider "google" {
   alias = "east"
   region = "us-east1"
   zone = "us-east1-b"
-  project = "cockroach-tv"
+  project = "${var.gcp_project_name}"
 
   credentials = "${file("gcp-account.json")}"
 }
@@ -24,7 +24,7 @@ provider "google" {
   alias = "west"
   region = "us-west2"
   zone = "us-west2-b"
-  project = "cockroach-tv"
+  project = "${var.gcp_project_name}"
 
   credentials = "${file("gcp-account.json")}"
 }
@@ -33,7 +33,7 @@ provider "google" {
   alias = "central"
   region = "us-central1"
   zone = "us-central1-b"
-  project = "cockroach-tv"
+  project = "${var.gcp_project_name}"
 
   credentials = "${file("gcp-account.json")}"
 }
@@ -63,8 +63,6 @@ resource "google_compute_firewall" "sd_sql" {
     protocol = "tcp"
     ports = ["26257"]
   }
-
-  target_tags = ["cockroach"]
 }
 
 resource "google_compute_firewall" "sd_ui" {
@@ -75,8 +73,6 @@ resource "google_compute_firewall" "sd_ui" {
     protocol = "tcp"
     ports = ["8080"]
   }
-
-  target_tags = ["cockroach"]
 }
 
 resource "google_compute_firewall" "sd_ssh" {
@@ -87,8 +83,6 @@ resource "google_compute_firewall" "sd_ssh" {
     protocol = "tcp"
     ports = ["22"]
   }
-
-  target_tags = ["cockroach"]
 }
 
 resource "google_compute_instance" "sd_east_cockroach_node" {
@@ -96,7 +90,8 @@ resource "google_compute_instance" "sd_east_cockroach_node" {
   count = 3
 
   name = "crdb-gcp-east-${count.index}"
-  machine_type = "n1-standard-4"
+  machine_type = "n1-standard-16"
+  min_cpu_platform = "Intel Skylake"
   provider = "google.east"
 
   tags = ["cockroach"]
@@ -150,7 +145,8 @@ resource "google_compute_instance" "sd_west_cockroach_node" {
   count = 3
 
   name = "crdb-gcp-west-${count.index}"
-  machine_type = "n1-standard-4"
+  machine_type = "n1-standard-16"
+  min_cpu_platform = "Intel Skylake"
   provider = "google.west"
 
   tags = ["cockroach"]
@@ -206,13 +202,13 @@ resource "google_compute_instance" "sd_west_client" {
 
 resource "azurerm_resource_group" "sd_resource_group" {
   name = "sd-resource-group"
-  location = "centralus"
+  location = "southcentralus"
 }
 
 resource "azurerm_virtual_network" "sd_virtual_network" {
   name = "sd-virtual-network"
   address_space = ["10.0.0.0/16"]
-  location = "centralus"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
 }
 
@@ -227,7 +223,7 @@ resource "azurerm_public_ip" "sd_public_ip" {
   count = 3
 
   name = "sd-public-ip-${count.index}"
-  location = "centralus"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   allocation_method = "Dynamic"
 
@@ -235,7 +231,7 @@ resource "azurerm_public_ip" "sd_public_ip" {
 
 resource "azurerm_network_security_group" "sd_security_group" {
   name = "sd-network-security-group"
-  location = "centralus"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
 
   security_rule {
@@ -279,7 +275,6 @@ resource "azurerm_network_security_group" "sd_security_group" {
 
 resource "random_id" "sd_randomId" {
   keepers = {
-    # Generate a new ID only when a new resource group is defined
     resource_group = "${azurerm_resource_group.sd_resource_group.name}"
   }
 
@@ -290,9 +285,10 @@ resource "azurerm_network_interface" "sd_network_interface" {
   count = 3
 
   name = "sd-network-interface-${count.index}"
-  location = "centralus"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   network_security_group_id = "${azurerm_network_security_group.sd_security_group.id}"
+  enable_accelerated_networking = true
 
   ip_configuration {
     name = "sd-network-interface-config-${count.index}"
@@ -307,10 +303,10 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
 
   name = "sd-azure-central-${count.index}"
 
-  location = "centralus"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface.*.id, count.index)}"]
-  vm_size = "Standard_L4s"
+  vm_size = "Standard_DS15_v2"
 
   storage_os_disk {
     name = "sd-os-disk-${count.index}"
@@ -356,38 +352,64 @@ data "azurerm_public_ip" "sd_public_ip" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-  google_public_ips = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.access_config.0.nat_ip, google_compute_instance.sd_west_cockroach_node.*.network_interface.0.access_config.0.nat_ip)}"
-  google_private_ips = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.network_ip, google_compute_instance.sd_west_cockroach_node.*.network_interface.0.network_ip)}"
-  google_dns_names = "${concat(google_compute_instance.sd_east_cockroach_node.*.name, google_compute_instance.sd_west_cockroach_node.*.name)}"
+  google_public_ips_east = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.access_config.0.nat_ip)}"
+  google_public_ips_west = "${concat(google_compute_instance.sd_west_cockroach_node.*.network_interface.0.access_config.0.nat_ip)}"
+  google_private_ips_east = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.network_ip)}"
+  google_private_ips_west = "${concat(google_compute_instance.sd_west_cockroach_node.*.network_interface.0.network_ip)}"
+  azure_private_ips = "${azurerm_network_interface.sd_network_interface.*.private_ip_address}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # start gcp cluster
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "null_resource" "google_start_cluster" {
+resource "null_resource" "google_start_east_cluster" {
 
-  count = 6
+  count = 3
 
   depends_on = [
     "google_compute_firewall.sd_ssh",
-    "google_compute_instance.sd_east_cockroach_node",
-    "google_compute_instance.sd_west_cockroach_node"]
+    "google_compute_instance.sd_east_cockroach_node"]
 
   connection {
     user = "timveil"
-    host = "${element(local.google_public_ips, count.index)}"
+    host = "${element(local.google_public_ips_east, count.index)}"
     private_key = "${file("~/.ssh/google_compute_engine")}"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --advertise-addr=${element(local.google_public_ips, count.index)} --join=${join(",", local.google_public_ips)}",
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --locality=country=us,cloud=gcp,region=us-east1 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}",
       "sleep 20"
     ]
   }
 
 }
+
+resource "null_resource" "google_start_west_cluster" {
+
+  count = 3
+
+  depends_on = [
+    "google_compute_firewall.sd_ssh",
+    "google_compute_instance.sd_west_cockroach_node",
+    "null_resource.google_start_east_cluster"]
+
+  connection {
+    user = "timveil"
+    host = "${element(local.google_public_ips_west, count.index)}"
+    private_key = "${file("~/.ssh/google_compute_engine")}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --locality=country=us,cloud=gcp,region=us-west2 --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}",
+      "sleep 20"
+    ]
+  }
+
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # install azure cluster
@@ -398,20 +420,23 @@ resource "null_resource" "azure_install_cluster" {
 
   count = 3
 
-  depends_on = ["data.azurerm_public_ip.sd_public_ip", "azurerm_virtual_machine.sd_cockroach_node", "null_resource.google_start_cluster"]
+  depends_on = [
+    "data.azurerm_public_ip.sd_public_ip",
+    "azurerm_virtual_machine.sd_cockroach_node",
+    "null_resource.google_start_west_cluster"]
 
   connection {
     user = "azureuser"
     host = "${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)}"
     private_key = "${file("~/.ssh/id_rsa")}"
-    timeout = "30s"
+    timeout = "2m"
   }
 
   provisioner "remote-exec" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.5.linux-amd64.tgz | tar  xvz",
       "sudo cp -i cockroach-v2.1.5.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips)}",
+      "cockroach start --insecure --cache=.25 --max-sql-memory=.25 --background --locality=country=us,cloud=azure,region=southcentralus --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}",
       "sleep 20"
     ]
   }
@@ -424,11 +449,11 @@ resource "null_resource" "azure_install_cluster" {
 
 resource "null_resource" "global_init_cluster" {
 
-  depends_on = ["null_resource.google_start_cluster", "null_resource.azure_install_cluster"]
+  depends_on = ["null_resource.azure_install_cluster"]
 
   connection {
     user = "timveil"
-    host = "${element(local.google_public_ips, 0)}"
+    host = "${element(local.google_public_ips_east, 0)}"
     private_key = "${file("~/.ssh/google_compute_engine")}"
   }
 
