@@ -73,6 +73,7 @@ variable "crdb_version" {
 variable "crdb_max_sql_memory" {
   default = ".25"
 }
+
 variable "crdb_cache" {
   default = ".25"
 }

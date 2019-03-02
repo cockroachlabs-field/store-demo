@@ -1,7 +1,12 @@
 # Store Demo - Terraform
 
+Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US regions and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and Electric Power Grids (https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+* Google `us-east1` in Virgina, Eastern Interconnection
+* Microsoft `southcentralus` in Texas, Texas Interconnection
+* Google `us-west2` in California, Western Interconnection
+ 
 ## Prerequisites
-All of my development was done on a Mac running macOS Mohave.  Mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credential.
+All of my development was done on a Mac running macOS Mohave.  Mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
 * Terraform - https://www.terraform.io/downloads.html
 * Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos
 * Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest
@@ -25,6 +30,17 @@ terraform init -upgrade
 4) build the cluster
 ```bash
 terraform apply -var-file="store-demo.tfvars" -auto-approve
+```
+
+If everything is successful you should see a message like this in the console.
+```text
+Apply complete! Resources: 47 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+azure_cockroach_public_ips = 23.102.157.43,104.214.25.95,104.214.34.67
+google_cockroach_public_ips_east = 34.73.111.61,34.73.192.47,34.73.214.9
+google_cockroach_public_ips_west = 35.235.108.56,35.235.73.122,35.236.3.98
 ```
 
 ## Other Helpful Commands
