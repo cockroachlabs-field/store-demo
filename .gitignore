@@ -1,7 +1,6 @@
-target
 !.mvn/wrapper/maven-wrapper.jar
 
-/target/
+**/target/*
 *.csv
 
 ### STS ###
