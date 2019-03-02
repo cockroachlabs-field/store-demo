@@ -232,7 +232,7 @@ public class StartupRunner implements ApplicationRunner {
 
                     acctTotalCount++;
 
-                    if (acctTotalCount != 0 && (acctTotalCount % 10000) == 0) {
+                    if (acctTotalCount != 0 && (acctTotalCount % 100000) == 0) {
                         // coarse grained tracker
                         logger.info("created {} records", acctTotalCount);
                     }
