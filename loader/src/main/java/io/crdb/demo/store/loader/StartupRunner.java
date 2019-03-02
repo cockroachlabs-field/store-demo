@@ -85,12 +85,9 @@ public class StartupRunner implements ApplicationRunner {
         if (args.containsOption("load")) {
 
             if (files == null) {
-                final String acctFileName = environment.getProperty("crdb.accts.file", String.class);
-                final String authFileName = environment.getProperty("crdb.auths.file", String.class);
+                final String acctFileName = environment.getRequiredProperty("crdb.accts.data.file");
+                final String authFileName = environment.getRequiredProperty("crdb.auths.data.file");
 
-                if (StringUtils.isBlank(acctFileName) || StringUtils.isBlank(authFileName)) {
-                    throw new IllegalArgumentException("no file names to load, specifically \"--create\" or \"crdb.accts.file\" and \"crdb.auths.file\"");
-                }
 
                 files = new DataFiles(acctFileName, authFileName);
             }
@@ -102,17 +99,56 @@ public class StartupRunner implements ApplicationRunner {
             loadAccountFromFile(files);
 
             loadAuthorizationFromFile(files);
+
+        } else if (args.containsOption("import")) {
+            //
+            importTables();
+        }
+
+    }
+
+    private void importTables() throws SQLException, FileNotFoundException {
+
+        final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
+        final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
+
+        logger.info("acct: url for create [{}], url for data [{}]", acctCreateUrl, acctDataUrl);
+
+        final String importAcct = "IMPORT TABLE ACCT CREATE USING '" + acctCreateUrl + "' CSV DATA ('" + acctDataUrl + "') WITH nullif = '', delimiter = e'\\|'";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(importAcct)) {
+            statement.execute();
+        }
+
+
+        final String authCreateUrl = environment.getRequiredProperty("crdb.auths.create.url");
+        final String authDataUrl = environment.getRequiredProperty("crdb.auths.data.url");
+
+        logger.info("auth: url for create [{}], url for data [{}]", acctCreateUrl, acctDataUrl);
+
+        final String importAuth = "IMPORT TABLE AUTH CREATE USING '" + authCreateUrl + "' CSV DATA ('" + authDataUrl + "') WITH nullif = '', delimiter = e'\\|'";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(importAuth)) {
+            statement.execute();
+        }
+
+        logger.info("applying zone configs to imported table");
+
+        try (Connection connection = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:zone-config.sql")));
         }
 
     }
 
     private DataFiles generateFiles() throws IOException {
-        final int acctRowCount = environment.getProperty("crdb.accts", Integer.class, 1000000);
-        final int authRowCount = environment.getProperty("crdb.auths", Integer.class, 10000);
+        final int acctRowCount = environment.getRequiredProperty("crdb.accts", Integer.class);
+        final int authRowCount = environment.getRequiredProperty("crdb.auths", Integer.class);
 
         logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
 
-        final String localityString = environment.getProperty("crdb.localities", "SC,TX,CA");
+        final String localityString = environment.getRequiredProperty("crdb.localities");
 
         List<String> localities = Splitter.on(',').splitToList(localityString);
 
@@ -285,11 +321,9 @@ public class StartupRunner implements ApplicationRunner {
 
     private void createSchema() throws SQLException, FileNotFoundException {
         try (Connection connection = dataSource.getConnection()) {
-            File file = ResourceUtils.getFile("classpath:schema.sql");
-
-            logger.info("creating schema with file [{}]", file.getName());
-
-            ScriptUtils.executeSqlScript(connection, new FileSystemResource(file));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:create-acct.sql")));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:create-auth.sql")));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:zone-config.sql")));
         }
     }
 
@@ -298,7 +332,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("crdb.batch", Integer.class, 128);
+        final int batchSize = environment.getRequiredProperty("crdb.batch", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
@@ -392,7 +426,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("crdb.batch", Integer.class, 128);
+        final int batchSize = environment.getRequiredProperty("crdb.batch", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {

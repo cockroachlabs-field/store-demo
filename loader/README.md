@@ -7,9 +7,9 @@
 --crdb.server
 --crdb.port
 --crdb.accts
---crdb.accts.file
+--crdb.accts.data.file
 --crdb.auths
---crdb.auths.file
+--crdb.auths.data.file
 --crdb.localities
 
 
