@@ -67,10 +67,16 @@ public class StartupRunner implements ApplicationRunner {
     }
 
     private void createData() throws IOException {
-        final int acctRowCount = environment.getProperty("table.acct.row-count", Integer.class, 1000000);
-        final int authRowCount = environment.getProperty("table.auth.row-count", Integer.class, 1000);
+        final int acctRowCount = environment.getProperty("crdb.accts", Integer.class, 1000000);
+        final int authRowCount = environment.getProperty("crdb.auths", Integer.class, 1000);
 
-        logger.debug("creating {} acct records and {} auth records", acctRowCount, authRowCount);
+        logger.info("creating {} acct records and {} auth records", acctRowCount, authRowCount);
+
+        final String locality = environment.getProperty("crdb.locality");
+
+        if (StringUtils.isNotBlank(locality)) {
+            logger.info("creating records for locality {}", locality);
+        }
 
         File acctFile = new File(ACCT_GZ);
 
@@ -135,8 +141,13 @@ public class StartupRunner implements ApplicationRunner {
                     String lastBalanceInquiry = null;
 
                     // STATE
-                    final String state = faker.address().stateAbbr();
+                    String state = null;
 
+                    if (StringUtils.isNotBlank(locality)) {
+                        state = locality;
+                    } else {
+                        faker.address().stateAbbr();
+                    }
 
                     if (authTotalCount < authRowCount) {
 
@@ -242,7 +253,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
+        final int batchSize = environment.getProperty("crdb.batch", Integer.class, 128);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
