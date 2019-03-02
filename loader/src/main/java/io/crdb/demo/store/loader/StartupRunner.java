@@ -349,7 +349,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
+        final int batchSize = environment.getProperty("crdb.batch", Integer.class, 128);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
