@@ -42,6 +42,7 @@ public class StartupRunner implements ApplicationRunner {
     private static final String ACCT_GZ = "acct.gz";
     private static final String AUTH_GZ = "auth.gz";
     private static final String USER_ID = "LOADER";
+    private static final int LOG_FREQUENCY = 100000;
 
     @Autowired
     private DataSource dataSource;
@@ -232,7 +233,7 @@ public class StartupRunner implements ApplicationRunner {
 
                     acctTotalCount++;
 
-                    if (acctTotalCount != 0 && (acctTotalCount % 100000) == 0) {
+                    if (acctTotalCount != 0 && (acctTotalCount % LOG_FREQUENCY) == 0) {
                         // coarse grained tracker
                         logger.info("created {} records", acctTotalCount);
                     }
@@ -324,7 +325,7 @@ public class StartupRunner implements ApplicationRunner {
                         logger.debug("loaded ACCT batch {}", i);
                     }
 
-                    if (i != 0 && (i % 10000) == 0) {
+                    if (i != 0 && (i % LOG_FREQUENCY) == 0) {
                         // coarse grained tracker
                         logger.info("loaded {} Accounts", i);
                     }
@@ -396,7 +397,7 @@ public class StartupRunner implements ApplicationRunner {
                         logger.debug("loaded AUTH batch {}", i);
                     }
 
-                    if (i != 0 && (i % 10000) == 0) {
+                    if (i != 0 && (i % LOG_FREQUENCY) == 0) {
                         // coarse grained tracker
                         logger.info("loaded {} Authorizations", i);
                     }
