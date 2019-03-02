@@ -17,7 +17,6 @@ import org.springframework.util.StopWatch;
 import javax.sql.DataSource;
 import java.io.*;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -25,9 +24,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 
 @Component
@@ -39,10 +37,9 @@ public class StartupRunner implements ApplicationRunner {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
-    private static final String ACCT_GZ = "acct.gz";
-    private static final String AUTH_GZ = "auth.gz";
     private static final String USER_ID = "LOADER";
     private static final int LOG_FREQUENCY = 100000;
+    private static final Random RANDOM = new Random();
 
     @Autowired
     private DataSource dataSource;
@@ -51,43 +48,75 @@ public class StartupRunner implements ApplicationRunner {
     private Environment environment;
 
 
+    private class DataFiles {
+        private final String accountFile;
+        private final String authorizationFile;
+
+        DataFiles(String accountFile, String authorizationFile) {
+            this.accountFile = accountFile;
+            this.authorizationFile = authorizationFile;
+        }
+
+        public String getAccountFile() {
+            return accountFile;
+        }
+
+        public String getAuthorizationFile() {
+            return authorizationFile;
+        }
+    }
+
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         logger.info("Your application started with option names : {}", args.getOptionNames());
 
+        DataFiles files = null;
 
         if (args.containsOption("create")) {
-            createData();
+            files = createFiles();
         }
 
         if (args.containsOption("load")) {
-            loadAccount();
-            loadAuthorization();
+
+            if (files == null) {
+                final String acctFileName = environment.getProperty("crdb.accts.file", String.class);
+                final String authFileName = environment.getProperty("crdb.auths.file", String.class);
+
+                if (StringUtils.isBlank(acctFileName) || StringUtils.isBlank(authFileName)) {
+                    throw new IllegalArgumentException("no file names to load, specifiy \"--create\" or \"crdb.accts.file\" and \"crdb.auths.file\"");
+                }
+
+                files = new DataFiles(acctFileName, authFileName);
+            }
+
+            loadAccountFromFile(files);
+            loadAuthorizationFromFile(files);
         }
 
     }
 
-    private void createData() throws IOException {
+    private DataFiles createFiles() throws IOException {
         final int acctRowCount = environment.getProperty("crdb.accts", Integer.class, 1000000);
-        final int authRowCount = environment.getProperty("crdb.auths", Integer.class, 1000);
+        final int authRowCount = environment.getProperty("crdb.auths", Integer.class, 10000);
 
         logger.info("creating {} acct records and {} auth records", acctRowCount, authRowCount);
 
-        final String locality = environment.getProperty("crdb.locality");
+        final String localityString = environment.getProperty("crdb.localities", "SC,TX,CA");
 
-        if (StringUtils.isNotBlank(locality)) {
-            logger.info("creating records for locality {}", locality);
-        }
+        List<String> localities = Splitter.on(',').splitToList(localityString);
 
-        File acctFile = new File(ACCT_GZ);
+        String acctFileName = "accts-" + acctRowCount + ".csv";
+        String authFileName = "auths-" + authRowCount + ".csv";
+
+        File acctFile = new File(acctFileName);
 
         if (acctFile.exists()) {
             final boolean deleted = acctFile.delete();
-            logger.debug("deleted file {}: {}", ACCT_GZ, deleted);
+            logger.debug("deleted file {}: {}", acctFileName, deleted);
         }
 
-        try (FileOutputStream acctOut = new FileOutputStream(ACCT_GZ);
-             Writer acctWriter = new OutputStreamWriter(new GZIPOutputStream(acctOut), StandardCharsets.UTF_8)) {
+        try (BufferedWriter acctWriter = new BufferedWriter(new FileWriter(acctFile))) {
 
             Faker faker = new Faker(new Locale("en-US"));
 
@@ -100,28 +129,21 @@ public class StartupRunner implements ApplicationRunner {
             int authTotalCount = 0;
             int acctTotalCount = 0;
 
-            File authFile = new File(AUTH_GZ);
+            File authFile = new File(authFileName);
 
             if (authFile.exists()) {
                 final boolean deleted = authFile.delete();
-                logger.debug("deleted file {}: {}", AUTH_GZ, deleted);
+                logger.debug("deleted file {}: {}", authFileName, deleted);
             }
 
-            try (FileOutputStream authOut = new FileOutputStream(AUTH_GZ);
-                 Writer authWriter = new OutputStreamWriter(new GZIPOutputStream(authOut), StandardCharsets.UTF_8)) {
+            try (BufferedWriter authWriter = new BufferedWriter(new FileWriter(authFile))) {
 
                 for (int ac = 0; ac < acctRowCount; ac++) {
 
                     final java.util.Date createdDate = faker.date().between(start, end);
 
                     // STATE
-                    String state = null;
-
-                    if (StringUtils.isNotBlank(locality)) {
-                        state = locality;
-                    } else {
-                        state = faker.address().stateAbbr();
-                    }
+                    final String state = localities.get(RANDOM.nextInt(localities.size()));
 
                     // ACCT_NBR
                     final String accountNumber = state + "-" + String.format("%022d", (ac + 1));
@@ -247,9 +269,11 @@ public class StartupRunner implements ApplicationRunner {
             logger.info("created {} acct records and {} auth records in {} seconds", acctTotalCount, authTotalCount, sw.getTotalTimeSeconds());
 
         }
+
+        return new DataFiles(acctFileName, authFileName);
     }
 
-    private void loadAccount() throws SQLException, IOException, ParseException {
+    private void loadAccountFromFile(DataFiles files) throws SQLException, IOException, ParseException {
         StopWatch sw = new StopWatch("load acct");
         sw.start();
 
@@ -259,8 +283,7 @@ public class StartupRunner implements ApplicationRunner {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
 
-            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(ACCT_GZ));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
+            try (BufferedReader br = new BufferedReader(new FileReader(files.getAccountFile()))) {
 
                 String line;
 
@@ -344,7 +367,7 @@ public class StartupRunner implements ApplicationRunner {
         logger.info(sw.prettyPrint());
     }
 
-    private void loadAuthorization() throws SQLException, IOException, ParseException {
+    private void loadAuthorizationFromFile(DataFiles files) throws SQLException, IOException, ParseException {
         StopWatch sw = new StopWatch("load auth");
         sw.start();
 
@@ -354,8 +377,7 @@ public class StartupRunner implements ApplicationRunner {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
 
-            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(AUTH_GZ));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
+            try (BufferedReader br = new BufferedReader(new FileReader(files.getAuthorizationFile()))) {
 
                 String line;
 

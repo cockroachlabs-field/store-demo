@@ -1,47 +1,122 @@
 version: '3.5'
 
 networks:
-  crdb-net:
+  shared:
+    driver: bridge
+  east:
+    driver: bridge
+  central:
+    driver: bridge
+  west:
     driver: bridge
 
 services:
 
-  crdb-1:
-    container_name: crdb-1
-    hostname: crdb-1
+  east-1:
+    container_name: east-1
+    hostname: east-1
     image: cockroachdb/cockroach:latest
     networks:
-      - crdb-net
+      - shared
+      - east
     ports:
       - "8080:8080"
-    command: start --logtostderr --insecure
+    command: start --logtostderr --insecure --locality=region=east
 
-  crdb-2:
-    container_name: crdb-2
-    hostname: crdb-2
+  east-2:
+    container_name: east-2
+    hostname: east-2
     image: cockroachdb/cockroach:latest
     networks:
-      - crdb-net
-    command: start --logtostderr --insecure --join=crdb-1
+      - shared
+      - east
+    command: start --logtostderr --insecure --locality=region=east --join=east-1
     depends_on:
-      - crdb-1
+      - east-1
 
-  crdb-3:
-    container_name: crdb-3
-    hostname: crdb-3
+  east-3:
+    container_name: east-3
+    hostname: east-3
     image: cockroachdb/cockroach:latest
     networks:
-      - crdb-net
-    command: start --logtostderr --insecure --join=crdb-1
+      - shared
+      - east
+    command: start --logtostderr --insecure --locality=region=east --join=east-1
     depends_on:
-      - crdb-1
+      - east-1
+
+  central-1:
+    container_name: central-1
+    hostname: central-1
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - central
+    command: start --logtostderr --insecure --locality=region=central --join=east-1
+    depends_on:
+      - east-1
+
+  central-2:
+    container_name: central-2
+    hostname: central-2
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - central
+    command: start --logtostderr --insecure --locality=region=central --join=east-1
+    depends_on:
+      - east-1
+
+  central-3:
+    container_name: central-3
+    hostname: central-3
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - central
+    command: start --logtostderr --insecure --locality=region=central --join=east-1
+    depends_on:
+      - east-1
+
+  west-1:
+    container_name: west-1
+    hostname: west-1
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - west
+    command: start --logtostderr --insecure --locality=region=west --join=east-1
+    depends_on:
+      - east-1
+
+  west-2:
+    container_name: west-2
+    hostname: west-2
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - west
+    command: start --logtostderr --insecure --locality=region=west --join=east-1
+    depends_on:
+      - east-1
+
+  west-3:
+    container_name: west-3
+    hostname: west-3
+    image: cockroachdb/cockroach:latest
+    networks:
+      - shared
+      - west
+    command: start --logtostderr --insecure --locality=region=west --join=east-1
+    depends_on:
+      - east-1
 
   prometheus:
     container_name: prometheus
     hostname: prometheus
     build: ./prometheus
     networks:
-      - crdb-net
+      - shared
     ports:
       - "9090:9090"
 
@@ -50,11 +125,17 @@ services:
     hostname: lb
     build: haproxy
     networks:
-      - crdb-net
+      - shared
     ports:
       - "5432:5432"
       - "8081:8081"
     links:
-      - crdb-1
-      - crdb-2
-      - crdb-3
+      - east-1
+      - east-2
+      - east-3
+      - central-1
+      - central-2
+      - central-3
+      - west-1
+      - west-2
+      - west-3
