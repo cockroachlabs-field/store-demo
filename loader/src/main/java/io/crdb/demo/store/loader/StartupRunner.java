@@ -44,12 +44,14 @@ public class StartupRunner implements ApplicationRunner {
     private static final int LOG_FREQUENCY = 100000;
     private static final Random RANDOM = new Random();
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+    private final Environment environment;
 
     @Autowired
-    private Environment environment;
-
+    public StartupRunner(DataSource dataSource, Environment environment) {
+        this.dataSource = dataSource;
+        this.environment = environment;
+    }
 
     private class DataFiles {
         private final String accountFile;
@@ -60,11 +62,11 @@ public class StartupRunner implements ApplicationRunner {
             this.authorizationFile = authorizationFile;
         }
 
-        public String getAccountFile() {
+        String getAccountFile() {
             return accountFile;
         }
 
-        public String getAuthorizationFile() {
+        String getAuthorizationFile() {
             return authorizationFile;
         }
     }

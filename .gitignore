@@ -23,7 +23,7 @@
 hs_err_pid*
 
 # generated data files
-*.gz
+*.csv
 
 *.iml
 .idea
