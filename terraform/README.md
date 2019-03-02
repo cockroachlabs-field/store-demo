@@ -34,7 +34,7 @@ terraform init -upgrade
 terraform apply -var-file="store-demo.tfvars" -auto-approve
 ```
 
-If everything is successful you should see a message like this in the console.
+If everything is successful you should see a message like this in the console...
 ```text
 Apply complete! Resources: 47 added, 0 changed, 0 destroyed.
 
@@ -44,6 +44,8 @@ azure_cockroach_public_ips = 23.102.157.43,104.214.25.95,104.214.34.67
 google_cockroach_public_ips_east = 34.73.111.61,34.73.192.47,34.73.214.9
 google_cockroach_public_ips_west = 35.235.108.56,35.235.73.122,35.236.3.98
 ```
+
+Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
 
 ## Other Helpful Commands
 
