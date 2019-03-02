@@ -17,7 +17,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 ## Building the Cluster
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
-2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf)
+2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf).
 ```hcl-terraform
 gcp_project_name = "your gcp project name"
 gcp_user = "your gcp username"
