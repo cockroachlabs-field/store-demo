@@ -1,1 +1,1 @@
-todo: need to add prometheus
+# Store Demo - Docker
