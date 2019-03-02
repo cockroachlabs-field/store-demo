@@ -11,7 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 import org.springframework.util.StopWatch;
 
 import javax.sql.DataSource;
@@ -73,8 +76,8 @@ public class StartupRunner implements ApplicationRunner {
 
         DataFiles files = null;
 
-        if (args.containsOption("create")) {
-            files = createFiles();
+        if (args.containsOption("generate")) {
+            files = generateFiles();
         }
 
         if (args.containsOption("load")) {
@@ -84,23 +87,28 @@ public class StartupRunner implements ApplicationRunner {
                 final String authFileName = environment.getProperty("crdb.auths.file", String.class);
 
                 if (StringUtils.isBlank(acctFileName) || StringUtils.isBlank(authFileName)) {
-                    throw new IllegalArgumentException("no file names to load, specifiy \"--create\" or \"crdb.accts.file\" and \"crdb.auths.file\"");
+                    throw new IllegalArgumentException("no file names to load, specifically \"--create\" or \"crdb.accts.file\" and \"crdb.auths.file\"");
                 }
 
                 files = new DataFiles(acctFileName, authFileName);
             }
 
+            createSchema();
+
+            Thread.sleep(10000);
+
             loadAccountFromFile(files);
+
             loadAuthorizationFromFile(files);
         }
 
     }
 
-    private DataFiles createFiles() throws IOException {
+    private DataFiles generateFiles() throws IOException {
         final int acctRowCount = environment.getProperty("crdb.accts", Integer.class, 1000000);
         final int authRowCount = environment.getProperty("crdb.auths", Integer.class, 10000);
 
-        logger.info("creating {} acct records and {} auth records", acctRowCount, authRowCount);
+        logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
 
         final String localityString = environment.getProperty("crdb.localities", "SC,TX,CA");
 
@@ -257,7 +265,7 @@ public class StartupRunner implements ApplicationRunner {
 
                     if (acctTotalCount != 0 && (acctTotalCount % LOG_FREQUENCY) == 0) {
                         // coarse grained tracker
-                        logger.info("created {} records", acctTotalCount);
+                        logger.info("generated {} records", acctTotalCount);
                     }
 
                     acctWriter.write(account + '\n');
@@ -266,11 +274,21 @@ public class StartupRunner implements ApplicationRunner {
 
             sw.stop();
 
-            logger.info("created {} acct records and {} auth records in {} seconds", acctTotalCount, authTotalCount, sw.getTotalTimeSeconds());
+            logger.info("generated {} acct records and {} auth records in {} seconds", acctTotalCount, authTotalCount, sw.getTotalTimeSeconds());
 
         }
 
         return new DataFiles(acctFileName, authFileName);
+    }
+
+    private void createSchema() throws SQLException, FileNotFoundException {
+        try (Connection connection = dataSource.getConnection()) {
+            File file = ResourceUtils.getFile("classpath:schema.sql");
+
+            logger.info("creating schema with file [{}]", file.getName());
+
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource(file));
+        }
     }
 
     private void loadAccountFromFile(DataFiles files) throws SQLException, IOException, ParseException {
