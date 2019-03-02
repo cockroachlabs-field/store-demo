@@ -1,6 +1,6 @@
 # Store Demo - Terraform
 
-Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US regions and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and [Electric Power Grids](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US regions and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
 * Google `us-east1` in Virgina, Eastern Interconnection
 * Microsoft `southcentralus` in Texas, Texas Interconnection
 * Google `us-west2` in California, Western Interconnection
