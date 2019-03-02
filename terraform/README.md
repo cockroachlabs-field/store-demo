@@ -1,6 +1,6 @@
 # Store Demo - Terraform
 
-Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US Data Centers and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+Terraform is used here to provision a 9 node CockroachDB cluster across 3 geographically disperse US Data Centers and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
 * Data Center 1 - Google's `us-east1` region in Virgina on the Eastern Interconnection grid
 * Data Center 2 - Microsoft's `southcentralus` region in Texas on the Texas Interconnection grid
 * Data Center 3 - Google's `us-west2` region in southern California on the Western Interconnection grid
@@ -12,7 +12,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 * Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest
 
 ## Building the Cluster
-1) Create a Google Cloud Service Account Key (https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
+1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
 2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.
 ```hcl-terraform
