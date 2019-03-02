@@ -4,6 +4,9 @@ Terraform is used here to provision a 9 node CockroachDB cluster across 3 geogra
 * Data Center 1 - Google's `us-east1` region in Virgina on the Eastern Interconnection grid
 * Data Center 2 - Microsoft's `southcentralus` region in Texas on the Texas Interconnection grid
 * Data Center 3 - Google's `us-west2` region in southern California on the Western Interconnection grid
+
+## Default Cluster Specifications
+todo
  
 ## Prerequisites
 All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
