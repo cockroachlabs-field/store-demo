@@ -1,17 +1,8 @@
 # Store Demo - Loader
 
---create --crdb.server=PRIVATE_IP_OF_IN-REGION_NODE --crdb.accts=PORTION_OF_TOTAL --crdb.auths=PORTION_OF_TOTAL --crdb.locality=STATE
-
 --generate
 --load
 --crdb.server
---crdb.port
---crdb.accts
---crdb.accts.data.file
---crdb.auths
---crdb.auths.data.file
---crdb.localities
-
 
 ## for the east
 scp loader-2019.1-BETA.jar timveil@35.196.10.62:~/
