@@ -66,168 +66,6 @@ public class StartupRunner implements ApplicationRunner {
 
     }
 
-    private void loadAccount() throws SQLException, IOException, ParseException {
-        StopWatch sw = new StopWatch("load acct");
-        sw.start();
-
-        final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(acctInsert)) {
-
-            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(ACCT_GZ));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
-
-                String line;
-
-                int i = 0;
-                while ((line = br.readLine()) != null) {
-                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
-
-                    // ACCT_NBR
-                    ps.setString(1, columns.get(0));
-
-                    // ACCT_TYPE_IND
-                    ps.setString(2, columns.get(1));
-
-                    // ACCT_BAL_AMT
-                    ps.setBigDecimal(3, new BigDecimal(columns.get(2)));
-
-                    // ACCT_STAT_CD
-                    ps.setInt(4, Integer.parseInt(columns.get(3)));
-
-                    // EXPIR_DT
-                    final String expirationDate = columns.get(4);
-                    if (StringUtils.isNotBlank(expirationDate)) {
-                        ps.setDate(5, new java.sql.Date(DATE_FORMAT.parse(expirationDate).getTime()));
-                    } else {
-                        ps.setDate(5, null);
-                    }
-
-                    // CRT_TS
-                    ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
-
-                    // LAST_UPD_TS
-                    final String lastUpdatedTimestamp = columns.get(6);
-                    if (StringUtils.isNotBlank(lastUpdatedTimestamp)) {
-                        ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(lastUpdatedTimestamp).getTime()));
-                    } else {
-                        ps.setTimestamp(7, null);
-                    }
-
-                    // LAST_UPD_USER_ID
-                    final String lastUpdatedUserId = columns.get(7);
-                    if (StringUtils.isNotBlank(lastUpdatedUserId)) {
-                        ps.setString(8, lastUpdatedUserId);
-                    } else {
-                        ps.setString(8, null);
-                    }
-
-                    // ACTVT_INQ_TS
-                    final String inquiryTimestamp = columns.get(8);
-                    if (StringUtils.isNotBlank(inquiryTimestamp)) {
-                        ps.setTimestamp(9, new Timestamp(TIMESTAMP_FORMAT.parse(inquiryTimestamp).getTime()));
-                    } else {
-                        ps.setTimestamp(9, null);
-                    }
-
-                    // STATE
-                    ps.setString(10, columns.get(9));
-
-                    ps.addBatch();
-
-                    if (i != 0 && (i % batchSize) == 0) {
-
-                        ps.executeBatch();
-
-                        logger.debug("loaded batch {}", i);
-                    }
-
-                    i++;
-                }
-            }
-
-            ps.executeBatch();
-
-            logger.debug("loaded remaining");
-
-        }
-
-        sw.stop();
-        logger.debug(sw.prettyPrint());
-    }
-
-    private void loadAuthorization() throws SQLException, IOException, ParseException {
-        StopWatch sw = new StopWatch("load auth");
-        sw.start();
-
-        final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(acctInsert)) {
-
-            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(AUTH_GZ));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
-
-                String line;
-
-                int i = 0;
-                while ((line = br.readLine()) != null) {
-                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
-
-                    // ACCT_NBR
-                    ps.setString(1, columns.get(0));
-
-                    // REQUEST_ID
-                    ps.setObject(2, UUID.fromString(columns.get(1)));
-
-                    // AUTH_ID
-                    ps.setString(3, columns.get(2));
-
-                    // AUTH_AMT
-                    ps.setBigDecimal(4, new BigDecimal(columns.get(3)));
-
-                    // AUTH_STAT_CD
-                    ps.setInt(5, Integer.parseInt(columns.get(4)));
-
-                    // CRT_TS
-                    ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
-
-                    // LAST_UPD_TS
-                    ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(6)).getTime()));
-
-                    // LAST_UPD_USER_ID
-                    ps.setString(8, columns.get(7));
-
-                    // STATE
-                    ps.setString(9, columns.get(8));
-
-                    ps.addBatch();
-
-                    if (i != 0 && (i % batchSize) == 0) {
-
-                        ps.executeBatch();
-
-                        logger.debug("loaded batch {}", i);
-                    }
-
-                    i++;
-                }
-            }
-
-            ps.executeBatch();
-
-            logger.debug("loaded remaining");
-
-        }
-
-        sw.stop();
-        logger.debug(sw.prettyPrint());
-    }
-
-
     private void createData() throws IOException {
         final int acctRowCount = environment.getProperty("table.acct.row-count", Integer.class, 1000000);
         final int authRowCount = environment.getProperty("table.auth.row-count", Integer.class, 1000);
@@ -383,14 +221,186 @@ public class StartupRunner implements ApplicationRunner {
 
                     acctTotalCount++;
 
+                    if (acctTotalCount != 0 && (acctTotalCount % 10000) == 0) {
+                        // coarse grained tracker
+                        logger.info("created {} records", acctTotalCount);
+                    }
+
                     acctWriter.write(account + '\n');
                 }
             }
 
             sw.stop();
 
-            logger.debug("created {} acct records and {} auth records in {} seconds", acctTotalCount, authTotalCount, sw.getTotalTimeSeconds());
+            logger.info("created {} acct records and {} auth records in {} seconds", acctTotalCount, authTotalCount, sw.getTotalTimeSeconds());
 
         }
+    }
+
+    private void loadAccount() throws SQLException, IOException, ParseException {
+        StopWatch sw = new StopWatch("load acct");
+        sw.start();
+
+        final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(acctInsert)) {
+
+            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(ACCT_GZ));
+                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
+
+                String line;
+
+                int i = 0;
+                while ((line = br.readLine()) != null) {
+                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
+
+                    // ACCT_NBR
+                    ps.setString(1, columns.get(0));
+
+                    // ACCT_TYPE_IND
+                    ps.setString(2, columns.get(1));
+
+                    // ACCT_BAL_AMT
+                    ps.setBigDecimal(3, new BigDecimal(columns.get(2)));
+
+                    // ACCT_STAT_CD
+                    ps.setInt(4, Integer.parseInt(columns.get(3)));
+
+                    // EXPIR_DT
+                    final String expirationDate = columns.get(4);
+                    if (StringUtils.isNotBlank(expirationDate)) {
+                        ps.setDate(5, new java.sql.Date(DATE_FORMAT.parse(expirationDate).getTime()));
+                    } else {
+                        ps.setDate(5, null);
+                    }
+
+                    // CRT_TS
+                    ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
+
+                    // LAST_UPD_TS
+                    final String lastUpdatedTimestamp = columns.get(6);
+                    if (StringUtils.isNotBlank(lastUpdatedTimestamp)) {
+                        ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(lastUpdatedTimestamp).getTime()));
+                    } else {
+                        ps.setTimestamp(7, null);
+                    }
+
+                    // LAST_UPD_USER_ID
+                    final String lastUpdatedUserId = columns.get(7);
+                    if (StringUtils.isNotBlank(lastUpdatedUserId)) {
+                        ps.setString(8, lastUpdatedUserId);
+                    } else {
+                        ps.setString(8, null);
+                    }
+
+                    // ACTVT_INQ_TS
+                    final String inquiryTimestamp = columns.get(8);
+                    if (StringUtils.isNotBlank(inquiryTimestamp)) {
+                        ps.setTimestamp(9, new Timestamp(TIMESTAMP_FORMAT.parse(inquiryTimestamp).getTime()));
+                    } else {
+                        ps.setTimestamp(9, null);
+                    }
+
+                    // STATE
+                    ps.setString(10, columns.get(9));
+
+                    ps.addBatch();
+
+                    if (i != 0 && (i % batchSize) == 0) {
+                        ps.executeBatch();
+                        logger.debug("loaded ACCT batch {}", i);
+                    }
+
+                    if (i != 0 && (i % 10000) == 0) {
+                        // coarse grained tracker
+                        logger.info("loaded {} Accounts", i);
+                    }
+
+                    i++;
+                }
+            }
+
+            ps.executeBatch();
+
+            logger.debug("loaded remaining");
+
+        }
+
+        sw.stop();
+        logger.info(sw.prettyPrint());
+    }
+
+    private void loadAuthorization() throws SQLException, IOException, ParseException {
+        StopWatch sw = new StopWatch("load auth");
+        sw.start();
+
+        final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final int batchSize = environment.getProperty("loader.batch.size", Integer.class, 128);
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(acctInsert)) {
+
+            try (GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(AUTH_GZ));
+                 BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
+
+                String line;
+
+                int i = 0;
+                while ((line = br.readLine()) != null) {
+                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
+
+                    // ACCT_NBR
+                    ps.setString(1, columns.get(0));
+
+                    // REQUEST_ID
+                    ps.setObject(2, UUID.fromString(columns.get(1)));
+
+                    // AUTH_ID
+                    ps.setString(3, columns.get(2));
+
+                    // AUTH_AMT
+                    ps.setBigDecimal(4, new BigDecimal(columns.get(3)));
+
+                    // AUTH_STAT_CD
+                    ps.setInt(5, Integer.parseInt(columns.get(4)));
+
+                    // CRT_TS
+                    ps.setTimestamp(6, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(5)).getTime()));
+
+                    // LAST_UPD_TS
+                    ps.setTimestamp(7, new Timestamp(TIMESTAMP_FORMAT.parse(columns.get(6)).getTime()));
+
+                    // LAST_UPD_USER_ID
+                    ps.setString(8, columns.get(7));
+
+                    // STATE
+                    ps.setString(9, columns.get(8));
+
+                    ps.addBatch();
+
+                    if (i != 0 && (i % batchSize) == 0) {
+                        ps.executeBatch();
+                        logger.debug("loaded AUTH batch {}", i);
+                    }
+
+                    if (i != 0 && (i % 10000) == 0) {
+                        // coarse grained tracker
+                        logger.info("loaded {} Authorizations", i);
+                    }
+
+                    i++;
+                }
+            }
+
+            ps.executeBatch();
+
+            logger.debug("loaded remaining");
+
+        }
+
+        sw.stop();
+        logger.info(sw.prettyPrint());
     }
 }
