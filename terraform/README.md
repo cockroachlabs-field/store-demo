@@ -1,33 +1,32 @@
 # Store Demo - Terraform
 
-Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US regions and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and Electric Power Grids (https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+Terraform is used here to provision a 9 node CockcroachDB cluster across 3 geographically disperse US regions and 2 cloud providers.  The intent is to demonstrate survivability across, Data Centers, Cloud Providers and [Electric Power Grids](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
 * Google `us-east1` in Virgina, Eastern Interconnection
 * Microsoft `southcentralus` in Texas, Texas Interconnection
 * Google `us-west2` in California, Western Interconnection
  
 ## Prerequisites
-All of my development was done on a Mac running macOS Mohave.  Mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
+All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
 * Terraform - https://www.terraform.io/downloads.html
 * Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos
 * Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest
-you
 
 ## Building the Cluster
-1) create Google Cloud Service Account Key (https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
+1) Create a Google Cloud Service Account Key (https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
-2) create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.
+2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.
 ```hcl-terraform
 gcp_project_name = "your gcp project name"
 gcp_user="your gcp username"
 crdb_license_org="your license org name"
 crdb_license_key="your license key"
 ```
-3) initialize Terraform
+3) Initialize Terraform
 ```bash
 terraform init -upgrade
 ```
 
-4) build the cluster
+4) Build the cluster
 ```bash
 terraform apply -var-file="store-demo.tfvars" -auto-approve
 ```
