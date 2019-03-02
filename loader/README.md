@@ -8,7 +8,7 @@ scp loader-2019.1-BETA.jar timveil@35.196.10.62:~/
 
 
 
-java -jar loader-2019.1-BETA.jar --create --crdb.server=10.142.0.3 --crdb.port=26257 --crdb.accts=150000000 --crdb.auths=3000000 --crdb.locality=VA
+java -jar loader-2019.1-BETA.jar --create --crdb.server=10.142.0.3 --crdb.port=26257 --crdb.accts=150000000 --crdb.auths=3000000 --crdb.locality=SC
 
 timings for 150m & 300k; whoops
 ```
