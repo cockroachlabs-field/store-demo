@@ -39,7 +39,7 @@ variable "gcp_machine_type" {
 }
 
 variable "gcp_machine_type_client" {
-  default = "n1-standard-4"
+  default = "n1-standard-8"
 }
 
 variable "gcp_private_key_path" {
@@ -51,7 +51,11 @@ variable "gcp_credentials_file" {
 }
 
 variable "azure_machine_type" {
-  default = "Standard_DS15_v2"
+  default = "Standard_DS14_v2"
+}
+
+variable "azure_machine_type_client" {
+  default = "Standard_DS13_v2"
 }
 
 variable "azure_private_key_path" {
