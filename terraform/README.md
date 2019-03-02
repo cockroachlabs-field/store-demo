@@ -20,9 +20,9 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.
 ```hcl-terraform
 gcp_project_name = "your gcp project name"
-gcp_user="your gcp username"
-crdb_license_org="your license org name"
-crdb_license_key="your license key"
+gcp_user = "your gcp username"
+crdb_license_org = "your license org name"
+crdb_license_key = "your license key"
 ```
 3) Initialize Terraform
 ```bash
