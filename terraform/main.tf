@@ -699,8 +699,7 @@ resource "null_resource" "global_init_cluster" {
       "cockroach sql --insecure --execute=\"CREATE DATABASE store_demo;\"",
       "cockroach sql --insecure --database=store_demo --execute=\"INSERT into system.locations VALUES ('region', 'east', 33.191333, -80.003999);\"",
       "cockroach sql --insecure --database=store_demo --execute=\"INSERT into system.locations VALUES ('region', 'central', 29.4167, -98.5);\"",
-      "cockroach sql --insecure --database=store_demo --execute=\"INSERT into system.locations VALUES ('region', 'west', 34.052235, -118.243683);\"",
-      "cockroach sql --insecure --database=store_demo < schema.sql"
+      "cockroach sql --insecure --database=store_demo --execute=\"INSERT into system.locations VALUES ('region', 'west', 34.052235, -118.243683);\""
     ]
   }
 
