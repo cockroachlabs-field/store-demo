@@ -113,8 +113,17 @@ public class StartupRunner implements ApplicationRunner {
 
                     final java.util.Date createdDate = faker.date().between(start, end);
 
+                    // STATE
+                    String state = null;
+
+                    if (StringUtils.isNotBlank(locality)) {
+                        state = locality;
+                    } else {
+                        state = faker.address().stateAbbr();
+                    }
+
                     // ACCT_NBR
-                    final String accountNumber = RandomStringUtils.randomAlphanumeric(25);
+                    final String accountNumber = state + "-" + String.format("%022d", (ac + 1));
 
                     // ACCT_TYPE_IND
                     final String type = "HD";
@@ -139,15 +148,6 @@ public class StartupRunner implements ApplicationRunner {
 
                     // ACTVT_INQ_TS
                     String lastBalanceInquiry = null;
-
-                    // STATE
-                    String state = null;
-
-                    if (StringUtils.isNotBlank(locality)) {
-                        state = locality;
-                    } else {
-                        faker.address().stateAbbr();
-                    }
 
                     if (authTotalCount < authRowCount) {
 
