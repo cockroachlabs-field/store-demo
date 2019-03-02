@@ -685,11 +685,6 @@ resource "null_resource" "global_init_cluster" {
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
-  provisioner "file" {
-    source      = "scripts/schema.sql"
-    destination = "schema.sql"
-  }
-
   provisioner "remote-exec" {
     inline = ["cockroach init --insecure",
       "sleep ${var.provision_sleep}",
