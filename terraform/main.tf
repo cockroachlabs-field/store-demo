@@ -669,6 +669,13 @@ resource "null_resource" "azure_prep_client" {
     scripts = ["scripts/startup.sh"]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get install -yq default-jdk git",
+      "sleep ${var.provision_sleep}"
+    ]
+  }
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
