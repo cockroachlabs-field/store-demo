@@ -72,6 +72,16 @@ resource "google_compute_firewall" "sd_ssh" {
   }
 }
 
+resource "google_compute_firewall" "sd_client_ui" {
+  name = "allow-client-ui"
+  network = "${google_compute_network.sd_compute_network.self_link}"
+
+  allow {
+    protocol = "tcp"
+    ports = ["8082"]
+  }
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # provision east gcp resources
 # ---------------------------------------------------------------------------------------------------------------------
@@ -257,6 +267,18 @@ resource "azurerm_network_security_group" "sd_security_group" {
     protocol = "Tcp"
     source_port_range = "*"
     destination_port_range = "8080"
+    source_address_prefix = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name = "client"
+    priority = 1003
+    direction = "Inbound"
+    access = "Allow"
+    protocol = "Tcp"
+    source_port_range = "*"
+    destination_port_range = "8082"
     source_address_prefix = "*"
     destination_address_prefix = "*"
   }
