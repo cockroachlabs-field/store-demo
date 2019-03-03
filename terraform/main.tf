@@ -273,7 +273,7 @@ resource "azurerm_network_security_group" "sd_security_group" {
 
   security_rule {
     name = "client"
-    priority = 1003
+    priority = 1004
     direction = "Inbound"
     access = "Allow"
     protocol = "Tcp"
