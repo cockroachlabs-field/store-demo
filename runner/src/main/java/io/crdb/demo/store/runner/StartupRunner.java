@@ -4,6 +4,7 @@ import io.crdb.demo.store.common.Authorization;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +92,13 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests(String locality, int duration) {
 
-        final int threadCount = Runtime.getRuntime().availableProcessors();
+        int threadCount = Runtime.getRuntime().availableProcessors();
+
+        String threads = environment.getProperty("crdb.run.threads");
+
+        if (StringUtils.isNotBlank(threads)) {
+            threadCount = Integer.parseInt(threads);
+        }
 
         logger.info("starting ExecutorService with {} threads", threadCount);
 
