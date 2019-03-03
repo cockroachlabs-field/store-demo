@@ -41,7 +41,6 @@ public class StartupRunner implements ApplicationRunner {
 
     private Environment environment;
 
-
     private final Timer availableBalanceTimer;
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
@@ -54,12 +53,21 @@ public class StartupRunner implements ApplicationRunner {
 
         availableBalanceTimer = Timer.builder("runner.available_balance")
                 .description("query available balance")
-                .publishPercentiles(0.5, 0.95)
+                .publishPercentiles(0.5, 0.95, 0.99)
                 .publishPercentileHistogram()
                 .register(meterRegistry);
 
-        createAuthorizationTimer = meterRegistry.timer("runner.create_auth");
-        updateRecordsTimer = meterRegistry.timer("runner.update_auth");
+        createAuthorizationTimer = Timer.builder("runner.create_auth")
+                .description("create authorization")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .publishPercentileHistogram()
+                .register(meterRegistry);
+
+        updateRecordsTimer = Timer.builder("runner.update_records")
+                .description("update records")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .publishPercentileHistogram()
+                .register(meterRegistry);
     }
 
     @Override
@@ -167,162 +175,168 @@ public class StartupRunner implements ApplicationRunner {
 
     private Authorization createAuthorization(String accountNumber, double purchaseAmount, String locality) {
 
-        Authorization auth = null;
+        return createAuthorizationTimer.record(() -> {
+            Authorization auth = null;
 
-        try (Connection connection = dataSource.getConnection()) {
+            try (Connection connection = dataSource.getConnection()) {
 
-            connection.setAutoCommit(false);
+                connection.setAutoCommit(false);
 
-            int retryCount = 1;
+                int retryCount = 1;
 
-            while (true) {
+                while (true) {
 
-                Savepoint sp = connection.setSavepoint(SAVEPOINT);
+                    Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
-                try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
+                    try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
 
-                    final Timestamp now = new Timestamp(System.currentTimeMillis());
+                        final Timestamp now = new Timestamp(System.currentTimeMillis());
 
-                    auth = new Authorization();
-                    auth.setAccountNumber(accountNumber);
-                    auth.setRequestId(UUID.randomUUID());
-                    auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
-                    auth.setAuthorizationAmount(new BigDecimal(purchaseAmount));
-                    auth.setAuthorizationStatus(0);
-                    auth.setCreatedTimestamp(now);
-                    auth.setLastUpdatedTimestamp(now);
-                    auth.setLastUpdatedUserId(RUNNER);
-                    auth.setState(locality);
+                        auth = new Authorization();
+                        auth.setAccountNumber(accountNumber);
+                        auth.setRequestId(UUID.randomUUID());
+                        auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
+                        auth.setAuthorizationAmount(new BigDecimal(purchaseAmount));
+                        auth.setAuthorizationStatus(0);
+                        auth.setCreatedTimestamp(now);
+                        auth.setLastUpdatedTimestamp(now);
+                        auth.setLastUpdatedUserId(RUNNER);
+                        auth.setState(locality);
 
-                    // ACCT_NBR
-                    ps.setString(1, auth.getAccountNumber());
+                        // ACCT_NBR
+                        ps.setString(1, auth.getAccountNumber());
 
-                    // REQUEST_ID
-                    ps.setObject(2, auth.getRequestId());
+                        // REQUEST_ID
+                        ps.setObject(2, auth.getRequestId());
 
-                    // AUTH_ID
-                    ps.setString(3, auth.getAuthorizationId());
+                        // AUTH_ID
+                        ps.setString(3, auth.getAuthorizationId());
 
-                    // AUTH_AMT
-                    ps.setBigDecimal(4, auth.getAuthorizationAmount());
+                        // AUTH_AMT
+                        ps.setBigDecimal(4, auth.getAuthorizationAmount());
 
-                    // AUTH_STAT_CD
-                    ps.setInt(5, auth.getAuthorizationStatus());
+                        // AUTH_STAT_CD
+                        ps.setInt(5, auth.getAuthorizationStatus());
 
-                    // CRT_TS
-                    ps.setTimestamp(6, auth.getCreatedTimestamp());
+                        // CRT_TS
+                        ps.setTimestamp(6, auth.getCreatedTimestamp());
 
-                    // LAST_UPD_TS
-                    ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
+                        // LAST_UPD_TS
+                        ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
 
-                    // LAST_UPD_USER_ID
-                    ps.setString(8, auth.getLastUpdatedUserId());
+                        // LAST_UPD_USER_ID
+                        ps.setString(8, auth.getLastUpdatedUserId());
 
-                    // STATE
-                    ps.setString(9, auth.getState());
+                        // STATE
+                        ps.setString(9, auth.getState());
 
-                    final int updateCount = ps.executeUpdate();
+                        final int updateCount = ps.executeUpdate();
 
-                    connection.releaseSavepoint(sp);
+                        connection.releaseSavepoint(sp);
 
-                    connection.commit();
+                        connection.commit();
 
-                    //logger.trace("attempt {}: {} records created in authorization table for account {} and locality {}", retryCount, updateCount, accountNumber, locality);
+                        //logger.trace("attempt {}: {} records created in authorization table for account {} and locality {}", retryCount, updateCount, accountNumber, locality);
 
-                    break;
+                        break;
 
-                } catch (SQLException e) {
+                    } catch (SQLException e) {
 
-                    String sqlState = e.getSQLState();
+                        String sqlState = e.getSQLState();
 
-                    if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+                        if (RETRY_SQL_STATE.equals(sqlState)) {
+                            logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
 
-                        connection.rollback(sp);
-                        retryCount++;
-                    } else {
-                        throw e;
+                            connection.rollback(sp);
+                            retryCount++;
+                        } else {
+                            throw e;
+                        }
                     }
+
                 }
 
+                connection.setAutoCommit(true);
+
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
             }
 
-            connection.setAutoCommit(true);
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
-
-        return auth;
+            return auth;
+        });
     }
 
 
     private void updateRecords(Authorization authorization, double newBalance) {
-        try (Connection connection = dataSource.getConnection()) {
 
-            Timestamp now = new Timestamp(System.currentTimeMillis());
+        updateRecordsTimer.record(() -> {
+            try (Connection connection = dataSource.getConnection()) {
 
-            connection.setAutoCommit(false);
+                Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            int retryCount = 1;
+                connection.setAutoCommit(false);
 
-            while (true) {
+                int retryCount = 1;
 
-                Savepoint sp = connection.setSavepoint(SAVEPOINT);
+                while (true) {
 
-                try {
+                    Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
-                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
-                        ps.setInt(1, 1);
-                        ps.setTimestamp(2, now);
-                        ps.setString(3, authorization.getLastUpdatedUserId());
-                        ps.setString(4, authorization.getAccountNumber());
-                        ps.setString(5, authorization.getState());
-                        ps.setObject(6, authorization.getRequestId());
+                    try {
 
-                        ps.executeUpdate();
-                    }
+                        try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
+                            ps.setInt(1, 1);
+                            ps.setTimestamp(2, now);
+                            ps.setString(3, authorization.getLastUpdatedUserId());
+                            ps.setString(4, authorization.getAccountNumber());
+                            ps.setString(5, authorization.getState());
+                            ps.setObject(6, authorization.getRequestId());
 
-                    now = new Timestamp(System.currentTimeMillis());
+                            ps.executeUpdate();
+                        }
 
-                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
-                        ps.setBigDecimal(1, new BigDecimal(newBalance));
-                        ps.setTimestamp(2, now);
-                        ps.setString(3, authorization.getLastUpdatedUserId());
-                        ps.setString(4, authorization.getAccountNumber());
-                        ps.setString(5, authorization.getState());
+                        now = new Timestamp(System.currentTimeMillis());
 
-                        ps.executeUpdate();
-                    }
+                        try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
+                            ps.setBigDecimal(1, new BigDecimal(newBalance));
+                            ps.setTimestamp(2, now);
+                            ps.setString(3, authorization.getLastUpdatedUserId());
+                            ps.setString(4, authorization.getAccountNumber());
+                            ps.setString(5, authorization.getState());
 
-                    connection.releaseSavepoint(sp);
+                            ps.executeUpdate();
+                        }
 
-                    connection.commit();
+                        connection.releaseSavepoint(sp);
 
-                    //logger.trace("attempt {}: update to accounts is complete", retryCount);
+                        connection.commit();
 
-                    break;
+                        //logger.trace("attempt {}: update to accounts is complete", retryCount);
 
-                } catch (SQLException e) {
-                    String sqlState = e.getSQLState();
+                        break;
 
-                    if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+                    } catch (SQLException e) {
+                        String sqlState = e.getSQLState();
 
-                        connection.rollback(sp);
-                        retryCount++;
-                    } else {
-                        throw e;
+                        if (RETRY_SQL_STATE.equals(sqlState)) {
+                            logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+
+                            connection.rollback(sp);
+                            retryCount++;
+                        } else {
+                            throw e;
+                        }
                     }
                 }
+
+                connection.setAutoCommit(true);
+
+
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
             }
+        });
 
-            connection.setAutoCommit(true);
-
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
     }
 
 }
