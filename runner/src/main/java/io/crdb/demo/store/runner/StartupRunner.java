@@ -15,11 +15,8 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 
 @Component
@@ -27,16 +24,13 @@ public class StartupRunner implements ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(StartupRunner.class);
 
-    private static final String SELECT_AVAILABLE_BALANCE_SQL = "select acct.ACCT_BAL_AMT, SUM(auth.AUTH_AMT) from acct left outer join auth on acct.acct_nbr = auth.acct_nbr and auth.AUTH_STAT_CD = 0 where acct.acct_nbr = ? and acct.ACCT_STAT_CD = 1 group by ACCT_BAL_AMT";
-
-    // todo: just grabbing first 1000 accounts, may need to add more logic here
-    private static final String SELECT_ACCOUNT_NUMBERS_SQL = "select ACCT_NBR from ACCT where STATE = ? limit 1000";
+    private static final String SELECT_AVAILABLE_BALANCE_SQL = "select acct.ACCT_BAL_AMT, SUM(auth.AUTH_AMT) from acct left outer join auth on acct.acct_nbr = auth.acct_nbr and acct.state = auth.state and auth.AUTH_STAT_CD = 0 where acct.acct_nbr = ? and acct.state = ? and acct.ACCT_STAT_CD = 1 group by ACCT_BAL_AMT";
 
     private static final String INSERT_AUTHORIZATION_SQL = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    private static final String UPDATE_AUTHORIZATION_SQL = "update AUTH set AUTH_STAT_CD = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and REQUEST_ID = ? and AUTH_STAT_CD = 0";
+    private static final String UPDATE_AUTHORIZATION_SQL = "update AUTH set AUTH_STAT_CD = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and STATE = ? and REQUEST_ID = ? and AUTH_STAT_CD = 0";
 
-    private static final String UPDATE_ACCOUNT_SQL = "update ACCT set ACCT_BAL_AMT = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and ACCT_STAT_CD = 1";
+    private static final String UPDATE_ACCOUNT_SQL = "update ACCT set ACCT_BAL_AMT = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and STATE = ? and ACCT_STAT_CD = 1";
 
 
     private static final String RUNNER = "RUNNER";
@@ -77,48 +71,14 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests() {
 
-        String locality = environment.getProperty("crdb.locality");
+        String locality = environment.getRequiredProperty("crdb.locality");
+        int duration = environment.getRequiredProperty("crdb.run.duration", Integer.class);
 
-        if (locality == null) {
-            throw new IllegalArgumentException("no locality specified for test.  Set \"--crdb.locality\" at startup");
-        }
-
-        List<String> accountNumbers = getAccountNumbers(locality);
-
-        logger.info("returned {} accounts for this test with locality = {}", accountNumbers.size(), locality);
-
-        if (accountNumbers.size() == 0) {
-            logger.warn("unable to find any account numbers for locality {}", locality);
-        }
-
-        runTests(accountNumbers, locality);
+        runTests(locality, duration);
 
     }
 
-    private List<String> getAccountNumbers(String locality) {
-        List<String> accountNumbers = new ArrayList<>();
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(SELECT_ACCOUNT_NUMBERS_SQL)) {
-
-            ps.setString(1, locality);
-
-            try (ResultSet rs = ps.executeQuery()) {
-
-                if (rs != null) {
-                    while (rs.next()) {
-                        accountNumbers.add(rs.getString(1));
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return accountNumbers;
-    }
-
-    private void runTests(List<String> accountNumbers, String locality) {
+    private void runTests(String locality, int duration) {
 
         final int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -128,11 +88,17 @@ public class StartupRunner implements ApplicationRunner {
 
         double purchaseAmount = 5.00;
 
-        for (String accountNumber : accountNumbers) {
+        for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
 
-            poolService.execute(() -> {
+            final Future<?> submit = poolService.submit(() -> {
 
-                Double availableBalance = getAvailableBalance(accountNumber);
+                final int random = ThreadLocalRandom.current().nextInt(1, 100000 + 1);
+
+                String accountNumber = locality + "-" + String.format("%022d", random);
+
+                logger.debug("running test for account number [{}]", accountNumber);
+
+                Double availableBalance = getAvailableBalance(accountNumber, locality);
 
                 // for now we are ignoring balance
                 Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
@@ -143,6 +109,13 @@ public class StartupRunner implements ApplicationRunner {
 
             });
 
+//            try {
+//                //submit.get();
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                logger.error(e.getMessage(), e);
+//            }
+
         }
 
         logger.info("shutting down ExecutorService");
@@ -152,7 +125,7 @@ public class StartupRunner implements ApplicationRunner {
     }
 
 
-    private double getAvailableBalance(String accountNumber) {
+    private double getAvailableBalance(String accountNumber, String state) {
 
         return availableBalanceTimer.record(() -> {
 
@@ -163,6 +136,7 @@ public class StartupRunner implements ApplicationRunner {
                 try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
 
                     ps.setString(1, accountNumber);
+                    ps.setString(2, state);
 
                     try (ResultSet rs = ps.executeQuery()) {
 
@@ -303,7 +277,8 @@ public class StartupRunner implements ApplicationRunner {
                         ps.setTimestamp(2, now);
                         ps.setString(3, authorization.getLastUpdatedUserId());
                         ps.setString(4, authorization.getAccountNumber());
-                        ps.setObject(5, authorization.getRequestId());
+                        ps.setString(5, authorization.getState());
+                        ps.setObject(6, authorization.getRequestId());
 
                         ps.executeUpdate();
                     }
@@ -315,6 +290,7 @@ public class StartupRunner implements ApplicationRunner {
                         ps.setTimestamp(2, now);
                         ps.setString(3, authorization.getLastUpdatedUserId());
                         ps.setString(4, authorization.getAccountNumber());
+                        ps.setString(5, authorization.getState());
 
                         ps.executeUpdate();
                     }
