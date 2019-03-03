@@ -16,11 +16,8 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 @Component
@@ -41,9 +38,9 @@ public class StartupRunner implements ApplicationRunner {
     private static final String RETRY_SQL_STATE = "40001";
     private static final String SAVEPOINT = "cockroach_restart";
 
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
-    private Environment environment;
+    private final Environment environment;
 
     private final Timer availableBalanceTimer;
     private final Timer createAuthorizationTimer;
@@ -102,40 +99,60 @@ public class StartupRunner implements ApplicationRunner {
 
         double purchaseAmount = 5.00;
 
-        AtomicInteger counter = new AtomicInteger(0);
+        final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
-        for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
+        int counter = 0;
 
-           poolService.execute(() -> {
+        AtomicLong transactions = new AtomicLong(0);
 
-                final int random = ThreadLocalRandom.current().nextInt(1, 100000 + 1);
+        int accounts = environment.getRequiredProperty("crdb.accts", Integer.class);
 
-                String accountNumber = locality + "-" + String.format("%022d", random);
+        logger.info("upper limit for random account number is {}", accounts);
 
-                logger.debug("running test for account number [{}]", accountNumber);
+        while (counter < threadCount) {
 
-                Double availableBalance = getAvailableBalance(accountNumber, locality);
+            poolService.execute(() -> {
 
-                // for now we are ignoring balance
-                Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
+                for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
 
-                double newBalance = availableBalance - purchaseAmount;
+                    final int random = ThreadLocalRandom.current().nextInt(1, accounts);
 
-                updateRecords(authorization, newBalance);
+                    String accountNumber = locality + "-" + String.format("%022d", random);
 
-                int count = counter.incrementAndGet();
+                    logger.debug("running test for account number [{}]", accountNumber);
 
-                if (count != 0 && (count % 1000) == 0) {
-                    logger.info("processed {} transactions", count);
+                    Double availableBalance = getAvailableBalance(accountNumber, locality);
+
+                    // for now we are ignoring balance
+                    Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
+
+                    double newBalance = availableBalance - purchaseAmount;
+
+                    updateRecords(authorization, newBalance);
+
+                    if (transactions.getAndIncrement() % 1000 == 0) {
+                        logger.info("processed {} transactions", transactions.get());
+                    }
                 }
+
+                countDownLatch.countDown();
 
             });
 
+            counter++;
+
         }
 
-        logger.info("shutting down ExecutorService");
 
-        poolService.shutdown();
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            logger.info("shutting down ExecutorService");
+
+            poolService.shutdown();
+        }
 
     }
 
