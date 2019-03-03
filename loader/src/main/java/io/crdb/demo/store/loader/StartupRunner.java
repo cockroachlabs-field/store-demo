@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 import org.springframework.util.StopWatch;
 
 import javax.sql.DataSource;
@@ -46,11 +46,13 @@ public class StartupRunner implements ApplicationRunner {
 
     private final DataSource dataSource;
     private final Environment environment;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public StartupRunner(DataSource dataSource, Environment environment) {
+    public StartupRunner(DataSource dataSource, Environment environment, ResourceLoader resourceLoader) {
         this.dataSource = dataSource;
         this.environment = environment;
+        this.resourceLoader = resourceLoader;
     }
 
     private class DataFiles {
@@ -107,7 +109,7 @@ public class StartupRunner implements ApplicationRunner {
 
     }
 
-    private void importTables() throws SQLException, FileNotFoundException {
+    private void importTables() throws SQLException {
 
         final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
         final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
@@ -137,7 +139,9 @@ public class StartupRunner implements ApplicationRunner {
         logger.info("applying zone configs to imported table");
 
         try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:zone-config.sql")));
+            final Resource resource = resourceLoader.getResource("classpath:zone-config.sql");
+
+            ScriptUtils.executeSqlScript(connection, resource);
         }
 
     }
@@ -319,11 +323,11 @@ public class StartupRunner implements ApplicationRunner {
         return new DataFiles(acctFileName, authFileName);
     }
 
-    private void createSchema() throws SQLException, FileNotFoundException {
+    private void createSchema() throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:create-acct.sql")));
-            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:create-auth.sql")));
-            ScriptUtils.executeSqlScript(connection, new FileSystemResource(ResourceUtils.getFile("classpath:zone-config.sql")));
+            ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-acct.sql"));
+            ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-auth.sql"));
+            ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:zone-config.sql"));
         }
     }
 
