@@ -136,7 +136,7 @@ public class StartupRunner implements ApplicationRunner {
             statement.execute();
         }
 
-        logger.info("applying zone configs to imported table");
+        logger.info("applying zone configs to imported tables");
 
         try (Connection connection = dataSource.getConnection()) {
             final Resource resource = resourceLoader.getResource("classpath:zone-config.sql");
