@@ -16,7 +16,11 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Component
@@ -82,6 +86,8 @@ public class StartupRunner implements ApplicationRunner {
         String locality = environment.getRequiredProperty("crdb.locality");
         int duration = environment.getRequiredProperty("crdb.run.duration", Integer.class);
 
+        logger.info("running tests for [{}] minutes with locality as [{}]", duration, locality);
+
         runTests(locality, duration);
 
     }
@@ -96,9 +102,11 @@ public class StartupRunner implements ApplicationRunner {
 
         double purchaseAmount = 5.00;
 
+        AtomicInteger counter = new AtomicInteger(0);
+
         for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
 
-            final Future<?> submit = poolService.submit(() -> {
+           poolService.execute(() -> {
 
                 final int random = ThreadLocalRandom.current().nextInt(1, 100000 + 1);
 
@@ -115,14 +123,13 @@ public class StartupRunner implements ApplicationRunner {
 
                 updateRecords(authorization, newBalance);
 
-            });
+                int count = counter.incrementAndGet();
 
-//            try {
-//                //submit.get();
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                logger.error(e.getMessage(), e);
-//            }
+                if (count != 0 && (count % 1000) == 0) {
+                    logger.info("processed {} transactions", count);
+                }
+
+            });
 
         }
 
