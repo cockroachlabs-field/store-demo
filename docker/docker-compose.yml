@@ -109,24 +109,6 @@ services:
     depends_on:
       - east-1
 
-  prometheus:
-    container_name: prometheus
-    hostname: prometheus
-    build: ./prometheus
-    networks:
-      - shared
-    ports:
-      - "9090:9090"
-
-  grafana:
-    container_name: grafana
-    hostname: grafana
-    build: ./grafana
-    networks:
-      - shared
-    ports:
-      - "3000:3000"
-
   lb:
     container_name: lb
     hostname: lb
@@ -147,3 +129,25 @@ services:
       - west-1
       - west-2
       - west-3
+
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    build: ./prometheus
+    networks:
+      - shared
+    ports:
+      - "9090:9090"
+    depends_on:
+      - lb
+
+  grafana:
+    container_name: grafana
+    hostname: grafana
+    build: ./grafana
+    networks:
+      - shared
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

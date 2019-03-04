@@ -53,6 +53,8 @@ public class StartupRunner implements ApplicationRunner {
         this.dataSource = dataSource;
         this.environment = environment;
 
+        meterRegistry.config().commonTags("application", "runner");
+
         availableBalanceTimer = Timer.builder("runner.available_balance")
                 .description("query available balance")
                 .publishPercentiles(0.5, 0.95, 0.99)
