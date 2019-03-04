@@ -13,6 +13,7 @@
 * `west-3` - CockroachDB node in `west` data center
 * `lb` - HAProxy acting as load balancer
 * `prometheus` - Prometheus server
+* `grafana` - Grafana UI
 
 ## Getting started
 1) Because operation order is important, execute `./start.sh <MY LICENSE ORG> <MY LICENSE KEY>` instead of `docker-compose up`.  Replace `<MY LICENSE ORG>` with the organization associated with your enterprise license and `<MY LICENSE KEY>` with your enterprise license key.
