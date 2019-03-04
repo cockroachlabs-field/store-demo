@@ -14,10 +14,11 @@ java -jar runner-2019.1-BETA.jar --run
 
 The following parameters must be specified as either arguments or in the appropriate `*.properties` file
 
-* `crdb.locality` - The state code that this `runner` will use to query database.  For best performance the `crdb.locality` will match the "region".
+* `crdb.state` - The state code that this `runner` will use to query database.  For best performance the `crdb.state` should map to `crdb.region`.
+* `crdb.region` - The region where this `runner` is located.
 * `crdb.server` - The ip address or hostname of a CockroachDB node in region. Preferably a private ip address to prevent external routing.
 * `crdb.run.duration` - The duration in minutes this `runner` should generate load.
 * `crdb.run.threads` - The number of concurrent threads used to generate load.
-* `crdb.accts` - A number less than or equal to the # of accounts that match the records in this `crdb.locality`.  Used as the upper bound of a random number generator to find valid account numbers to be used during testing.
+* `crdb.accts` - A number less than or equal to the # of accounts that match the records in this `crdb.state`.  Used as the upper bound of a random number generator to find valid account numbers to be used during testing.
 
 

@@ -55,19 +55,16 @@ public class StartupRunner implements ApplicationRunner {
 
         availableBalanceTimer = Timer.builder("runner.available_balance")
                 .description("query available balance")
-                .publishPercentiles(0.5, 0.95, 0.99)
                 .publishPercentileHistogram()
                 .register(meterRegistry);
 
         createAuthorizationTimer = Timer.builder("runner.create_auth")
                 .description("create authorization")
-                .publishPercentiles(0.5, 0.95, 0.99)
                 .publishPercentileHistogram()
                 .register(meterRegistry);
 
         updateRecordsTimer = Timer.builder("runner.update_records")
                 .description("update records")
-                .publishPercentiles(0.5, 0.95, 0.99)
                 .publishPercentileHistogram()
                 .register(meterRegistry);
     }
@@ -81,16 +78,16 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests() {
 
-        String locality = environment.getRequiredProperty("crdb.locality");
+        String state = environment.getRequiredProperty("crdb.state");
         int duration = environment.getRequiredProperty("crdb.run.duration", Integer.class);
 
-        logger.info("running tests for [{}] minutes with locality as [{}]", duration, locality);
+        logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
 
-        runTests(locality, duration);
+        runTests(state, duration);
 
     }
 
-    private void runTests(String locality, int duration) {
+    private void runTests(String state, int duration) {
 
         int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -124,14 +121,14 @@ public class StartupRunner implements ApplicationRunner {
 
                     final int random = ThreadLocalRandom.current().nextInt(1, accounts);
 
-                    String accountNumber = locality + "-" + String.format("%022d", random);
+                    String accountNumber = state + "-" + String.format("%022d", random);
 
                     logger.debug("running test for account number [{}]", accountNumber);
 
-                    Double availableBalance = getAvailableBalance(accountNumber, locality);
+                    Double availableBalance = getAvailableBalance(accountNumber, state);
 
                     // for now we are ignoring balance
-                    Authorization authorization = createAuthorization(accountNumber, purchaseAmount, locality);
+                    Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state);
 
                     double newBalance = availableBalance - purchaseAmount;
 
@@ -204,7 +201,7 @@ public class StartupRunner implements ApplicationRunner {
 
     }
 
-    private Authorization createAuthorization(String accountNumber, double purchaseAmount, String locality) {
+    private Authorization createAuthorization(String accountNumber, double purchaseAmount, String state) {
 
         return createAuthorizationTimer.record(() -> {
             Authorization auth = null;
@@ -232,7 +229,7 @@ public class StartupRunner implements ApplicationRunner {
                         auth.setCreatedTimestamp(now);
                         auth.setLastUpdatedTimestamp(now);
                         auth.setLastUpdatedUserId(RUNNER);
-                        auth.setState(locality);
+                        auth.setState(state);
 
                         // ACCT_NBR
                         ps.setString(1, auth.getAccountNumber());
@@ -266,8 +263,6 @@ public class StartupRunner implements ApplicationRunner {
                         connection.releaseSavepoint(sp);
 
                         connection.commit();
-
-                        //logger.trace("attempt {}: {} records created in authorization table for account {} and locality {}", retryCount, updateCount, accountNumber, locality);
 
                         break;
 
