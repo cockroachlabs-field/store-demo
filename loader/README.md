@@ -19,18 +19,7 @@ For example, this command would result in the creation of 2 files `accts-1000.cs
 java -jar loader-2019.1-BETA.jar --generate --crdb.localities=SC,TX,CA --crdb.accts=1000 --crdb.auths=100
 ```
 
-## Manually Load local Data
-To `generate` data files and immediately `load` them into the database using batch statements you can run the following:
-```bash
-java -jar loader-2019.1-BETA.jar --generate --load
-```
-
-`load` accepts the following additional parameters:
-* `crdb.accts.data.file` - path to `.csv` for loading `acct` table
-* `crdb.auths.data.file` - path to `.csv` for loading `auth` table
-* `crdb.server` - the ip address or hostname of a CockroachDB node
-
-## Bulk Import Data
+## Import Data via Import Command (preferred)
 An alternative method for loading large amounts of data quickly can be used.  To use this option run the following:
 ```bash
 java -jar loader-2019.1-BETA.jar --import
@@ -41,4 +30,15 @@ java -jar loader-2019.1-BETA.jar --import
 * `crdb.accts.data.url` - url of `.csv` file to load into `acct` table
 * `crdb.auths.create.url` - url of sql file to create `auth` table
 * `crdb.auths.data.url` - url of `.csv` file to load into `auth` table
+* `crdb.server` - the ip address or hostname of a CockroachDB node
+
+## Import Data via JDBC Batch Insert
+To `generate` data files and immediately `load` them into the database using batch statements you can run the following:
+```bash
+java -jar loader-2019.1-BETA.jar --generate --load
+```
+
+`load` accepts the following additional parameters:
+* `crdb.accts.data.file` - path to `.csv` for loading `acct` table
+* `crdb.auths.data.file` - path to `.csv` for loading `auth` table
 * `crdb.server` - the ip address or hostname of a CockroachDB node
