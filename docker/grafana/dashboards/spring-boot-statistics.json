@@ -360,14 +360,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "process_files_open{application=\"$application\", instance=\"$instance\"}",
+          "expr": "process_files_open_files{application=\"$application\", instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Open Files",
           "refId": "A"
         },
         {
-          "expr": "process_files_max{application=\"$application\", instance=\"$instance\"}",
+          "expr": "process_files_max_files{application=\"$application\", instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Max Files",
@@ -838,7 +838,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(jvm_classes_unloaded_total{instance=\"$instance\", application=\"$application\"}[5m])",
+          "expr": "irate(jvm_classes_unloaded_classes_total{instance=\"$instance\", application=\"$application\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Classes Unloaded",
@@ -1208,7 +1208,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_classes_loaded{instance=\"$instance\", application=\"$application\"}",
+          "expr": "jvm_classes_loaded_classes{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Classes Loaded",
@@ -1385,21 +1385,21 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_threads_daemon{instance=\"$instance\", application=\"$application\"}",
+          "expr": "jvm_threads_daemon_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Daemon",
           "refId": "A"
         },
         {
-          "expr": "jvm_threads_live{instance=\"$instance\", application=\"$application\"}",
+          "expr": "jvm_threads_live_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Live",
           "refId": "B"
         },
         {
-          "expr": "jvm_threads_peak{instance=\"$instance\", application=\"$application\"}",
+          "expr": "jvm_threads_peak_threads{instance=\"$instance\", application=\"$application\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Peak",
