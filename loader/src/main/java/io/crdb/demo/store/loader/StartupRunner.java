@@ -103,7 +103,6 @@ public class StartupRunner implements ApplicationRunner {
             loadAuthorizationFromFile(files);
 
         } else if (args.containsOption("import")) {
-            //
             importTables();
         }
 
