@@ -73,7 +73,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -183,7 +183,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -237,7 +237,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -337,7 +337,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -391,7 +391,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -504,7 +504,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -559,7 +559,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "fill": 1,
       "gridPos": {
         "h": 7,
@@ -654,7 +654,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -714,7 +714,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "fill": 1,
       "gridPos": {
         "h": 7,
@@ -809,7 +809,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -869,7 +869,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -970,7 +970,7 @@
           "value": "max"
         }
       ],
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fontSize": "90%",
@@ -1024,7 +1024,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -1111,7 +1111,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -1197,7 +1197,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -1283,7 +1283,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "fill": 1,
       "gridPos": {
         "h": 7,
@@ -1365,7 +1365,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "fill": 1,
       "gridPos": {
         "h": 7,
@@ -1447,7 +1447,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "DS_PROMETHEUS",
       "editable": true,
       "error": false,
       "fill": 1,
@@ -1548,7 +1548,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "DS_PROMETHEUS",
         "hide": 0,
         "includeAll": false,
         "label": "Cluster name",
@@ -1568,7 +1568,7 @@
       {
         "allValue": ".*",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "DS_PROMETHEUS",
         "hide": 0,
         "includeAll": true,
         "label": "Node",

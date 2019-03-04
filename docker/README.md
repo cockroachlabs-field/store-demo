@@ -15,7 +15,7 @@
 * `prometheus` - Prometheus server
 
 ## Getting started
-1) because operation order is important, execute `./run.sh` instead of `docker-compose up`
+1) because operation order is important, execute `./start.sh <MY LICENSE ORG> <MY LICENSE KEY>` instead of `docker-compose up`.  Replace `<MY LICENSE ORG>` with your organization associated with your enterprise license and `<MY LICENSE KEY>` with your enterprise license key.
 2) visit the CockroachDB UI @ http://localhost:8080
 3) visit the HAProxy UI @ http://localhost:8081
 3) have fun!
@@ -40,11 +40,4 @@ docker exec -ti central-3 /bin/bash
 docker exec -ti west-1 /bin/bash
 docker exec -ti west-2 /bin/bash
 docker exec -ti west-3 /bin/bash
-```
-
-### Enable Enterprise License
-Use the following commands to enable your enterprise license.  Obviously replace `CHANGE_ME` with your information.
-```bash
-docker-compose exec east-1 /cockroach/cockroach sql --insecure --execute="SET CLUSTER SETTING cluster.organization = 'CHANGE_ME';"
-docker-compose exec east-1 /cockroach/cockroach sql --insecure --execute="SET CLUSTER SETTING enterprise.license = 'CHANGE_ME';"
 ```

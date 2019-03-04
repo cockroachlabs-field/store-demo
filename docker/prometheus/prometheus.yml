@@ -16,4 +16,4 @@ scrape_configs:
   - job_name: 'cockroachdb'
     metrics_path: '/_status/vars'
     static_configs:
-      - targets: ['lb:8080']
+      - targets: ['east-1:8080', 'east-2:8080', 'east-3:8080', 'central-1:8080', 'central-2:8080', 'central-3:8080', 'west-1:8080', 'west-2:8080', 'west-3:8080']
