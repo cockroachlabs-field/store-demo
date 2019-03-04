@@ -2,7 +2,7 @@
   "__inputs": [
     {
       "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
+      "label": "DS_PROMETHEUS",
       "description": "",
       "type": "datasource",
       "pluginId": "prometheus",
@@ -14,7 +14,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "5.1.3"
+      "version": "6.0.0"
     },
     {
       "type": "panel",
@@ -35,11 +35,25 @@
       "version": "5.0.0"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Dashboard for Spring Boot2 Statistics(by micrometer-prometheus).",
   "editable": true,
   "gnetId": 6756,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1530521539038,
+  "iteration": 1551720141445,
   "links": [],
   "panels": [
     {
@@ -131,7 +145,6 @@
       ],
       "thresholds": "",
       "title": "Uptime",
-      "transparent": false,
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -350,6 +363,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -376,6 +390,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Process Open Files",
       "tooltip": {
@@ -490,7 +505,6 @@
       ],
       "thresholds": "",
       "title": "Start time",
-      "transparent": false,
       "type": "singlestat",
       "valueFontSize": "70%",
       "valueMaps": [
@@ -530,6 +544,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -556,6 +571,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "CPU Usage",
       "tooltip": {
@@ -622,6 +638,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -648,6 +665,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Load Average",
       "tooltip": {
@@ -726,8 +744,8 @@
       "lines": true,
       "linewidth": 1,
       "links": [],
-      "minSpan": null,
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -763,6 +781,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "$memory_pool_heap (heap)",
       "tooltip": {
@@ -828,6 +847,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -847,6 +867,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Classes Unloaded",
       "tooltip": {
@@ -912,8 +933,8 @@
       "lines": true,
       "linewidth": 1,
       "links": [],
-      "minSpan": null,
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -949,6 +970,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "$memory_pool_nonheap (non-heap)",
       "tooltip": {
@@ -1014,6 +1036,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1040,6 +1063,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Mapped Buffers",
       "tooltip": {
@@ -1105,6 +1129,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1131,6 +1156,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Memory Allocate/Promote",
       "tooltip": {
@@ -1198,6 +1224,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1217,6 +1244,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Classes Loaded",
       "tooltip": {
@@ -1283,6 +1311,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1309,6 +1338,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Direct Buffers",
       "tooltip": {
@@ -1375,6 +1405,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1408,6 +1439,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Threads",
       "tooltip": {
@@ -1489,6 +1521,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1508,6 +1541,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "GC Count",
       "tooltip": {
@@ -1576,6 +1610,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1595,6 +1630,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "GC Stop the World Duration",
       "tooltip": {
@@ -1757,6 +1793,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1790,6 +1827,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Connections",
       "tooltip": {
@@ -1936,6 +1974,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1955,6 +1994,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Connection Creation Time",
       "tooltip": {
@@ -2020,6 +2060,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2039,6 +2080,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Connection Usage Time",
       "tooltip": {
@@ -2104,6 +2146,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2123,6 +2166,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Connection Acquire Time",
       "tooltip": {
@@ -2203,6 +2247,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2222,6 +2267,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request Count",
       "tooltip": {
@@ -2290,6 +2336,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2309,6 +2356,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Response Time",
       "tooltip": {
@@ -2470,6 +2518,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2489,6 +2538,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Active Sessions",
       "tooltip": {
@@ -2557,6 +2607,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2583,6 +2634,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Sent & Recieved Bytes",
       "tooltip": {
@@ -2730,6 +2782,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2756,6 +2809,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Threads",
       "tooltip": {
@@ -2835,6 +2889,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2856,6 +2911,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "INFO logs",
       "tooltip": {
@@ -2922,6 +2978,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2943,6 +3000,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "ERROR logs",
       "tooltip": {
@@ -3009,6 +3067,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -3030,6 +3089,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "WARN logs",
       "tooltip": {
@@ -3096,6 +3156,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -3117,6 +3178,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "DEBUG logs",
       "tooltip": {
@@ -3183,6 +3245,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -3204,6 +3267,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "TRACE logs",
       "tooltip": {
@@ -3244,7 +3308,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -3253,6 +3317,7 @@
         "allValue": null,
         "current": {},
         "datasource": "DS_PROMETHEUS",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Instance",
@@ -3262,6 +3327,7 @@
         "query": "label_values(jvm_classes_loaded_classes, instance)",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
@@ -3273,6 +3339,7 @@
         "allValue": null,
         "current": {},
         "datasource": "DS_PROMETHEUS",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "Application",
@@ -3282,6 +3349,7 @@
         "query": "label_values(hikaricp_connections{instance=\"$instance\"}, application)",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
@@ -3293,6 +3361,7 @@
         "allValue": null,
         "current": {},
         "datasource": "DS_PROMETHEUS",
+        "definition": "",
         "hide": 0,
         "includeAll": false,
         "label": "HikariCP-Pool",
@@ -3302,6 +3371,7 @@
         "query": "label_values(hikaricp_connections{instance=\"$instance\", application=\"$application\"}, pool)",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
@@ -3313,6 +3383,7 @@
         "allValue": null,
         "current": {},
         "datasource": "DS_PROMETHEUS",
+        "definition": "",
         "hide": 0,
         "includeAll": true,
         "label": "Memory Pool (heap)",
@@ -3322,6 +3393,7 @@
         "query": "label_values(jvm_memory_used_bytes{application=\"$application\", instance=\"$instance\", area=\"heap\"},id)",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
@@ -3333,6 +3405,7 @@
         "allValue": null,
         "current": {},
         "datasource": "DS_PROMETHEUS",
+        "definition": "",
         "hide": 0,
         "includeAll": true,
         "label": "Memory Pool (nonheap)",
@@ -3342,6 +3415,7 @@
         "query": "label_values(jvm_memory_used_bytes{application=\"$application\", instance=\"$instance\", area=\"nonheap\"},id)",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
@@ -3352,7 +3426,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -3382,6 +3456,6 @@
   },
   "timezone": "",
   "title": "Spring Boot Statistics",
-  "version": 15,
-  "description": "Dashboard for Spring Boot2 Statistics(by micrometer-prometheus)."
+  "uid": "bLRo-ICiz",
+  "version": 1
 }
