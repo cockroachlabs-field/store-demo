@@ -19,8 +19,6 @@ services:
     networks:
       - shared
       - east
-    ports:
-      - "8080:8080"
     command: start --logtostderr --insecure --locality=region=east
 
   east-2:
@@ -120,6 +118,15 @@ services:
     ports:
       - "9090:9090"
 
+  grafana:
+    container_name: grafana
+    hostname: grafana
+    build: ./grafana
+    networks:
+      - shared
+    ports:
+      - "3000:3000"
+
   lb:
     container_name: lb
     hostname: lb
@@ -128,6 +135,7 @@ services:
       - shared
     ports:
       - "5432:5432"
+      - "8080:8080"
       - "8081:8081"
     links:
       - east-1
