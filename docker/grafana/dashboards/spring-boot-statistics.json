@@ -3279,7 +3279,7 @@
         "multi": false,
         "name": "application",
         "options": [],
-        "query": "label_values(jvm_classes_loaded_classes{instance=\"$instance\"}, application)",
+        "query": "label_values(hikaricp_connections{instance=\"$instance\"}, application)",
         "refresh": 1,
         "regex": "",
         "sort": 1,
