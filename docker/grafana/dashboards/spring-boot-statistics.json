@@ -53,7 +53,7 @@
   "gnetId": 6756,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1551720141445,
+  "iteration": 1551720706675,
   "links": [],
   "panels": [
     {
@@ -2327,7 +2327,7 @@
         "current": false,
         "max": true,
         "min": true,
-        "rightSide": true,
+        "rightSide": false,
         "show": true,
         "total": false,
         "values": true
@@ -2762,8 +2762,8 @@
       "datasource": "DS_PROMETHEUS",
       "fill": 1,
       "gridPos": {
-        "h": 7,
-        "w": 13,
+        "h": 8,
+        "w": 24,
         "x": 0,
         "y": 103
       },
@@ -2854,7 +2854,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 111
       },
       "id": 8,
       "panels": [],
@@ -2872,7 +2872,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 112
       },
       "id": 6,
       "legend": {
@@ -2961,7 +2961,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 112
       },
       "id": 10,
       "legend": {
@@ -3050,7 +3050,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 118
+        "y": 119
       },
       "id": 14,
       "legend": {
@@ -3139,7 +3139,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 118
+        "y": 119
       },
       "id": 16,
       "legend": {
@@ -3228,7 +3228,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 118
+        "y": 119
       },
       "id": 20,
       "legend": {
