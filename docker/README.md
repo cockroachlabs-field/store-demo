@@ -23,7 +23,7 @@
 ## Helpful Commands
 
 ### Show Ranges
-Ranges and data distribution can be viewed in the UI here (http://localhost:8001/#/data-distribution) or via the following commands:
+Ranges and data distribution can be viewed in the UI here (http://localhost:8080/#/data-distribution) or via the following commands:
 ```bash
 docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SHOW EXPERIMENTAL_RANGES FROM TABLE auth;"
 docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SHOW EXPERIMENTAL_RANGES FROM TABLE acct;"
