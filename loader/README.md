@@ -33,7 +33,7 @@ java -jar loader-2019.1-BETA.jar --import
 * `crdb.server` - the ip address or hostname of a CockroachDB node
 
 ## Import Data via JDBC Batch Insert
-To `generate` data files and immediately `load` them into the database using batch statements you can run the following:
+To `generate` data files and immediately `load` them into the database using batch statements you can run the following.  This method works very well for testing and loading small data sets.  For larger data sets, use the `--import` option above.
 ```bash
 java -jar loader-2019.1-BETA.jar --generate --load
 ```
@@ -42,3 +42,4 @@ java -jar loader-2019.1-BETA.jar --generate --load
 * `crdb.accts.data.file` - path to `.csv` for loading `acct` table
 * `crdb.auths.data.file` - path to `.csv` for loading `auth` table
 * `crdb.server` - the ip address or hostname of a CockroachDB node
+
