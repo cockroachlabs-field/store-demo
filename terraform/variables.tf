@@ -23,7 +23,7 @@ variable "crdb_license_key" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "region_node_count" {
-  default = 3
+  default = 1
 }
 
 variable "storage_disk_size" {
@@ -71,11 +71,11 @@ variable "gcp_credentials_file" {
 }
 
 variable "azure_machine_type" {
-  default = "Standard_DS14_v2"
+  default = "Standard_L16s_v2"
 }
 
 variable "azure_machine_type_client" {
-  default = "Standard_DS13_v2"
+  default = "Standard_L8s_v2"
 }
 
 variable "azure_private_key_path" {

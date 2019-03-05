@@ -282,7 +282,7 @@ resource "google_compute_instance" "sd_west_client" {
 
 resource "azurerm_resource_group" "sd_resource_group" {
   name = "sd-resource-group"
-  location = "southcentralus"
+  location = "eastus2"
 }
 
 resource "azurerm_availability_set" "sd_availability_set" {
@@ -387,17 +387,6 @@ resource "azurerm_lb_backend_address_pool" "sd_lb_backend_pool" {
   loadbalancer_id = "${azurerm_lb.sd_lb.id}"
 }
 
-//resource "azurerm_lb_nat_rule" "sd_lb_nat_rule" {
-//  name = "sd-lb-nat-rule"
-//  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-//  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
-//  frontend_ip_configuration_name = "${azurerm_lb.sd_lb.frontend_ip_configuration.name}"
-//  protocol = "tcp"
-//  frontend_port = 26257
-//  backend_port = 26257
-//}
-
-
 resource "azurerm_lb_probe" "sd_lb_probe" {
   name = "sd-lb-probe"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
@@ -485,7 +474,6 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
     os_type = "Linux"
-    managed_disk_type = "Premium_LRS"
   }
 
   storage_image_reference {
@@ -500,7 +488,6 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
     create_option = "Empty"
     lun = 0
     disk_size_gb = "${var.azure_storage_disk_size}"
-    managed_disk_type = "Premium_LRS"
   }
 
   os_profile {
@@ -571,7 +558,6 @@ resource "azurerm_virtual_machine" "sd_cockroach_client" {
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
     os_type = "Linux"
-    managed_disk_type = "Premium_LRS"
   }
 
   storage_image_reference {
@@ -641,6 +627,10 @@ resource "null_resource" "google_prep_east_cluster" {
       "scripts/disks.sh"]
   }
 
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
+  }
+
 }
 
 
@@ -660,9 +650,12 @@ resource "null_resource" "google_start_east_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}",
-      "sleep ${var.provision_sleep}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}"
     ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
   }
 
 }
@@ -685,6 +678,10 @@ resource "null_resource" "google_prep_east_client" {
 
   provisioner "remote-exec" {
     scripts = ["scripts/client-build.sh"]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
   }
 }
 
@@ -712,6 +709,10 @@ resource "null_resource" "google_prep_west_cluster" {
       "scripts/disks.sh"]
   }
 
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
+  }
+
 }
 
 resource "null_resource" "google_start_west_cluster" {
@@ -730,9 +731,12 @@ resource "null_resource" "google_start_west_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=west --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}",
-      "sleep ${var.provision_sleep}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=west --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}"
     ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
   }
 
 }
@@ -755,6 +759,10 @@ resource "null_resource" "google_prep_west_client" {
 
   provisioner "remote-exec" {
     scripts = ["scripts/client-build.sh"]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
   }
 
 }
@@ -785,6 +793,10 @@ resource "null_resource" "azure_prep_cluster" {
       "scripts/disks-azure.sh"]
   }
 
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
+  }
+
 }
 
 resource "null_resource" "azure_install_cluster" {
@@ -804,9 +816,12 @@ resource "null_resource" "azure_install_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}",
-      "sleep ${var.provision_sleep}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}"
     ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
   }
 
 }
@@ -833,6 +848,11 @@ resource "null_resource" "azure_prep_client" {
   provisioner "remote-exec" {
     scripts = ["scripts/client-build.sh"]
   }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${var.provision_sleep}"]
+  }
+
 
 }
 
