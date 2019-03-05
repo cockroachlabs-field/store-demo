@@ -8,6 +8,11 @@ output "google_client_public_ip_east" {
   value = "${google_compute_instance.sd_east_client.network_interface.0.access_config.0.nat_ip}"
 }
 
+output "google_lb_private_ip_east" {
+  description = "Private IP of LB in GCP - East"
+  value = "${local.google_lb_ip_east}"
+}
+
 output "google_cockroach_public_ips_west" {
   description = "Public IP's of Cockroach Nodes in GCP - West"
   value = "${join(",", local.google_public_ips_west)}"
@@ -16,6 +21,11 @@ output "google_cockroach_public_ips_west" {
 output "google_client_public_ip_west" {
   description = "Public IP of Client in GCP - West"
   value = "${google_compute_instance.sd_west_client.network_interface.0.access_config.0.nat_ip}"
+}
+
+output "google_lb_private_ip_west" {
+  description = "Private IP of LB in GCP - West"
+  value = "${local.google_lb_ip_west}"
 }
 
 output "azure_cockroach_public_ips" {

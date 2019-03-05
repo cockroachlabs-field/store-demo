@@ -83,7 +83,7 @@ resource "google_compute_firewall" "sd_client_ui" {
 }
 
 resource "google_compute_health_check" "sd_health_check" {
-  name = "sd_health_check"
+  name = "sd-health-check"
 
   tcp_health_check {
     port = "8080"
@@ -143,10 +143,11 @@ resource "google_compute_region_backend_service" "sd_east_lb" {
 
 }
 
-
 resource "google_compute_forwarding_rule" "sd_east_lb_forwarding_rule" {
   name = "sd-east-lb-forwarding-rule"
   load_balancing_scheme = "INTERNAL"
+  ip_protocol = "TCP"
+  region = "${var.gcp_east_region}"
   ports = ["26257"]
   network = "${google_compute_network.sd_compute_network.self_link}"
   backend_service = "${google_compute_region_backend_service.sd_east_lb.self_link}"
@@ -215,6 +216,36 @@ resource "google_compute_instance" "sd_west_cockroach_node" {
 
 }
 
+resource "google_compute_instance_group" "sd_west_node_group" {
+  name = "sd-west-node-group"
+
+  instances = ["${google_compute_instance.sd_west_cockroach_node.*.self_link}"]
+
+  zone = "${var.gcp_west_zone}"
+}
+
+resource "google_compute_region_backend_service" "sd_west_lb" {
+  name = "sd-west-lb"
+  health_checks = ["${google_compute_health_check.sd_health_check.self_link}"]
+  region = "${var.gcp_west_region}"
+
+  backend {
+    group = "${google_compute_instance_group.sd_west_node_group.self_link}"
+  }
+
+}
+
+
+resource "google_compute_forwarding_rule" "sd_west_lb_forwarding_rule" {
+  name = "sd-west-lb-forwarding-rule"
+  load_balancing_scheme = "INTERNAL"
+  ip_protocol = "TCP"
+  region = "${var.gcp_west_region}"
+  ports = ["26257"]
+  network = "${google_compute_network.sd_compute_network.self_link}"
+  backend_service = "${google_compute_region_backend_service.sd_west_lb.self_link}"
+}
+
 resource "google_compute_instance" "sd_west_client" {
 
   name = "crdb-gcp-west-client"
@@ -251,6 +282,13 @@ resource "google_compute_instance" "sd_west_client" {
 resource "azurerm_resource_group" "sd_resource_group" {
   name = "sd-resource-group"
   location = "southcentralus"
+}
+
+resource "azurerm_availability_set" "sd_availability_set" {
+  name                = "sd-availability-set"
+  location            = "${azurerm_resource_group.sd_resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  managed = "true"
 }
 
 resource "azurerm_virtual_network" "sd_virtual_network" {
@@ -372,6 +410,8 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
+
+  availability_set_id = "${azurerm_availability_set.sd_availability_set.id}"
 
   storage_os_disk {
     name = "sd-os-disk-node-${count.index}"
@@ -508,6 +548,7 @@ locals {
   google_private_ips_west = "${concat(google_compute_instance.sd_west_cockroach_node.*.network_interface.0.network_ip)}"
   azure_private_ips = "${azurerm_network_interface.sd_network_interface_node.*.private_ip_address}"
   google_lb_ip_east = "${google_compute_forwarding_rule.sd_east_lb_forwarding_rule.ip_address}"
+  google_lb_ip_west = "${google_compute_forwarding_rule.sd_west_lb_forwarding_rule.ip_address}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -577,7 +618,7 @@ resource "null_resource" "google_prep_east_client" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get install -yq default-jdk git",
+      "sudo apt-get install -yq openjdk-8-jdk git",
       "sleep ${var.provision_sleep}"
     ]
   }
@@ -651,7 +692,7 @@ resource "null_resource" "google_prep_west_client" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get install -yq default-jdk git",
+      "sudo apt-get install -yq openjdk-8-jdk git",
       "sleep ${var.provision_sleep}"
     ]
   }
@@ -731,7 +772,7 @@ resource "null_resource" "azure_prep_client" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get install -yq default-jdk git",
+      "sudo apt-get install -yq openjdk-8-jdk git",
       "sleep ${var.provision_sleep}"
     ]
   }

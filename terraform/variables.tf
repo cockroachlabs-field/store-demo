@@ -39,7 +39,7 @@ variable "gcp_east_region" {
 }
 
 variable "gcp_east_zone" {
-  default = "us-us-east1-b"
+  default = "us-east1-b"
 }
 
 variable "gcp_west_region" {

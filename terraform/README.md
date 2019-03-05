@@ -36,16 +36,18 @@ terraform apply -var-file="store-demo.tfvars" -auto-approve
 
 If everything is successful you should see a message like this in the console...
 ```text
-Apply complete! Resources: 53 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 62 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-azure_client_public_ip = 157.55.184.68
-azure_cockroach_public_ips = 70.37.80.36,70.37.80.124,157.55.182.25
+azure_client_public_ip = 65.52.37.82
+azure_cockroach_public_ips = 65.52.37.99,65.52.34.32,65.52.35.74
 google_client_public_ip_east = 35.196.10.62
-google_client_public_ip_west = 35.235.65.206
-google_cockroach_public_ips_east = 34.73.202.214,34.73.204.99,34.73.166.144
-google_cockroach_public_ips_west = 35.236.2.105,35.236.3.98,35.235.104.123
+google_client_public_ip_west = 35.235.104.123
+google_cockroach_public_ips_east = 34.73.204.99,34.73.166.144,34.73.202.214
+google_cockroach_public_ips_west = 35.236.2.105,35.236.3.98,35.235.65.206
+google_lb_private_ip_east = 10.142.0.6
+google_lb_private_ip_west = 10.168.0.6
 ```
 
 Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
