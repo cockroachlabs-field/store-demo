@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -49,6 +50,9 @@ public class StartupRunner implements ApplicationRunner {
     private final Timer availableBalanceTimer;
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
+
+    private AtomicInteger insertRetryCounter = new AtomicInteger(0);
+    private AtomicInteger updateRetryCounter = new AtomicInteger(0);
 
 
     @Value("${crdb.region}")
@@ -174,7 +178,8 @@ public class StartupRunner implements ApplicationRunner {
 
         sw.stop();
 
-        logger.info("processed {} total transactions in {} ms", counter, sw.getTotalTimeMillis());
+        logger.info("*************** | `processed {} total transactions in {} ms or {} minutes", counter, sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()));
+        logger.info("*************** |  there were {} retries on insert and {} retries on update", insertRetryCounter.get(), updateRetryCounter.get());
 
         SpringApplication.exit(context, () -> 0);
     }
@@ -293,6 +298,9 @@ public class StartupRunner implements ApplicationRunner {
                             logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
 
                             connection.rollback(sp);
+
+                            insertRetryCounter.incrementAndGet();
+
                             retryCount++;
                         } else {
                             throw e;
@@ -367,6 +375,9 @@ public class StartupRunner implements ApplicationRunner {
                             logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
 
                             connection.rollback(sp);
+
+                            updateRetryCounter.incrementAndGet();
+
                             retryCount++;
                         } else {
                             throw e;
