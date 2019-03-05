@@ -85,8 +85,9 @@ resource "google_compute_firewall" "sd_client_ui" {
 resource "google_compute_health_check" "sd_health_check" {
   name = "sd-health-check"
 
-  tcp_health_check {
+  http_health_check {
     port = "8080"
+    request_path = "/health?ready=1"
   }
 }
 
@@ -285,8 +286,8 @@ resource "azurerm_resource_group" "sd_resource_group" {
 }
 
 resource "azurerm_availability_set" "sd_availability_set" {
-  name                = "sd-availability-set"
-  location            = "${azurerm_resource_group.sd_resource_group.location}"
+  name = "sd-availability-set"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
   resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
   managed = "true"
 }
@@ -368,6 +369,62 @@ resource "random_id" "sd_randomId" {
   byte_length = 8
 }
 
+resource "azurerm_lb" "sd_lb" {
+  name = "sd-lb"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  location = "${azurerm_resource_group.sd_resource_group.location}"
+
+  frontend_ip_configuration {
+    name = "sd-lb-frontend"
+    subnet_id = "${azurerm_subnet.sd_subnet.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "sd_lb_backend_pool" {
+  name = "sd-lb-backend-pool"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+}
+
+//resource "azurerm_lb_nat_rule" "sd_lb_nat_rule" {
+//  name = "sd-lb-nat-rule"
+//  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+//  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+//  frontend_ip_configuration_name = "${azurerm_lb.sd_lb.frontend_ip_configuration.name}"
+//  protocol = "tcp"
+//  frontend_port = 26257
+//  backend_port = 26257
+//}
+
+
+resource "azurerm_lb_probe" "sd_lb_probe" {
+  name = "sd-lb-probe"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+  protocol = "Http"
+  port = 8080
+  request_path = "/health?ready=1"
+  interval_in_seconds = 5
+  number_of_probes = 2
+}
+
+
+resource "azurerm_lb_rule" "sd_lb_rule" {
+  name = "sd-lb-rule"
+  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+  protocol = "tcp"
+  frontend_port = 26257
+  backend_port = 26257
+  frontend_ip_configuration_name = "sd-lb-frontend"
+  enable_floating_ip = false
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.sd_lb_backend_pool.id}"
+  idle_timeout_in_minutes = 5
+  probe_id = "${azurerm_lb_probe.sd_lb_probe.id}"
+  depends_on = ["azurerm_lb_probe.sd_lb_probe"]
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # provision azure node resources
 # ---------------------------------------------------------------------------------------------------------------------
@@ -433,7 +490,7 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
     name = "sd-data-disk-node-${count.index}"
     create_option = "Empty"
     lun = 0
-    disk_size_gb = "${var.storage_disk_size}"
+    disk_size_gb = "${var.azure_storage_disk_size}"
     managed_disk_type = "Premium_LRS"
   }
 
@@ -549,6 +606,7 @@ locals {
   azure_private_ips = "${azurerm_network_interface.sd_network_interface_node.*.private_ip_address}"
   google_lb_ip_east = "${google_compute_forwarding_rule.sd_east_lb_forwarding_rule.ip_address}"
   google_lb_ip_west = "${google_compute_forwarding_rule.sd_west_lb_forwarding_rule.ip_address}"
+  azure_lb_ip = "${azurerm_lb.sd_lb.private_ip_address}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -617,12 +675,8 @@ resource "null_resource" "google_prep_east_client" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get install -yq openjdk-8-jdk git",
-      "sleep ${var.provision_sleep}"
-    ]
+    scripts = ["scripts/client-build.sh"]
   }
-
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -691,10 +745,7 @@ resource "null_resource" "google_prep_west_client" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get install -yq openjdk-8-jdk git",
-      "sleep ${var.provision_sleep}"
-    ]
+    scripts = ["scripts/client-build.sh"]
   }
 
 }
@@ -771,10 +822,7 @@ resource "null_resource" "azure_prep_client" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get install -yq openjdk-8-jdk git",
-      "sleep ${var.provision_sleep}"
-    ]
+    scripts = ["scripts/client-build.sh"]
   }
 
 }

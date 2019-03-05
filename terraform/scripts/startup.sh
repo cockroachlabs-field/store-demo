@@ -4,7 +4,7 @@
 sudo apt-get update --fix-missing
 
 # Sync Clocks
-cat > /etc/ntp.conf << EOL
+sudo cat > /etc/ntp.conf << EOL
 server time1.google.com iburst
 server time2.google.com iburst
 server time3.google.com iburst

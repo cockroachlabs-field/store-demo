@@ -30,6 +30,10 @@ variable "storage_disk_size" {
   default = 375
 }
 
+variable "azure_storage_disk_size" {
+  default = 2048
+}
+
 variable "os_disk_size" {
   default = 100
 }
