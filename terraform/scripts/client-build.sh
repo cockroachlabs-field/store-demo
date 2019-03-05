@@ -6,7 +6,7 @@ sudo git clone https://github.com/cockroachlabs/store-demo.git
 
 cd store-demo
 
-./mvnw clean package -DskipTests
+sudo ./mvnw clean compile package -DskipTests
 
 cp loader/target/*.jar ~/
 
