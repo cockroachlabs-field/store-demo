@@ -1,11 +1,8 @@
 #!/bin/bash
 
 sudo timedatectl set-ntp no
-
 sudo apt-get install ntp ntpstat
-
 sudo service ntp stop
-
 sudo ntpd -b time.google.com
 
 sudo sed -i '/^pool/s/^/#/' /etc/ntp.conf
