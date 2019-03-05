@@ -23,7 +23,7 @@ variable "crdb_license_key" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "region_node_count" {
-  default = 1
+  default = 3
 }
 
 variable "storage_disk_size" {
