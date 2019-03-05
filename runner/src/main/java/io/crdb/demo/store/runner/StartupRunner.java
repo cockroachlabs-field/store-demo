@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
@@ -35,7 +36,6 @@ public class StartupRunner implements ApplicationRunner {
     private static final String UPDATE_ACCOUNT_SQL = "update ACCT set ACCT_BAL_AMT = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and STATE = ? and ACCT_STAT_CD = 1";
 
 
-    private static final String RUNNER = "RUNNER";
     private static final String RETRY_SQL_STATE = "40001";
     private static final String SAVEPOINT = "cockroach_restart";
 
@@ -47,6 +47,17 @@ public class StartupRunner implements ApplicationRunner {
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
 
+    @Value("${crdb.region}")
+    private String region;
+
+    @Value("${crdb.state}")
+    private String state;
+
+    @Value("${crdb.run.duration}")
+    private int duration;
+
+    @Value("${crdb.accts}")
+    private int accounts;
 
     @Autowired
     public StartupRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry) {
@@ -78,9 +89,6 @@ public class StartupRunner implements ApplicationRunner {
 
     private void runTests() {
 
-        String state = environment.getRequiredProperty("crdb.state");
-        int duration = environment.getRequiredProperty("crdb.run.duration", Integer.class);
-
         logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
 
         runTests(state, duration);
@@ -108,8 +116,6 @@ public class StartupRunner implements ApplicationRunner {
         int counter = 0;
 
         AtomicLong transactions = new AtomicLong(0);
-
-        int accounts = environment.getRequiredProperty("crdb.accts", Integer.class);
 
         logger.info("upper limit for random account number is {}", accounts);
 
@@ -228,7 +234,7 @@ public class StartupRunner implements ApplicationRunner {
                         auth.setAuthorizationStatus(0);
                         auth.setCreatedTimestamp(now);
                         auth.setLastUpdatedTimestamp(now);
-                        auth.setLastUpdatedUserId(RUNNER);
+                        auth.setLastUpdatedUserId("run-" + region);
                         auth.setState(state);
 
                         // ACCT_NBR

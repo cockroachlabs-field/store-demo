@@ -40,7 +40,7 @@ public class StartupRunner implements ApplicationRunner {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
-    private static final String USER_ID = "LOADER";
+    private static final String USER_ID = "loader";
     private static final int LOG_FREQUENCY = 100000;
     private static final Random RANDOM = new Random();
 
