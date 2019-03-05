@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo timedatectl set-ntp no
+sudo apt-get update --fix-missing
 sudo apt-get install ntp ntpstat
 sudo service ntp stop
 sudo ntpd -b time.google.com
