@@ -10,8 +10,8 @@ provider "google" {
 
 provider "google" {
   alias = "east"
-  region = "us-east1"
-  zone = "us-east1-b"
+  region = "${var.gcp_east_region}"
+  zone = "${var.gcp_east_zone}"
   project = "${var.gcp_project_name}"
 
   credentials = "${file(var.gcp_credentials_file)}"
@@ -19,8 +19,8 @@ provider "google" {
 
 provider "google" {
   alias = "west"
-  region = "us-west2"
-  zone = "us-west2-b"
+  region = "${var.gcp_west_region}"
+  zone = "${var.gcp_west_zone}"
   project = "${var.gcp_project_name}"
 
   credentials = "${file(var.gcp_credentials_file)}"
@@ -82,6 +82,14 @@ resource "google_compute_firewall" "sd_client_ui" {
   }
 }
 
+resource "google_compute_health_check" "sd_health_check" {
+  name = "sd_health_check"
+
+  tcp_health_check {
+    port = "8080"
+  }
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # provision east gcp resources
 # ---------------------------------------------------------------------------------------------------------------------
@@ -115,6 +123,35 @@ resource "google_compute_instance" "sd_east_cockroach_node" {
   }
 
 }
+
+resource "google_compute_instance_group" "sd_east_node_group" {
+  name = "sd-east-node-group"
+
+  instances = ["${google_compute_instance.sd_east_cockroach_node.*.self_link}"]
+
+  zone = "${var.gcp_east_zone}"
+}
+
+resource "google_compute_region_backend_service" "sd_east_lb" {
+  name = "sd-east-lb"
+  health_checks = ["${google_compute_health_check.sd_health_check.self_link}"]
+  region = "${var.gcp_east_region}"
+
+  backend {
+    group = "${google_compute_instance_group.sd_east_node_group.self_link}"
+  }
+
+}
+
+
+resource "google_compute_forwarding_rule" "sd_east_lb_forwarding_rule" {
+  name = "sd-east-lb-forwarding-rule"
+  load_balancing_scheme = "INTERNAL"
+  ports = ["26257"]
+  network = "${google_compute_network.sd_compute_network.self_link}"
+  backend_service = "${google_compute_region_backend_service.sd_east_lb.self_link}"
+}
+
 
 resource "google_compute_instance" "sd_east_client" {
 
@@ -470,6 +507,7 @@ locals {
   google_private_ips_east = "${concat(google_compute_instance.sd_east_cockroach_node.*.network_interface.0.network_ip)}"
   google_private_ips_west = "${concat(google_compute_instance.sd_west_cockroach_node.*.network_interface.0.network_ip)}"
   azure_private_ips = "${azurerm_network_interface.sd_network_interface_node.*.private_ip_address}"
+  google_lb_ip_east = "${google_compute_forwarding_rule.sd_east_lb_forwarding_rule.ip_address}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -715,7 +753,8 @@ resource "null_resource" "global_init_cluster" {
   }
 
   provisioner "remote-exec" {
-    inline = ["cockroach init --insecure",
+    inline = [
+      "cockroach init --insecure",
       "sleep ${var.provision_sleep}",
       "cockroach sql --insecure --execute=\"SET CLUSTER SETTING server.remote_debugging.mode = 'any';\"",
       "cockroach sql --insecure --execute=\"SET CLUSTER SETTING cluster.organization = '${var.crdb_license_org}';\"",
