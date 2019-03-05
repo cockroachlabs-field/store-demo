@@ -110,6 +110,18 @@ public class StartupRunner implements ApplicationRunner {
 
     private void importTables() throws SQLException {
 
+        logger.info("dropping acct table");
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS ACCT CASCADE")) {
+            statement.execute();
+        }
+
+        logger.info("dropping auth table");
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS AUTH CASCADE")) {
+            statement.execute();
+        }
+
         final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
         final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
 
