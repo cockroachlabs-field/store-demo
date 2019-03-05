@@ -452,7 +452,16 @@ resource "azurerm_network_interface" "sd_network_interface_node" {
     subnet_id = "${azurerm_subnet.sd_subnet.id}"
     private_ip_address_allocation = "dynamic"
     public_ip_address_id = "${element(azurerm_public_ip.sd_public_ip_node.*.id, count.index)}"
+
   }
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "sd_network_interface_backend_pool" {
+  count = 3
+
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.sd_lb_backend_pool.id}"
+  ip_configuration_name = "sd-network-interface-node-config-${count.index}"
+  network_interface_id = "${azurerm_network_interface.sd_network_interface_node.id}"
 }
 
 resource "azurerm_virtual_machine" "sd_cockroach_node" {
