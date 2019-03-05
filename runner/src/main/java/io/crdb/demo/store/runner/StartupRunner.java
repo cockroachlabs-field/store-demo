@@ -51,8 +51,8 @@ public class StartupRunner implements ApplicationRunner {
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
 
-    private AtomicInteger insertRetryCounter = new AtomicInteger(0);
-    private AtomicInteger updateRetryCounter = new AtomicInteger(0);
+    private final AtomicInteger insertRetryCounter = new AtomicInteger(0);
+    private final AtomicInteger updateRetryCounter = new AtomicInteger(0);
 
 
     @Value("${crdb.region}")

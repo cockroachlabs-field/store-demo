@@ -34,12 +34,6 @@
 		<!-- start - project custom dependencies -->
 
 		<dependency>
-			<groupId>io.crdb</groupId>
-			<artifactId>common</artifactId>
-			<version>2019.1-BETA</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
