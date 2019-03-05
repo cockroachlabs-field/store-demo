@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -40,12 +43,13 @@ public class StartupRunner implements ApplicationRunner {
     private static final String SAVEPOINT = "cockroach_restart";
 
     private final DataSource dataSource;
-
     private final Environment environment;
+    private final ConfigurableApplicationContext context;
 
     private final Timer availableBalanceTimer;
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
+
 
     @Value("${crdb.region}")
     private String region;
@@ -60,9 +64,10 @@ public class StartupRunner implements ApplicationRunner {
     private int accounts;
 
     @Autowired
-    public StartupRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry) {
+    public StartupRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry, ConfigurableApplicationContext context) {
         this.dataSource = dataSource;
         this.environment = environment;
+        this.context = context;
 
         availableBalanceTimer = Timer.builder("runner.available_balance")
                 .description("query available balance")
@@ -119,6 +124,9 @@ public class StartupRunner implements ApplicationRunner {
 
         logger.info("upper limit for random account number is {}", accounts);
 
+        StopWatch sw = new StopWatch(String.format("test with state [%s] for [%d] minutes", state, duration));
+        sw.start();
+
         while (counter < threadCount) {
 
             poolService.execute(() -> {
@@ -164,6 +172,11 @@ public class StartupRunner implements ApplicationRunner {
             poolService.shutdown();
         }
 
+        sw.stop();
+
+        logger.info("processed {} total transactions in {} ms", counter, sw.getTotalTimeMillis());
+
+        SpringApplication.exit(context, () -> 0);
     }
 
 
