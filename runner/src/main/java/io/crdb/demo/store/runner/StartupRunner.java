@@ -323,8 +323,6 @@ public class StartupRunner implements ApplicationRunner {
         updateRecordsTimer.record(() -> {
             try (Connection connection = dataSource.getConnection()) {
 
-                Timestamp now = new Timestamp(System.currentTimeMillis());
-
                 connection.setAutoCommit(false);
 
                 int localRetryCount = 1;
@@ -336,6 +334,8 @@ public class StartupRunner implements ApplicationRunner {
                     try {
 
                         try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
+
                             ps.setInt(1, 1);
                             ps.setTimestamp(2, now);
                             ps.setString(3, authorization.getLastUpdatedUserId());
@@ -346,9 +346,9 @@ public class StartupRunner implements ApplicationRunner {
                             ps.executeUpdate();
                         }
 
-                        now = new Timestamp(System.currentTimeMillis());
-
                         try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
+
                             ps.setBigDecimal(1, new BigDecimal(newBalance));
                             ps.setTimestamp(2, now);
                             ps.setString(3, authorization.getLastUpdatedUserId());
@@ -368,7 +368,7 @@ public class StartupRunner implements ApplicationRunner {
                         String sqlState = e.getSQLState();
 
                         if (RETRY_SQL_STATE.equals(sqlState)) {
-                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage(), e);
+                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage());
                             localRetryCount++;
                             globalUpdateRetryCounter.incrementAndGet();
 
@@ -382,7 +382,6 @@ public class StartupRunner implements ApplicationRunner {
                 }
 
                 connection.setAutoCommit(true);
-
 
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
