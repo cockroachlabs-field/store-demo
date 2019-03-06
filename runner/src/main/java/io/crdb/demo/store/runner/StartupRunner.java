@@ -90,7 +90,7 @@ public class StartupRunner implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         if (args.containsOption("run")) {
             runTests();
         }
@@ -217,8 +217,6 @@ public class StartupRunner implements ApplicationRunner {
                 logger.error(e.getMessage(), e);
             }
 
-            //logger.trace("available balance for [{}] is {}", accountNumber, availableBalance);
-
             return availableBalance;
         });
 
@@ -282,7 +280,7 @@ public class StartupRunner implements ApplicationRunner {
                         // STATE
                         ps.setString(9, auth.getState());
 
-                        final int updateCount = ps.executeUpdate();
+                        ps.executeUpdate();
 
                         connection.releaseSavepoint(sp);
 
@@ -363,8 +361,6 @@ public class StartupRunner implements ApplicationRunner {
                         connection.releaseSavepoint(sp);
 
                         connection.commit();
-
-                        //logger.trace("attempt {}: update to accounts is complete", retryCount);
 
                         break;
 
