@@ -178,8 +178,8 @@ public class StartupRunner implements ApplicationRunner {
 
         sw.stop();
 
-        logger.info("**** | `processed {} total transactions in {} ms or {} minutes using {} threads", transactions.get(), sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()), threadCount);
-        logger.info("**** |  there were {} retries on insert and {} retries on update", insertRetryCounter.get(), updateRetryCounter.get());
+        logger.info("**** | processed {} total transactions in {} ms or {} minutes using {} threads", transactions.get(), sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()), threadCount);
+        logger.info("**** | there were {} retries on insert and {} retries on update", insertRetryCounter.get(), updateRetryCounter.get());
 
         SpringApplication.exit(context, () -> 0);
     }
