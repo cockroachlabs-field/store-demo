@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sudo apt-get update -yq
 sudo apt-get install -yq openjdk-8-jdk git
 
 sudo git clone https://github.com/cockroachlabs/store-demo.git

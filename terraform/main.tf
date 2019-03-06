@@ -828,8 +828,6 @@ resource "null_resource" "azure_install_cluster" {
 
 resource "null_resource" "azure_prep_client" {
 
-  count = "${var.region_node_count}"
-
   depends_on = [
     "data.azurerm_public_ip.sd_public_ip_client",
     "azurerm_virtual_machine.sd_cockroach_client"]
