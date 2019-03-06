@@ -51,8 +51,8 @@ public class StartupRunner implements ApplicationRunner {
     private final Timer createAuthorizationTimer;
     private final Timer updateRecordsTimer;
 
-    private final AtomicInteger insertRetryCounter = new AtomicInteger(0);
-    private final AtomicInteger updateRetryCounter = new AtomicInteger(0);
+    private final AtomicInteger globalInsertRetryCounter = new AtomicInteger(0);
+    private final AtomicInteger globalUpdateRetryCounter = new AtomicInteger(0);
 
 
     @Value("${crdb.region}")
@@ -179,7 +179,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.stop();
 
         logger.info("**** | processed {} total transactions in {} ms or {} minutes using {} threads", transactions.get(), sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()), threadCount);
-        logger.info("**** | there were {} retries on insert and {} retries on update", insertRetryCounter.get(), updateRetryCounter.get());
+        logger.info("**** | there were {} retries on insert and {} retries on update", globalInsertRetryCounter.get(), globalUpdateRetryCounter.get());
 
         SpringApplication.exit(context, () -> 0);
     }
@@ -232,7 +232,7 @@ public class StartupRunner implements ApplicationRunner {
 
                 connection.setAutoCommit(false);
 
-                int retryCount = 1;
+                int localRetryCount = 1;
 
                 while (true) {
 
@@ -293,13 +293,13 @@ public class StartupRunner implements ApplicationRunner {
                         String sqlState = e.getSQLState();
 
                         if (RETRY_SQL_STATE.equals(sqlState)) {
-                            logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage(), e);
+                            localRetryCount++;
+                            globalInsertRetryCounter.incrementAndGet();
 
                             connection.rollback(sp);
 
-                            insertRetryCounter.incrementAndGet();
 
-                            retryCount++;
                         } else {
                             throw e;
                         }
@@ -327,7 +327,7 @@ public class StartupRunner implements ApplicationRunner {
 
                 connection.setAutoCommit(false);
 
-                int retryCount = 1;
+                int localRetryCount = 1;
 
                 while (true) {
 
@@ -368,13 +368,13 @@ public class StartupRunner implements ApplicationRunner {
                         String sqlState = e.getSQLState();
 
                         if (RETRY_SQL_STATE.equals(sqlState)) {
-                            logger.warn("attempt " + retryCount + ": will rollback; " + e.getMessage(), e);
+                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage(), e);
+                            localRetryCount++;
+                            globalUpdateRetryCounter.incrementAndGet();
 
                             connection.rollback(sp);
 
-                            updateRetryCounter.incrementAndGet();
 
-                            retryCount++;
                         } else {
                             throw e;
                         }
