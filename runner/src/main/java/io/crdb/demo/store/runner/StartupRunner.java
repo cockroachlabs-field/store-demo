@@ -250,7 +250,7 @@ public class StartupRunner implements ApplicationRunner {
                         auth.setAuthorizationStatus(0);
                         auth.setCreatedTimestamp(now);
                         auth.setLastUpdatedTimestamp(now);
-                        auth.setLastUpdatedUserId("run-" + region);
+                        auth.setLastUpdatedUserId(region);
                         auth.setState(state);
 
                         // ACCT_NBR
