@@ -483,13 +483,6 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
     version = "latest"
   }
 
-  storage_data_disk {
-    name = "sd-data-disk-node-${count.index}"
-    create_option = "Empty"
-    lun = 0
-    disk_size_gb = "${var.azure_storage_disk_size}"
-  }
-
   os_profile {
     computer_name = "sd-azure-central-node-${count.index}"
     admin_username = "${var.azure_user}"
@@ -790,7 +783,7 @@ resource "null_resource" "azure_prep_cluster" {
 
   provisioner "remote-exec" {
     scripts = ["scripts/startup.sh",
-      "scripts/disks-azure.sh"]
+      "scripts/disks.sh"]
   }
 
   provisioner "remote-exec" {
