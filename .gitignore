@@ -2,6 +2,7 @@
 
 **/target/*
 *.csv
+*.log
 
 ### STS ###
 .apt_generated
