@@ -138,7 +138,7 @@ public class StartupRunner implements ApplicationRunner {
         final String authCreateUrl = environment.getRequiredProperty("crdb.auths.create.url");
         final String authDataUrl = environment.getRequiredProperty("crdb.auths.data.url");
 
-        logger.info("auth: url for create [{}], url for data [{}]", acctCreateUrl, acctDataUrl);
+        logger.info("auth: url for create [{}], url for data [{}]", authCreateUrl, authDataUrl);
 
         final String importAuth = "IMPORT TABLE AUTH CREATE USING '" + authCreateUrl + "' CSV DATA ('" + authDataUrl + "') WITH nullif = '', delimiter = e'\\|'";
 
