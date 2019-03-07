@@ -110,17 +110,8 @@ public class StartupRunner implements ApplicationRunner {
 
     private void importTables() throws SQLException {
 
-        logger.info("dropping acct table");
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS ACCT CASCADE")) {
-            statement.execute();
-        }
-
-        logger.info("dropping auth table");
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS AUTH CASCADE")) {
-            statement.execute();
-        }
+        dropTablee("ACCT");
+        dropTablee("AUTH");
 
         final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
         final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
@@ -336,6 +327,9 @@ public class StartupRunner implements ApplicationRunner {
 
     private void createSchema() throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
+            dropTablee("ACCT");
+            dropTablee("AUTH");
+
             ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-acct.sql"));
             ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-auth.sql"));
             ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:zone-config.sql"));
@@ -505,5 +499,15 @@ public class StartupRunner implements ApplicationRunner {
 
         sw.stop();
         logger.info(sw.prettyPrint());
+    }
+
+    private void dropTablee(String tableName) throws SQLException {
+        logger.info("dropping {} table", tableName);
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS " + tableName + " CASCADE")) {
+            statement.execute();
+        }
+
     }
 }
