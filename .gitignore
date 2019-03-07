@@ -4,6 +4,7 @@
 *.csv
 *.log
 *.gz
+*.tmp
 
 ### STS ###
 .apt_generated
