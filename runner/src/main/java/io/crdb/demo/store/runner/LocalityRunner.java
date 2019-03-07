@@ -13,6 +13,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -27,9 +28,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 @Component
-public class StartupRunner implements ApplicationRunner {
+@Profile("locality")
+public class LocalityRunner implements ApplicationRunner {
 
-    private static final Logger logger = LoggerFactory.getLogger(StartupRunner.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocalityRunner.class);
 
     private static final String SELECT_AVAILABLE_BALANCE_SQL = "select acct.ACCT_BAL_AMT, SUM(auth.AUTH_AMT) from acct left outer join auth on acct.acct_nbr = auth.acct_nbr and acct.state = auth.state and auth.AUTH_STAT_CD = 0 where acct.acct_nbr = ? and acct.state = ? and acct.ACCT_STAT_CD = 1 group by ACCT_BAL_AMT";
 
@@ -68,7 +70,7 @@ public class StartupRunner implements ApplicationRunner {
     private int accounts;
 
     @Autowired
-    public StartupRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry, ConfigurableApplicationContext context) {
+    public LocalityRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry, ConfigurableApplicationContext context) {
         this.dataSource = dataSource;
         this.environment = environment;
         this.context = context;
