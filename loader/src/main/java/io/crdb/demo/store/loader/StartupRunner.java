@@ -3,6 +3,8 @@ package io.crdb.demo.store.loader;
 import com.github.javafaker.Faker;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -27,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.UUID;
 
 
@@ -42,7 +43,6 @@ public class StartupRunner implements ApplicationRunner {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
     private static final String USER_ID = "loader";
     private static final int LOG_FREQUENCY = 100000;
-    private static final Random RANDOM = new Random();
 
     private final DataSource dataSource;
     private final Environment environment;
@@ -150,13 +150,18 @@ public class StartupRunner implements ApplicationRunner {
 
     private DataFiles generateFiles() throws IOException {
         final int acctRowCount = environment.getRequiredProperty("crdb.accts", Integer.class);
+
+        if (acctRowCount < 100000) {
+            throw new IllegalArgumentException("must be over 100000");
+        }
+
         final int authRowCount = environment.getRequiredProperty("crdb.auths", Integer.class);
+
 
         logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
 
-        final String localityString = environment.getRequiredProperty("crdb.localities");
 
-        List<String> localities = Splitter.on(',').splitToList(localityString);
+        List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.localities")));
 
         String acctFileName = "accts-" + acctRowCount + ".csv";
         String authFileName = "auths-" + authRowCount + ".csv";
@@ -188,131 +193,133 @@ public class StartupRunner implements ApplicationRunner {
                 logger.debug("deleted file {}: {}", authFileName, deleted);
             }
 
+            int accountsPerLocality = acctRowCount / states.size();
+            int authorizationsPerLocality = authRowCount / states.size();
+
             try (BufferedWriter authWriter = new BufferedWriter(new FileWriter(authFile))) {
 
-                for (int ac = 0; ac < acctRowCount; ac++) {
+                for (String state : states) {
 
-                    final java.util.Date createdDate = faker.date().between(start, end);
+                    int authCounter = 0;
 
-                    // STATE
-                    final String state = localities.get(RANDOM.nextInt(localities.size()));
+                    for (int ac = 0; ac < accountsPerLocality; ac++) {
 
-                    // ACCT_NBR
-                    final String accountNumber = state + "-" + String.format("%022d", (ac + 1));
+                        final java.util.Date createdDate = faker.date().between(start, end);
 
-                    // ACCT_TYPE_IND
-                    final String type = "HD";
+                        // ACCT_NBR
+                        final String accountNumber = state + "-" + String.format("%022d", (ac + 1));
 
-                    // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
-                    double balance = faker.number().randomDouble(2, 0, 1000);
+                        // ACCT_TYPE_IND
+                        final String type = "HD";
 
-                    // ACCT_STAT_CD
-                    final String status = "1";
+                        // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
+                        double balance = faker.number().randomDouble(2, 0, 1000);
 
-                    // EXPIR_DT
-                    final String expirationDate = null;
+                        // ACCT_STAT_CD
+                        final String status = "1";
 
-                    // CRT_TS
-                    final String createdTimestamp = TIMESTAMP_FORMAT.format(createdDate);
+                        // CRT_TS
+                        final String createdTimestamp = TIMESTAMP_FORMAT.format(createdDate);
 
-                    // LAST_UPD_TS
-                    String lastUpdatedTimestamp = null;
+                        // LAST_UPD_TS
+                        String lastUpdatedTimestamp = null;
 
-                    // LAST_UPD_USER_ID
-                    String lastUpdatedUserId = null;
+                        // LAST_UPD_USER_ID
+                        String lastUpdatedUserId = null;
 
-                    // ACTVT_INQ_TS
-                    String lastBalanceInquiry = null;
+                        // ACTVT_INQ_TS
+                        String lastBalanceInquiry = null;
 
-                    if (authTotalCount < authRowCount) {
+                        if (authCounter < authorizationsPerLocality) {
 
-                        if (faker.random().nextBoolean()) {
+                            if (faker.random().nextBoolean()) {
 
-                            int count = faker.random().nextInt(1, 10);
+                                int count = faker.random().nextInt(1, 10);
 
-                            java.util.Date authorizationCreatedTS = null;
+                                java.util.Date authorizationCreatedTS = null;
 
-                            for (int au = 0; au < count; au++) {
+                                for (int au = 0; au < count; au++) {
 
-                                // REQUEST_ID
-                                final String requestId = UUID.randomUUID().toString();
+                                    // REQUEST_ID
+                                    final String requestId = UUID.randomUUID().toString();
 
-                                // AUTH_ID
-                                final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
+                                    // AUTH_ID
+                                    final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
 
-                                // AUTH_AMT - for simplicity we are always going authorize $5
-                                final double authorizationAmount = faker.number().randomDouble(2, 1, 100);
+                                    // AUTH_AMT - for simplicity we are always going authorize $5
+                                    final double authorizationAmount = faker.number().randomDouble(2, 1, 100);
 
-                                // AUTH_STAT_CD - if 1 apply to balance, if 0 its a hold
+                                    // AUTH_STAT_CD - if 1 apply to balance, if 0 its a hold
 
-                                final boolean applyBalance = faker.random().nextBoolean();
+                                    final boolean applyBalance = faker.random().nextBoolean();
 
-                                String authorizationStatus;
+                                    String authorizationStatus;
 
-                                if (applyBalance) {
-                                    authorizationStatus = "1";
-                                    balance -= authorizationAmount;
-                                } else {
-                                    authorizationStatus = "0";
+                                    if (applyBalance) {
+                                        authorizationStatus = "1";
+                                        balance -= authorizationAmount;
+                                    } else {
+                                        authorizationStatus = "0";
+                                    }
+
+                                    // CRT_TS
+                                    if (authorizationCreatedTS == null) {
+                                        authorizationCreatedTS = faker.date().between(createdDate, end);
+                                    } else {
+                                        authorizationCreatedTS = faker.date().between(authorizationCreatedTS, end);
+                                    }
+
+                                    final String authorizationCreatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+
+                                    // LAST_UPD_TS
+                                    final String authorizationLastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+
+
+                                    final String auth = Joiner.on('|').useForNull("")
+                                            .join(accountNumber,
+                                                    requestId,
+                                                    authorizationId,
+                                                    authorizationAmount,
+                                                    authorizationStatus,
+                                                    authorizationCreatedTimestamp,
+                                                    authorizationLastUpdatedTimestamp,
+                                                    USER_ID,
+                                                    state);
+
+                                    authCounter++;
+                                    authTotalCount++;
+
+                                    authWriter.write(auth + '\n');
                                 }
 
-                                // CRT_TS
-                                if (authorizationCreatedTS == null) {
-                                    authorizationCreatedTS = faker.date().between(createdDate, end);
-                                } else {
-                                    authorizationCreatedTS = faker.date().between(authorizationCreatedTS, end);
-                                }
-
-                                final String authorizationCreatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
-
-                                // LAST_UPD_TS
-                                final String authorizationLastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
-
-                                // LAST_UPD_USER_ID
-                                final String authorizationLastUpdatedUserId = USER_ID;
-
-                                final String auth = Joiner.on('|').useForNull("")
-                                        .join(accountNumber,
-                                                requestId,
-                                                authorizationId,
-                                                authorizationAmount,
-                                                authorizationStatus,
-                                                authorizationCreatedTimestamp,
-                                                authorizationLastUpdatedTimestamp,
-                                                authorizationLastUpdatedUserId,
-                                                state);
-
-                                authTotalCount++;
-
-                                authWriter.write(auth + '\n');
+                                lastBalanceInquiry = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+                                lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
+                                lastUpdatedUserId = USER_ID;
                             }
-
-                            lastBalanceInquiry = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
-                            lastUpdatedTimestamp = TIMESTAMP_FORMAT.format(authorizationCreatedTS);
-                            lastUpdatedUserId = USER_ID;
                         }
+
+                        final String account = Joiner.on('|').useForNull("")
+                                .join(accountNumber,
+                                        type,
+                                        balance,
+                                        status,
+                                        null,
+                                        createdTimestamp,
+                                        lastUpdatedTimestamp,
+                                        lastUpdatedUserId,
+                                        lastBalanceInquiry,
+                                        state);
+
+                        acctTotalCount++;
+
+                        if (acctTotalCount != 0 && (acctTotalCount % LOG_FREQUENCY) == 0) {
+                            // coarse grained tracker
+                            logger.info("generated {} records", acctTotalCount);
+                        }
+
+                        acctWriter.write(account + '\n');
                     }
 
-                    final String account = Joiner.on('|').useForNull("")
-                            .join(accountNumber,
-                                    type,
-                                    balance,
-                                    status,
-                                    expirationDate,
-                                    createdTimestamp,
-                                    lastUpdatedTimestamp,
-                                    lastUpdatedUserId,
-                                    lastBalanceInquiry,
-                                    state);
-
-                    acctTotalCount++;
-
-                    if (acctTotalCount != 0 && (acctTotalCount % LOG_FREQUENCY) == 0) {
-                        // coarse grained tracker
-                        logger.info("generated {} records", acctTotalCount);
-                    }
-
-                    acctWriter.write(account + '\n');
                 }
             }
 
@@ -352,7 +359,7 @@ public class StartupRunner implements ApplicationRunner {
 
                 int i = 0;
                 while ((line = br.readLine()) != null) {
-                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
+                    final List<String> columns = Lists.newArrayList(Splitter.on('|').trimResults().split(line));
 
                     // ACCT_NBR
                     ps.setString(1, columns.get(0));
@@ -446,7 +453,7 @@ public class StartupRunner implements ApplicationRunner {
 
                 int i = 0;
                 while ((line = br.readLine()) != null) {
-                    final List<String> columns = Splitter.on('|').trimResults().splitToList(line);
+                    final List<String> columns = Lists.newArrayList(Splitter.on('|').trimResults().split(line));
 
                     // ACCT_NBR
                     ps.setString(1, columns.get(0));

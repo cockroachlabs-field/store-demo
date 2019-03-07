@@ -125,6 +125,7 @@ public class StartupRunner implements ApplicationRunner {
         int counter = 0;
 
         AtomicLong transactions = new AtomicLong(0);
+        AtomicLong unavailableBalance = new AtomicLong(0);
 
         logger.info("upper limit for random account number is {}", accounts);
 
@@ -145,15 +146,21 @@ public class StartupRunner implements ApplicationRunner {
 
                     Double availableBalance = getAvailableBalance(accountNumber, state);
 
-                    // for now we are ignoring balance
-                    Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state);
+                    if (availableBalance != null) {
 
-                    double newBalance = availableBalance - purchaseAmount;
+                        // for now we are ignoring balance
+                        Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state);
 
-                    updateRecords(authorization, newBalance);
+                        double newBalance = availableBalance - purchaseAmount;
 
-                    if (transactions.getAndIncrement() % 1000 == 0) {
-                        logger.info("processed {} transactions", transactions.get());
+                        updateRecords(authorization, newBalance);
+
+                        if (transactions.getAndIncrement() % 100000 == 0) {
+                            logger.info("processed {} transactions", transactions.get());
+                        }
+                    } else {
+                        unavailableBalance.incrementAndGet();
+                        logger.warn("unable to find balance for account number {} and state {}", accountNumber, state);
                     }
                 }
 
@@ -180,16 +187,15 @@ public class StartupRunner implements ApplicationRunner {
 
         logger.info("**** | processed {} total transactions in {} ms or {} minutes using {} threads", transactions.get(), sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()), threadCount);
         logger.info("**** | there were {} retries on insert and {} retries on update", globalInsertRetryCounter.get(), globalUpdateRetryCounter.get());
+        logger.info("**** | unable to find {} account balances", unavailableBalance.get());
 
         SpringApplication.exit(context, () -> 0);
     }
 
 
-    private double getAvailableBalance(String accountNumber, String state) {
+    private Double getAvailableBalance(String accountNumber, String state) {
 
         return availableBalanceTimer.record(() -> {
-
-            double availableBalance = 0.0;
 
             try (Connection connection = dataSource.getConnection()) {
 
@@ -205,10 +211,11 @@ public class StartupRunner implements ApplicationRunner {
                                 double accountBalance = rs.getDouble(1);
                                 double holds = rs.getDouble(2);
 
-                                availableBalance = accountBalance - holds;
+                                return accountBalance - holds;
                             }
                         }
                     }
+
                 } catch (SQLException e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -217,7 +224,7 @@ public class StartupRunner implements ApplicationRunner {
                 logger.error(e.getMessage(), e);
             }
 
-            return availableBalance;
+            return null;
         });
 
 
