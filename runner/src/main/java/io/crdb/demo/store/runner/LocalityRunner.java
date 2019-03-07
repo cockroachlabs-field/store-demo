@@ -291,7 +291,7 @@ public class LocalityRunner implements ApplicationRunner {
                     String sqlState = e.getSQLState();
 
                     if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage());
+                        logger.warn("attempt {}: rolling back INSERT for account number {}", localRetryCount, accountNumber);
                         localRetryCount++;
                         globalInsertRetryCounter.incrementAndGet();
 
@@ -371,7 +371,7 @@ public class LocalityRunner implements ApplicationRunner {
                     String sqlState = e.getSQLState();
 
                     if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage());
+                        logger.warn("attempt {}: rolling back UPDATE for account number {}", localRetryCount, authorization.getAccountNumber());
                         localRetryCount++;
                         globalUpdateRetryCounter.incrementAndGet();
 
