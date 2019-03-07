@@ -157,7 +157,7 @@ public class LoaderRunner implements ApplicationRunner {
         final int authRowCount = environment.getRequiredProperty("crdb.generate.auths", Integer.class);
 
 
-        logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
+        logger.info("generating {} acct records and {} auth records for state {}", acctRowCount, authRowCount, environment.getRequiredProperty("crdb.generate.states"));
 
 
         List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.generate.states")));
