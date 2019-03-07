@@ -34,9 +34,9 @@ import java.util.UUID;
 
 
 @Component
-public class StartupRunner implements ApplicationRunner {
+public class LoaderRunner implements ApplicationRunner {
 
-    private static final Logger logger = LoggerFactory.getLogger(StartupRunner.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoaderRunner.class);
     private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat(TIMESTAMP_PATTERN);
 
@@ -52,7 +52,7 @@ public class StartupRunner implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
 
     @Autowired
-    public StartupRunner(DataSource dataSource, Environment environment, ResourceLoader resourceLoader) {
+    public LoaderRunner(DataSource dataSource, Environment environment, ResourceLoader resourceLoader) {
         this.dataSource = dataSource;
         this.environment = environment;
         this.resourceLoader = resourceLoader;
@@ -90,8 +90,8 @@ public class StartupRunner implements ApplicationRunner {
         if (args.containsOption("load")) {
 
             if (files == null) {
-                final String acctFileName = environment.getRequiredProperty("crdb.accts.data.file");
-                final String authFileName = environment.getRequiredProperty("crdb.auths.data.file");
+                final String acctFileName = environment.getRequiredProperty("crdb.load.accts.data.file");
+                final String authFileName = environment.getRequiredProperty("crdb.load.auths.data.file");
 
 
                 files = new DataFiles(acctFileName, authFileName);
@@ -116,8 +116,8 @@ public class StartupRunner implements ApplicationRunner {
         dropTables("ACCT");
         dropTables("AUTH");
 
-        final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
-        final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
+        final String acctCreateUrl = environment.getRequiredProperty("crdb.import.accts.create.url");
+        final String acctDataUrl = environment.getRequiredProperty("crdb.import.accts.data.url");
 
         logger.info("acct: url for create [{}], url for data [{}]", acctCreateUrl, acctDataUrl);
 
@@ -129,8 +129,8 @@ public class StartupRunner implements ApplicationRunner {
         }
 
 
-        final String authCreateUrl = environment.getRequiredProperty("crdb.auths.create.url");
-        final String authDataUrl = environment.getRequiredProperty("crdb.auths.data.url");
+        final String authCreateUrl = environment.getRequiredProperty("crdb.import.auths.create.url");
+        final String authDataUrl = environment.getRequiredProperty("crdb.import.auths.data.url");
 
         logger.info("auth: url for create [{}], url for data [{}]", authCreateUrl, authDataUrl);
 
@@ -152,15 +152,15 @@ public class StartupRunner implements ApplicationRunner {
     }
 
     private DataFiles generateFiles() throws IOException {
-        final int acctRowCount = environment.getRequiredProperty("crdb.accts", Integer.class);
+        final int acctRowCount = environment.getRequiredProperty("crdb.generate.accts", Integer.class);
 
-        final int authRowCount = environment.getRequiredProperty("crdb.auths", Integer.class);
+        final int authRowCount = environment.getRequiredProperty("crdb.generate.auths", Integer.class);
 
 
         logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
 
 
-        List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.states")));
+        List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.generate.states")));
 
         String acctFileName = "accts-" + acctRowCount + ".csv";
         String authFileName = "auths-" + authRowCount + ".csv";
@@ -347,7 +347,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into ACCT(ACCT_NBR, ACCT_TYPE_IND, ACCT_BAL_AMT, ACCT_STAT_CD, EXPIR_DT, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, ACTVT_INQ_TS, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getRequiredProperty("crdb.batch", Integer.class);
+        final int batchSize = environment.getRequiredProperty("crdb.load.batch", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
@@ -441,7 +441,7 @@ public class StartupRunner implements ApplicationRunner {
         sw.start();
 
         final String acctInsert = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        final int batchSize = environment.getRequiredProperty("crdb.batch", Integer.class);
+        final int batchSize = environment.getRequiredProperty("crdb.load.batch", Integer.class);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(acctInsert)) {
