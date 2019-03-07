@@ -38,13 +38,15 @@ public class LocalityRunner implements ApplicationRunner {
 
     private static final String RETRY_SQL_STATE = "40001";
     private static final String SAVEPOINT = "cockroach_restart";
+    private static final double PURCHASE_AMOUNT = 5.00;
 
     private final DataSource dataSource;
-    private final Environment environment;
     private final ConfigurableApplicationContext context;
 
     private final AtomicInteger globalInsertRetryCounter = new AtomicInteger(0);
     private final AtomicInteger globalUpdateRetryCounter = new AtomicInteger(0);
+
+    private static final Set<String> uniqueAccounts = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Value("${crdb.region}")
     private String region;
@@ -61,33 +63,14 @@ public class LocalityRunner implements ApplicationRunner {
     @Value("${crdb.log.batch}")
     private int logBatch;
 
+    private int threadCount;
+
     @Autowired
     public LocalityRunner(DataSource dataSource, Environment environment, ConfigurableApplicationContext context) {
         this.dataSource = dataSource;
-        this.environment = environment;
         this.context = context;
-    }
 
-    @Override
-    public void run(ApplicationArguments args) {
-        if (args.containsOption("run")) {
-            runTests(state, duration);
-        }
-
-        SpringApplication.exit(context, () -> 0);
-    }
-
-    private void runTests(String state, int duration) {
-
-        final String testId = RandomStringUtils.randomAlphanumeric(8);
-
-        logger.info("unique test id [{}]", testId);
-
-        logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
-
-        Set<String> uniqueAccounts = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
-        int threadCount = Runtime.getRuntime().availableProcessors();
+        threadCount = Runtime.getRuntime().availableProcessors();
 
         String threads = environment.getProperty("crdb.run.threads");
 
@@ -95,23 +78,43 @@ public class LocalityRunner implements ApplicationRunner {
             threadCount = Integer.parseInt(threads);
         }
 
-        logger.info("starting ExecutorService with {} threads", threadCount);
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+
+
+        if (args.containsOption("run")) {
+            final String testId = RandomStringUtils.randomAlphanumeric(8);
+            runTest(testId, state, duration);
+        }
+
+        SpringApplication.exit(context, () -> 0);
+    }
+
+    private void runTest(String testId, String state, int duration) {
+
+        StringBuilder startBuilder = new StringBuilder();
+        startBuilder.append('\n');
+        startBuilder.append("\tTest Details\n");
+        startBuilder.append("\t\tTest ID: ").append(testId).append('\n');
+        startBuilder.append("\t\tDuration: ").append(duration).append('\n');
+        startBuilder.append("\t\tState: ").append(state).append('\n');
+        startBuilder.append("\t\tRegion: ").append(region).append('\n');
+        startBuilder.append("\t\t# Threads: ").append(threadCount).append('\n');
+        startBuilder.append("\t\tAccount Number Upper Bound: ").append(accounts).append('\n');
+
+        logger.info(startBuilder.toString());
 
         final ExecutorService poolService = Executors.newFixedThreadPool(threadCount);
-
-        double purchaseAmount = 5.00;
-
         final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+        final AtomicLong transactions = new AtomicLong(0);
+        final AtomicLong unavailableBalance = new AtomicLong(0);
+
+        final StopWatch sw = new StopWatch();
+        sw.start();
 
         int counter = 0;
-
-        AtomicLong transactions = new AtomicLong(0);
-        AtomicLong unavailableBalance = new AtomicLong(0);
-
-        logger.info("upper limit for random account number is {}", accounts);
-
-        StopWatch sw = new StopWatch(String.format("test with state [%s] for [%d] minutes", state, duration));
-        sw.start();
 
         while (counter < threadCount) {
 
@@ -132,9 +135,9 @@ public class LocalityRunner implements ApplicationRunner {
                     if (availableBalance != null) {
 
                         // for now we are ignoring balance
-                        Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state, testId);
+                        Authorization authorization = createAuthorization(accountNumber, PURCHASE_AMOUNT, state, testId);
 
-                        double newBalance = availableBalance - purchaseAmount;
+                        double newBalance = availableBalance - PURCHASE_AMOUNT;
 
                         updateRecords(authorization, newBalance);
 
@@ -168,10 +171,32 @@ public class LocalityRunner implements ApplicationRunner {
 
         sw.stop();
 
-        logger.info("**** | processed {} total transactions in {} ms or {} minutes using {} threads", transactions.get(), sw.getTotalTimeMillis(), TimeUnit.MILLISECONDS.toMinutes(sw.getTotalTimeMillis()), threadCount);
-        logger.info("**** | there were {} retries on insert and {} retries on update", globalInsertRetryCounter.get(), globalUpdateRetryCounter.get());
-        logger.info("**** | unable to find {} account balances", unavailableBalance.get());
+        int touchedAccounts = getTouchedAccounts(testId, state);
 
+        StringBuilder endBuilder = new StringBuilder();
+        endBuilder.append('\n');
+        endBuilder.append("\tTest Summary\n");
+        endBuilder.append("\t\tTest ID: ").append(testId).append('\n');
+        endBuilder.append("\t\tDuration: ").append(duration).append('\n');
+        endBuilder.append("\t\tState: ").append(state).append('\n');
+        endBuilder.append("\t\tRegion: ").append(region).append('\n');
+        endBuilder.append("\t\t# Threads: ").append(threadCount).append('\n');
+        endBuilder.append("\t\t# Transactions Completed: ").append(transactions.get()).append('\n');
+        endBuilder.append("\t\t# Unique Accounts Used: ").append(uniqueAccounts.size()).append('\n');
+        endBuilder.append("\t\t# Accounts Updated: ").append(touchedAccounts).append('\n');
+        endBuilder.append("\t\t# Update Retries: ").append(globalUpdateRetryCounter.get()).append('\n');
+        endBuilder.append("\t\t# Insert Retries: ").append(globalInsertRetryCounter.get()).append('\n');
+        endBuilder.append("\t\t# Balances Not Found: ").append(unavailableBalance.get()).append('\n');
+        endBuilder.append("\t\tTotal Time in MS: ").append(sw.getTotalTimeMillis()).append('\n');
+
+        logger.info(endBuilder.toString());
+
+        if (touchedAccounts != uniqueAccounts.size()) {
+            logger.error("number of accounts updated {} does not equal number of unique accounts used {}", touchedAccounts, uniqueAccounts.size());
+        }
+    }
+
+    private int getTouchedAccounts(String testId, String state) {
         int count = 0;
 
         try (Connection connection = dataSource.getConnection()) {
@@ -192,12 +217,7 @@ public class LocalityRunner implements ApplicationRunner {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
-
-        if (count != uniqueAccounts.size()) {
-            logger.error("number of updates to acct {} does not equal number of unique accounts visited {}", count, uniqueAccounts.size());
-        }
-
-
+        return count;
     }
 
 
