@@ -110,8 +110,8 @@ public class StartupRunner implements ApplicationRunner {
 
     private void importTables() throws SQLException {
 
-        dropTablee("ACCT");
-        dropTablee("AUTH");
+        dropTables("ACCT");
+        dropTables("AUTH");
 
         final String acctCreateUrl = environment.getRequiredProperty("crdb.accts.create.url");
         final String acctDataUrl = environment.getRequiredProperty("crdb.accts.data.url");
@@ -334,8 +334,8 @@ public class StartupRunner implements ApplicationRunner {
 
     private void createSchema() throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
-            dropTablee("ACCT");
-            dropTablee("AUTH");
+            dropTables("ACCT");
+            dropTables("AUTH");
 
             ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-acct.sql"));
             ScriptUtils.executeSqlScript(connection, resourceLoader.getResource("classpath:create-auth.sql"));
@@ -508,7 +508,7 @@ public class StartupRunner implements ApplicationRunner {
         logger.info(sw.prettyPrint());
     }
 
-    private void dropTablee(String tableName) throws SQLException {
+    private void dropTables(String tableName) throws SQLException {
         logger.info("dropping {} table", tableName);
 
         try (Connection connection = dataSource.getConnection();
