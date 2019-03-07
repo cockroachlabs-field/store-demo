@@ -209,7 +209,7 @@ public class StartupRunner implements ApplicationRunner {
                         final String accountNumber = state + "-" + String.format("%022d", (ac + 1));
 
                         // ACCT_TYPE_IND
-                        final String type = "HD";
+                        final String type = "XX";
 
                         // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
                         double balance = 100.00;
