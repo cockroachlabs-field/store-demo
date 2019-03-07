@@ -169,11 +169,7 @@ public class LocalityRunner implements ApplicationRunner {
     }
 
     private void makePurchase(String testId, String state, AtomicLong transactions, AtomicLong unavailableBalance) {
-        final int random = ThreadLocalRandom.current().nextInt(1, accounts);
-
-        String accountNumber = state + "-" + String.format("%022d", random);
-
-        uniqueAccounts.add(accountNumber);
+        String accountNumber = getAccountNumber(state);
 
         logger.debug("making purchase for for account number [{}]", accountNumber);
 
@@ -195,6 +191,21 @@ public class LocalityRunner implements ApplicationRunner {
             unavailableBalance.incrementAndGet();
             logger.warn("unable to find balance for account number {} and state {}", accountNumber, state);
         }
+    }
+
+    private String getAccountNumber(String state) {
+        final int random = ThreadLocalRandom.current().nextInt(1, accounts);
+
+        String accountNumber = state + "-" + String.format("%022d", random);
+
+        final boolean added = uniqueAccounts.add(accountNumber);
+
+        if (!added) {
+            logger.warn("account number {} has already been used, getting another...", accountNumber);
+           accountNumber = getAccountNumber(state);
+        }
+
+        return accountNumber;
     }
 
     private int getTouchedAccounts(String testId, String state) {
