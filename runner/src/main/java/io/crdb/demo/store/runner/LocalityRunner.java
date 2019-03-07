@@ -1,5 +1,6 @@
 package io.crdb.demo.store.runner;
 
+import com.google.common.collect.Sets;
 import io.crdb.demo.store.common.Authorization;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -13,7 +14,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -21,6 +21,7 @@ import org.springframework.util.StopWatch;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,7 +29,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 @Component
-@Profile("locality")
 public class LocalityRunner implements ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalityRunner.class);
@@ -69,6 +69,9 @@ public class LocalityRunner implements ApplicationRunner {
     @Value("${crdb.accts}")
     private int accounts;
 
+    @Value("${crdb.log.batch}")
+    private int logBatch;
+
     @Autowired
     public LocalityRunner(DataSource dataSource, Environment environment, MeterRegistry meterRegistry, ConfigurableApplicationContext context) {
         this.dataSource = dataSource;
@@ -94,19 +97,22 @@ public class LocalityRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (args.containsOption("run")) {
-            runTests();
+            runTests(state, duration);
         }
-    }
 
-    private void runTests() {
-
-        logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
-
-        runTests(state, duration);
-
+        SpringApplication.exit(context, () -> 0);
     }
 
     private void runTests(String state, int duration) {
+
+        final String testId = RandomStringUtils.randomAlphanumeric(8);
+
+        logger.info("unique test id [{}]", testId);
+
+        logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
+
+        Set<String> uniqueAccounts = Sets.newHashSet();
+
 
         int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -144,6 +150,8 @@ public class LocalityRunner implements ApplicationRunner {
 
                     String accountNumber = state + "-" + String.format("%022d", random);
 
+                    uniqueAccounts.add(accountNumber);
+
                     logger.debug("running test for account number [{}]", accountNumber);
 
                     Double availableBalance = getAvailableBalance(accountNumber, state);
@@ -151,13 +159,13 @@ public class LocalityRunner implements ApplicationRunner {
                     if (availableBalance != null) {
 
                         // for now we are ignoring balance
-                        Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state);
+                        Authorization authorization = createAuthorization(accountNumber, purchaseAmount, state, testId);
 
                         double newBalance = availableBalance - purchaseAmount;
 
                         updateRecords(authorization, newBalance);
 
-                        if (transactions.getAndIncrement() % 100000 == 0) {
+                        if (transactions.getAndIncrement() % logBatch == 0) {
                             logger.info("processed {} transactions", transactions.get());
                         }
                     } else {
@@ -191,7 +199,32 @@ public class LocalityRunner implements ApplicationRunner {
         logger.info("**** | there were {} retries on insert and {} retries on update", globalInsertRetryCounter.get(), globalUpdateRetryCounter.get());
         logger.info("**** | unable to find {} account balances", unavailableBalance.get());
 
-        SpringApplication.exit(context, () -> 0);
+        int count = 0;
+
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement("select count(*) from acct where state=? and LAST_UPD_USER_ID = ?")) {
+                ps.setString(1, state);
+                ps.setString(2, testId);
+
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    if (rs != null) {
+                        if (rs.next()) {
+                            count= rs.getInt(1);
+
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+
+        if (count != transactions.get()) {
+            logger.error("number of updates to acct {} does not equal number of unique accounts visited {}", count, uniqueAccounts.size());
+        }
+
+
     }
 
 
@@ -232,7 +265,7 @@ public class LocalityRunner implements ApplicationRunner {
 
     }
 
-    private Authorization createAuthorization(String accountNumber, double purchaseAmount, String state) {
+    private Authorization createAuthorization(String accountNumber, double purchaseAmount, String state, String testId) {
 
         return createAuthorizationTimer.record(() -> {
             Authorization auth = null;
@@ -259,7 +292,7 @@ public class LocalityRunner implements ApplicationRunner {
                         auth.setAuthorizationStatus(0);
                         auth.setCreatedTimestamp(now);
                         auth.setLastUpdatedTimestamp(now);
-                        auth.setLastUpdatedUserId(region);
+                        auth.setLastUpdatedUserId(testId);
                         auth.setState(state);
 
                         // ACCT_NBR
@@ -308,7 +341,6 @@ public class LocalityRunner implements ApplicationRunner {
 
                             connection.rollback(sp);
 
-
                         } else {
                             throw e;
                         }
@@ -352,7 +384,11 @@ public class LocalityRunner implements ApplicationRunner {
                             ps.setString(5, authorization.getState());
                             ps.setObject(6, authorization.getRequestId());
 
-                            ps.executeUpdate();
+                            final int updated = ps.executeUpdate();
+
+                            if (updated != 1) {
+                                logger.warn("unexpected update count");
+                            }
                         }
 
                         try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
@@ -364,7 +400,11 @@ public class LocalityRunner implements ApplicationRunner {
                             ps.setString(4, authorization.getAccountNumber());
                             ps.setString(5, authorization.getState());
 
-                            ps.executeUpdate();
+                            final int updated = ps.executeUpdate();
+
+                            if (updated != 1) {
+                                logger.warn("unexpected update count");
+                            }
                         }
 
                         connection.releaseSavepoint(sp);

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
@@ -42,7 +43,9 @@ public class StartupRunner implements ApplicationRunner {
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
     private static final String USER_ID = "loader";
-    private static final int LOG_FREQUENCY = 100000;
+
+    @Value("${crdb.log.batch}")
+    private int logBatch;
 
     private final DataSource dataSource;
     private final Environment environment;
@@ -150,10 +153,6 @@ public class StartupRunner implements ApplicationRunner {
 
     private DataFiles generateFiles() throws IOException {
         final int acctRowCount = environment.getRequiredProperty("crdb.accts", Integer.class);
-
-        if (acctRowCount < 100000) {
-            throw new IllegalArgumentException("must be over 100000");
-        }
 
         final int authRowCount = environment.getRequiredProperty("crdb.auths", Integer.class);
 
@@ -312,7 +311,7 @@ public class StartupRunner implements ApplicationRunner {
 
                         acctTotalCount++;
 
-                        if (acctTotalCount != 0 && (acctTotalCount % LOG_FREQUENCY) == 0) {
+                        if (acctTotalCount != 0 && (acctTotalCount % logBatch) == 0) {
                             // coarse grained tracker
                             logger.info("generated {} records", acctTotalCount);
                         }
@@ -418,7 +417,7 @@ public class StartupRunner implements ApplicationRunner {
                         logger.debug("loaded ACCT batch {}", i);
                     }
 
-                    if (i != 0 && (i % LOG_FREQUENCY) == 0) {
+                    if (i != 0 && (i % logBatch) == 0) {
                         // coarse grained tracker
                         logger.info("loaded {} Accounts", i);
                     }
@@ -489,7 +488,7 @@ public class StartupRunner implements ApplicationRunner {
                         logger.debug("loaded AUTH batch {}", i);
                     }
 
-                    if (i != 0 && (i % LOG_FREQUENCY) == 0) {
+                    if (i != 0 && (i % logBatch) == 0) {
                         // coarse grained tracker
                         logger.info("loaded {} Authorizations", i);
                     }
