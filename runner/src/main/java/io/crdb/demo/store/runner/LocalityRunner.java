@@ -94,17 +94,16 @@ public class LocalityRunner implements ApplicationRunner {
 
     private void runTest(String testId, String state, int duration) {
 
-        StringBuilder startBuilder = new StringBuilder();
-        startBuilder.append('\n');
-        startBuilder.append("\tTest Details\n");
-        startBuilder.append("\t\tTest ID: ").append(testId).append('\n');
-        startBuilder.append("\t\tDuration: ").append(duration).append('\n');
-        startBuilder.append("\t\tState: ").append(state).append('\n');
-        startBuilder.append("\t\tRegion: ").append(region).append('\n');
-        startBuilder.append("\t\t# Threads: ").append(threadCount).append('\n');
-        startBuilder.append("\t\tAccount Number Upper Bound: ").append(accounts).append('\n');
+        String startBuilder = "\n" +
+                "\tTest Details\n" +
+                "\t\tTest ID: " + testId + '\n' +
+                "\t\tDuration: " + duration + '\n' +
+                "\t\tState: " + state + '\n' +
+                "\t\tRegion: " + region + '\n' +
+                "\t\t# Threads: " + threadCount + '\n' +
+                "\t\tAccount Number Upper Bound: " + accounts + '\n';
 
-        logger.info(startBuilder.toString());
+        logger.info(startBuilder);
 
         final ExecutorService poolService = Executors.newFixedThreadPool(threadCount);
         final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
@@ -121,33 +120,7 @@ public class LocalityRunner implements ApplicationRunner {
             poolService.execute(() -> {
 
                 for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
-
-                    final int random = ThreadLocalRandom.current().nextInt(1, accounts);
-
-                    String accountNumber = state + "-" + String.format("%022d", random);
-
-                    uniqueAccounts.add(accountNumber);
-
-                    logger.debug("running test for account number [{}]", accountNumber);
-
-                    Double availableBalance = getAvailableBalance(accountNumber, state);
-
-                    if (availableBalance != null) {
-
-                        // for now we are ignoring balance
-                        Authorization authorization = createAuthorization(accountNumber, PURCHASE_AMOUNT, state, testId);
-
-                        double newBalance = availableBalance - PURCHASE_AMOUNT;
-
-                        updateRecords(authorization, newBalance);
-
-                        if (transactions.getAndIncrement() % logBatch == 0) {
-                            logger.info("processed {} transactions", transactions.get());
-                        }
-                    } else {
-                        unavailableBalance.incrementAndGet();
-                        logger.warn("unable to find balance for account number {} and state {}", accountNumber, state);
-                    }
+                    makePurchase(testId, state, transactions, unavailableBalance);
                 }
 
                 countDownLatch.countDown();
@@ -173,26 +146,54 @@ public class LocalityRunner implements ApplicationRunner {
 
         int touchedAccounts = getTouchedAccounts(testId, state);
 
-        StringBuilder endBuilder = new StringBuilder();
-        endBuilder.append('\n');
-        endBuilder.append("\tTest Summary\n");
-        endBuilder.append("\t\tTest ID: ").append(testId).append('\n');
-        endBuilder.append("\t\tDuration: ").append(duration).append('\n');
-        endBuilder.append("\t\tState: ").append(state).append('\n');
-        endBuilder.append("\t\tRegion: ").append(region).append('\n');
-        endBuilder.append("\t\t# Threads: ").append(threadCount).append('\n');
-        endBuilder.append("\t\t# Transactions Completed: ").append(transactions.get()).append('\n');
-        endBuilder.append("\t\t# Unique Accounts Used: ").append(uniqueAccounts.size()).append('\n');
-        endBuilder.append("\t\t# Accounts Updated: ").append(touchedAccounts).append('\n');
-        endBuilder.append("\t\t# Update Retries: ").append(globalUpdateRetryCounter.get()).append('\n');
-        endBuilder.append("\t\t# Insert Retries: ").append(globalInsertRetryCounter.get()).append('\n');
-        endBuilder.append("\t\t# Balances Not Found: ").append(unavailableBalance.get()).append('\n');
-        endBuilder.append("\t\tTotal Time in MS: ").append(sw.getTotalTimeMillis()).append('\n');
+        String endBuilder = "\n" +
+                "\tTest Summary\n" +
+                "\t\tTest ID: " + testId + '\n' +
+                "\t\tDuration: " + duration + '\n' +
+                "\t\tState: " + state + '\n' +
+                "\t\tRegion: " + region + '\n' +
+                "\t\t# Threads: " + threadCount + '\n' +
+                "\t\t# Transactions Completed: " + transactions.get() + '\n' +
+                "\t\t# Unique Accounts Used: " + uniqueAccounts.size() + '\n' +
+                "\t\t# Accounts Updated: " + touchedAccounts + '\n' +
+                "\t\t# Update Retries: " + globalUpdateRetryCounter.get() + '\n' +
+                "\t\t# Insert Retries: " + globalInsertRetryCounter.get() + '\n' +
+                "\t\t# Balances Not Found: " + unavailableBalance.get() + '\n' +
+                "\t\tTotal Time in MS: " + sw.getTotalTimeMillis() + '\n';
 
-        logger.info(endBuilder.toString());
+        logger.info(endBuilder);
 
         if (touchedAccounts != uniqueAccounts.size()) {
             logger.error("number of accounts updated {} does not equal number of unique accounts used {}", touchedAccounts, uniqueAccounts.size());
+        }
+    }
+
+    private void makePurchase(String testId, String state, AtomicLong transactions, AtomicLong unavailableBalance) {
+        final int random = ThreadLocalRandom.current().nextInt(1, accounts);
+
+        String accountNumber = state + "-" + String.format("%022d", random);
+
+        uniqueAccounts.add(accountNumber);
+
+        logger.debug("making purchase for for account number [{}]", accountNumber);
+
+        Double availableBalance = getAvailableBalance(accountNumber, state);
+
+        if (availableBalance != null) {
+
+            // for now we are ignoring balance
+            Authorization authorization = createAuthorization(accountNumber, state, testId);
+
+            double newBalance = availableBalance - PURCHASE_AMOUNT;
+
+            updateRecords(authorization, newBalance);
+
+            if (transactions.getAndIncrement() % logBatch == 0) {
+                logger.info("processed {} transactions", transactions.get());
+            }
+        } else {
+            unavailableBalance.incrementAndGet();
+            logger.warn("unable to find balance for account number {} and state {}", accountNumber, state);
         }
     }
 
@@ -255,7 +256,7 @@ public class LocalityRunner implements ApplicationRunner {
 
     }
 
-    private Authorization createAuthorization(String accountNumber, double purchaseAmount, String state, String testId) {
+    private Authorization createAuthorization(String accountNumber, String state, String testId) {
 
         Authorization auth = null;
 
@@ -277,7 +278,7 @@ public class LocalityRunner implements ApplicationRunner {
                     auth.setAccountNumber(accountNumber);
                     auth.setRequestId(UUID.randomUUID());
                     auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
-                    auth.setAuthorizationAmount(new BigDecimal(purchaseAmount));
+                    auth.setAuthorizationAmount(new BigDecimal(PURCHASE_AMOUNT));
                     auth.setAuthorizationStatus(0);
                     auth.setCreatedTimestamp(now);
                     auth.setLastUpdatedTimestamp(now);
