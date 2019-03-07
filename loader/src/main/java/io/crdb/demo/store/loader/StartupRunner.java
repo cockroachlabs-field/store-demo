@@ -161,7 +161,7 @@ public class StartupRunner implements ApplicationRunner {
         logger.info("generating {} acct records and {} auth records", acctRowCount, authRowCount);
 
 
-        List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.localities")));
+        List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.states")));
 
         String acctFileName = "accts-" + acctRowCount + ".csv";
         String authFileName = "auths-" + authRowCount + ".csv";

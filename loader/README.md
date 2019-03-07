@@ -10,13 +10,13 @@ java -jar loader-2019.1-BETA.jar --generate
 ```
 
 `generate` accepts the following additional parameters:
-* `crdb.localities` - a comma separated list of "states" to generate data for. These "states" should map to partitions which will in turn be used in zone constaints 
+* `crdb.states` - a comma separated list of "states" to generate data for. These "states" should map to partitions which will in turn be used in zone constaints 
 * `crdb.accts` - number of records to create for the `acct` table
 * `crdb.auths` - number of records to create for the `auth` table
 
 For example, this command would result in the creation of 2 files `accts-1000.csv` and `auths-100.csv` in current directory.  These files can be used for future `load` or `import` commands.
 ```bash
-java -jar loader-2019.1-BETA.jar --generate --crdb.localities=SC,TX,CA --crdb.accts=1000 --crdb.auths=100
+java -jar loader-2019.1-BETA.jar --generate --crdb.states=SC,TX,CA --crdb.accts=1000 --crdb.auths=100
 ```
 
 ## Import Data via Import Command (preferred)
