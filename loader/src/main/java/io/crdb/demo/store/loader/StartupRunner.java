@@ -213,7 +213,7 @@ public class StartupRunner implements ApplicationRunner {
                         final String type = "HD";
 
                         // ACCT_BAL_AMT - we are going to just initialize every account with a $100 balance, may get updated
-                        double balance = faker.number().randomDouble(2, 0, 1000);
+                        double balance = 100.00;
 
                         // ACCT_STAT_CD
                         final String status = "1";
@@ -234,7 +234,7 @@ public class StartupRunner implements ApplicationRunner {
 
                             if (faker.random().nextBoolean()) {
 
-                                int count = faker.random().nextInt(1, 10);
+                                int count = faker.random().nextInt(1, 3);
 
                                 java.util.Date authorizationCreatedTS = null;
 
@@ -246,8 +246,8 @@ public class StartupRunner implements ApplicationRunner {
                                     // AUTH_ID
                                     final String authorizationId = RandomStringUtils.randomAlphanumeric(64);
 
-                                    // AUTH_AMT - for simplicity we are always going authorize $5
-                                    final double authorizationAmount = faker.number().randomDouble(2, 1, 100);
+                                    // AUTH_AMT - for simplicity we are always going authorize $5.05
+                                    final double authorizationAmount = 5.05;
 
                                     // AUTH_STAT_CD - if 1 apply to balance, if 0 its a hold
 

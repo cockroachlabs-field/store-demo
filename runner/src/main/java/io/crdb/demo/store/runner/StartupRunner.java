@@ -300,7 +300,7 @@ public class StartupRunner implements ApplicationRunner {
                         String sqlState = e.getSQLState();
 
                         if (RETRY_SQL_STATE.equals(sqlState)) {
-                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage(), e);
+                            logger.warn("attempt " + localRetryCount + ": will rollback; " + e.getMessage());
                             localRetryCount++;
                             globalInsertRetryCounter.incrementAndGet();
 
