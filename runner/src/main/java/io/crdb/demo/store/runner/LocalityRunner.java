@@ -1,6 +1,5 @@
 package io.crdb.demo.store.runner;
 
-import com.google.common.collect.Sets;
 import io.crdb.demo.store.common.Authorization;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -21,6 +20,7 @@ import org.springframework.util.StopWatch;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -111,8 +111,7 @@ public class LocalityRunner implements ApplicationRunner {
 
         logger.info("running tests for [{}] minutes with state as [{}]", duration, state);
 
-        Set<String> uniqueAccounts = Sets.newHashSet();
-
+        Set<String> uniqueAccounts = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
         int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -202,7 +201,7 @@ public class LocalityRunner implements ApplicationRunner {
         int count = 0;
 
         try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement("select count(*) from acct where state=? and LAST_UPD_USER_ID = ?")) {
+            try (PreparedStatement ps = connection.prepareStatement("select count(distinct ACCT_NBR) from acct where state = ? and LAST_UPD_USER_ID = ?")) {
                 ps.setString(1, state);
                 ps.setString(2, testId);
 
@@ -210,7 +209,7 @@ public class LocalityRunner implements ApplicationRunner {
 
                     if (rs != null) {
                         if (rs.next()) {
-                            count= rs.getInt(1);
+                            count = rs.getInt(1);
 
                         }
                     }
@@ -220,7 +219,7 @@ public class LocalityRunner implements ApplicationRunner {
             logger.error(e.getMessage(), e);
         }
 
-        if (count != transactions.get()) {
+        if (count != uniqueAccounts.size()) {
             logger.error("number of updates to acct {} does not equal number of unique accounts visited {}", count, uniqueAccounts.size());
         }
 
