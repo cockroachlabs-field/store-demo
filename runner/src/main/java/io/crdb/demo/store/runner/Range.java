@@ -22,13 +22,13 @@ public class Range {
 
 
     public static List<Range> buildRanges(int numerator, int denominator) {
-        int part = numerator / denominator;
+        int split = numerator / denominator;
 
         List<Range> ranges = new ArrayList<>(denominator);
 
         for (int i = 0; i < denominator; i++) {
-            final int stuff = i * part;
-            final Range range = new Range(stuff + 1, stuff + part);
+            final int originInclusive = i * split;
+            final Range range = new Range(originInclusive + 1, originInclusive + split);
             ranges.add(range);
         }
 
