@@ -53,12 +53,6 @@
             <version>27.0.1-jre</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.javafaker</groupId>
-            <artifactId>javafaker</artifactId>
-            <version>0.17.2</version>
-        </dependency>
-
         <!-- end - project custom dependencies -->
 
         <dependency>
