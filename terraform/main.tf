@@ -82,6 +82,8 @@ resource "null_resource" "start_east_cluster" {
 
   count = "${local.node_count}"
 
+  //depends_on = ["null_resource.azure_prep_cluster"]
+
 
   connection {
     user = "${var.gcp_user}"
@@ -107,6 +109,8 @@ resource "null_resource" "start_east_cluster" {
 resource "null_resource" "start_west_cluster" {
 
   count = "${local.node_count}"
+
+  depends_on = ["null_resource.start_east_cluster"]
 
 
   connection {
@@ -135,7 +139,7 @@ resource "null_resource" "start_azure_cluster" {
 
   count = "${local.node_count}"
 
-  depends_on = ["null_resource.azure_prep_cluster"]
+  depends_on = ["null_resource.start_west_cluster"]
 
   connection {
     user = "${var.azure_user}"
@@ -165,7 +169,7 @@ resource "null_resource" "start_azure_cluster" {
 
 resource "null_resource" "global_init_cluster" {
 
-  depends_on = ["null_resource.azure_install_cluster"]
+  depends_on = ["null_resource.start_azure_cluster"]
 
   connection {
     user = "${var.gcp_user}"
