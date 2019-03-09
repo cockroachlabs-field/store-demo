@@ -1,44 +1,71 @@
-output "google_cockroach_public_ips_east" {
-  description = "Public IP's of Cockroach Nodes in GCP - East"
-  value = "${join(",", local.google_public_ips_east)}"
+# ---------------------------------------------------------------------------------------------------------------------
+# gcp east
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "gcp_east_public_node_ips" {
+  value = "${join(",", module.gcp_east.node_public_ips)}"
 }
 
-output "google_client_public_ip_east" {
-  description = "Public IP of Client in GCP - East"
-  value = "${google_compute_instance.sd_east_client.network_interface.0.access_config.0.nat_ip}"
+output "gcp_east_private_node_ips" {
+  value = "${join(",", module.gcp_east.node_private_ips)}"
 }
 
-output "google_lb_private_ip_east" {
-  description = "Private IP of LB in GCP - East"
-  value = "${local.google_lb_ip_east}"
+output "gcp_east_public_client_ips" {
+  value = "${join(",", module.gcp_east.client_public_ips)}"
 }
 
-output "google_cockroach_public_ips_west" {
-  description = "Public IP's of Cockroach Nodes in GCP - West"
-  value = "${join(",", local.google_public_ips_west)}"
+output "gcp_east_private_client_ips" {
+  value = "${join(",", module.gcp_east.client_private_ips)}"
 }
 
-output "google_client_public_ip_west" {
-  description = "Public IP of Client in GCP - West"
-  value = "${google_compute_instance.sd_west_client.network_interface.0.access_config.0.nat_ip}"
+output "gcp_east_private_lb_ip" {
+  value = "${join(",", module.gcp_east.lb_private_ip)}"
 }
 
-output "google_lb_private_ip_west" {
-  description = "Private IP of LB in GCP - West"
-  value = "${local.google_lb_ip_west}"
+# ---------------------------------------------------------------------------------------------------------------------
+# gcp west
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "gcp_west_public_node_ips" {
+  value = "${join(",", module.gcp_west.node_public_ips)}"
 }
 
-output "azure_cockroach_public_ips" {
-  description = "Public IP's of Cockroach Nodes in Azure"
-  value = "${join(",", data.azurerm_public_ip.sd_public_ip_node.*.ip_address)}"
+output "gcp_west_private_node_ips" {
+  value = "${join(",", module.gcp_west.node_private_ips)}"
 }
 
-output "azure_client_public_ip" {
-  description = "Public IP of Client in Azure"
-  value = "${data.azurerm_public_ip.sd_public_ip_client.ip_address}"
+output "gcp_west_public_client_ips" {
+  value = "${join(",", module.gcp_west.client_public_ips)}"
 }
 
-output "azure_lb_private_ip" {
-  description = "Private IP of LB in Azure"
-  value = "${local.azure_lb_ip}"
+output "gcp_west_private_client_ips" {
+  value = "${join(",", module.gcp_west.client_private_ips)}"
+}
+
+output "gcp_west_private_lb_ip" {
+  value = "${join(",", module.gcp_west.lb_private_ip)}"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# azure east
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "azure_east_public_node_ips" {
+  value = "${join(",", module.azure_east.node_public_ips)}"
+}
+
+output "azure_east_private_node_ips" {
+  value = "${join(",", module.azure_east.node_private_ips)}"
+}
+
+output "azure_east_public_client_ips" {
+  value = "${join(",", module.azure_east.client_public_ips)}"
+}
+
+output "azure_east_private_client_ips" {
+  value = "${join(",", module.azure_east.client_private_ips)}"
+}
+
+output "azure_east_private_lb_ip" {
+  value = "${join(",", module.azure_east.lb_private_ip)}"
 }

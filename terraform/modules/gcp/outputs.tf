@@ -10,7 +10,7 @@ output "node_private_ips" {
 
 output "client_public_ips" {
   description = "Public IP's of Google Clients"
-  value = "${google_compute_instance.client_instances.network_interface.0.access_config.0.nat_ip}"
+  value = "${google_compute_instance.client_instances.*.network_interface.0.access_config.0.nat_ip}"
 }
 
 output "client_private_ips" {
