@@ -643,7 +643,7 @@ resource "null_resource" "google_start_east_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=region=east@${element(local.google_private_ips_east, count.index)} --advertise-addr=${element(local.google_public_ips_east, count.index)} --join=${join(",", local.google_public_ips_east)}"
     ]
   }
 
@@ -724,7 +724,7 @@ resource "null_resource" "google_start_west_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=west --locality-advertise-addr=cloud=gcp@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=west --locality-advertise-addr=region=west@${element(local.google_private_ips_west, count.index)} --advertise-addr=${element(local.google_public_ips_west, count.index)} --join=${join(",", local.google_public_ips_east)}"
     ]
   }
 
@@ -809,7 +809,7 @@ resource "null_resource" "azure_install_cluster" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=cloud=azure@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=region=central@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}"
     ]
   }
 
