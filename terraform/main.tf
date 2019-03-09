@@ -1,48 +1,162 @@
 locals {
-  prefix = ""
-  client_count = ""
-  node_count = ""
-  private_key_path=""
+  prefix = "modtest"
 
-  sleep=""
-
-  jdbc_port = ""
+  client_count = "3"
+  node_count = "1"
+  sleep = "20"
+  jdbc_port = "26257"
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# build clusters
+# ---------------------------------------------------------------------------------------------------------------------
+
 
 module "gcp_east" {
   source = "./modules/gcp"
 
-  region = ""
-  zone  = ""
-  project = ""
-  credentials_file = ""
-  node_machine_type=""
-  client_machine_type=""
-  os_disk_size = ""
+  region = "${var.gcp_east_region}"
+  zone = "${var.gcp_east_zone}"
+  credentials_file = "${var.gcp_credentials_file}"
+  node_machine_type = "${var.gcp_machine_type}"
+  client_machine_type = "${var.gcp_machine_type_client}"
+  os_disk_size = "${var.os_disk_size}"
+  private_key_path = "${var.gcp_private_key_path}"
+  user = "${var.gcp_user}"
 
-
+  project = "${var.gcp_project_name}"
   prefix = "${local.prefix}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
   jdbc_port = "${local.jdbc_port}"
-  private_key_path = "${local.private_key_path}"
-  sleep="${local.sleep}"
+  sleep = "${local.sleep}"
 }
 
-module "azure" {
+module "gcp_west" {
+  source = "./modules/gcp"
+
+  region = "${var.gcp_west_region}"
+  zone = "${var.gcp_west_zone}"
+  credentials_file = "${var.gcp_credentials_file}"
+  node_machine_type = "${var.gcp_machine_type}"
+  client_machine_type = "${var.gcp_machine_type_client}"
+  os_disk_size = "${var.os_disk_size}"
+  private_key_path = "${var.gcp_private_key_path}"
+  user = "${var.gcp_user}"
+
+
+  project = "${var.gcp_project_name}"
+  prefix = "${local.prefix}"
+  node_count = "${local.node_count}"
+  client_count = "${local.client_count}"
+  jdbc_port = "${local.jdbc_port}"
+  sleep = "${local.sleep}"
+}
+
+module "azure_east" {
 
   source = "./modules/azure"
- location = ""
 
+  location = "${var.azure_east_location}"
+  node_machine_type = "${var.azure_machine_type}"
+  client_machine_type = "${var.azure_machine_type_client}"
+  os_disk_size = "${var.os_disk_size}"
+  private_key_path = "${var.azure_private_key_path}"
+  public_key_path = "${var.azure_public_key_path}"
+  user = "${var.azure_user}"
 
   prefix = "${local.prefix}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
   jdbc_port = "${local.jdbc_port}"
-  private_key_path = "${local.private_key_path}"
-  sleep="${local.sleep}"
+  sleep = "${local.sleep}"
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# start cluster nodes
+# ---------------------------------------------------------------------------------------------------------------------
+
+
+resource "null_resource" "start_east_cluster" {
+
+  count = "${local.node_count}"
+
+
+  connection {
+    user = "${var.gcp_user}"
+    host = "${element(module.gcp_east.node_public_ips, count.index)}"
+    private_key = "${file(var.gcp_private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
+      "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=region=east@${element(module.gcp_east.node_private_ips, count.index)} --advertise-addr=${element(module.gcp_east.node_public_ips, count.index)} --join=${join(",", module.gcp_east.node_public_ips)}"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${local.sleep}"]
+  }
+
+}
+
+
+resource "null_resource" "start_west_cluster" {
+
+  count = "${local.node_count}"
+
+
+  connection {
+    user = "${var.gcp_user}"
+    host = "${element(module.gcp_west.node_public_ips, count.index)}"
+    private_key = "${file(var.gcp_private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
+      "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=west --locality-advertise-addr=region=west@${element(module.gcp_west.node_private_ips, count.index)} --advertise-addr=${element(module.gcp_west.node_public_ips, count.index)} --join=${join(",", module.gcp_east.node_public_ips)}"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${local.sleep}"]
+  }
+
+}
+
+
+
+resource "null_resource" "start_azure_cluster" {
+
+  count = "${local.node_count}"
+
+  depends_on = ["null_resource.azure_prep_cluster"]
+
+  connection {
+    user = "${var.azure_user}"
+    host = "${element(module.azure_east.node_public_ips, count.index)}"
+    private_key = "${file(var.azure_private_key_path)}"
+    timeout = "2m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
+      "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=region=central@${element(module.azure_east.node_private_ips, count.index)} --advertise-addr=${element(module.azure_east.node_public_ips, count.index)} --join=${join(",", module.gcp_east.node_public_ips)}"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep ${local.sleep}"]
+  }
+
+}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -55,14 +169,14 @@ resource "null_resource" "global_init_cluster" {
 
   connection {
     user = "${var.gcp_user}"
-    host = "${element(local.google_public_ips_east, 0)}"
+    host = "${element(module.gcp_east.node_public_ips, 0)}"
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
   provisioner "remote-exec" {
     inline = [
       "cockroach init --insecure",
-      "sleep ${var.provision_sleep}",
+      "sleep ${local.sleep}",
       "cockroach sql --insecure --execute=\"SET CLUSTER SETTING server.remote_debugging.mode = 'any';\"",
       "cockroach sql --insecure --execute=\"SET CLUSTER SETTING cluster.organization = '${var.crdb_license_org}';\"",
       "cockroach sql --insecure --execute=\"SET CLUSTER SETTING enterprise.license = '${var.crdb_license_key}';\"",

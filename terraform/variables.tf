@@ -10,6 +10,10 @@ variable "gcp_user" {
   description = "user used to ssh into google instances"
 }
 
+variable "azure_user" {
+  description = "user used to ssh into azure instances"
+}
+
 variable "crdb_license_org" {
   description = "crdb license org"
 }
@@ -21,18 +25,6 @@ variable "crdb_license_key" {
 # ---------------------------------------------------------------------------------------------------------------------
 # optional
 # ---------------------------------------------------------------------------------------------------------------------
-
-variable "region_node_count" {
-  default = 3
-}
-
-variable "storage_disk_size" {
-  default = 375
-}
-
-variable "azure_storage_disk_size" {
-  default = 2048
-}
 
 variable "os_disk_size" {
   default = 100
@@ -86,8 +78,8 @@ variable "azure_public_key_path" {
   default = "~/.ssh/id_rsa.pub"
 }
 
-variable "azure_user" {
-  default = "azureuser"
+variable "azure_east_location" {
+  default = "eastus2"
 }
 
 variable "crdb_version" {
@@ -100,8 +92,4 @@ variable "crdb_max_sql_memory" {
 
 variable "crdb_cache" {
   default = ".25"
-}
-
-variable "provision_sleep" {
-  default = "20"
 }

@@ -1,7 +1,9 @@
-
 provider "azurerm" {
 }
 
+locals {
+  lb_frontend = "${var.prefix}-lb-frontend"
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # resources
@@ -13,34 +15,34 @@ resource "azurerm_resource_group" "resource_group" {
   location = "${var.location}"
 }
 
-resource "azurerm_availability_set" "sd_availability_set" {
-  name = "sd-availability-set"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+resource "azurerm_availability_set" "availability_set" {
+  name = "${var.prefix}-availability-set"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
   managed = "true"
 }
 
-resource "azurerm_virtual_network" "sd_virtual_network" {
-  name = "sd-virtual-network"
+resource "azurerm_virtual_network" "virtual_network" {
+  name = "${var.prefix}-virtual-network"
   address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
 }
 
-resource "azurerm_subnet" "sd_subnet" {
-  name = "sd-subnet"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  virtual_network_name = "${azurerm_virtual_network.sd_virtual_network.name}"
+resource "azurerm_subnet" "subnet" {
+  name = "${var.prefix}-subnet"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  virtual_network_name = "${azurerm_virtual_network.virtual_network.name}"
   address_prefix = "10.0.2.0/24"
 }
 
-resource "azurerm_network_security_group" "sd_security_group" {
-  name = "sd-network-security-group"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+resource "azurerm_network_security_group" "security_group" {
+  name = "${var.prefix}-network-security-group"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
 
   security_rule {
-    name = "SSH"
+    name = "ssh"
     priority = 1001
     direction = "Inbound"
     access = "Allow"
@@ -52,19 +54,19 @@ resource "azurerm_network_security_group" "sd_security_group" {
   }
 
   security_rule {
-    name = "DB"
+    name = "jdbc"
     priority = 1002
     direction = "Inbound"
     access = "Allow"
     protocol = "Tcp"
     source_port_range = "*"
-    destination_port_range = "26257"
+    destination_port_range = "${var.jdbc_port}"
     source_address_prefix = "*"
     destination_address_prefix = "*"
   }
 
   security_rule {
-    name = "UI"
+    name = "ui"
     priority = 1003
     direction = "Inbound"
     access = "Allow"
@@ -74,51 +76,30 @@ resource "azurerm_network_security_group" "sd_security_group" {
     source_address_prefix = "*"
     destination_address_prefix = "*"
   }
-
-  security_rule {
-    name = "client"
-    priority = 1004
-    direction = "Inbound"
-    access = "Allow"
-    protocol = "Tcp"
-    source_port_range = "*"
-    destination_port_range = "8082"
-    source_address_prefix = "*"
-    destination_address_prefix = "*"
-  }
-
 }
 
-resource "random_id" "sd_randomId" {
-  keepers = {
-    resource_group = "${azurerm_resource_group.sd_resource_group.name}"
-  }
-
-  byte_length = 8
-}
-
-resource "azurerm_lb" "sd_lb" {
-  name = "sd-lb"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
+resource "azurerm_lb" "lb" {
+  name = "${var.prefix}-lb"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  location = "${azurerm_resource_group.resource_group.location}"
 
   frontend_ip_configuration {
-    name = "sd-lb-frontend"
-    subnet_id = "${azurerm_subnet.sd_subnet.id}"
+    name = "${local.lb_frontend}"
+    subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_lb_backend_address_pool" "sd_lb_backend_pool" {
-  name = "sd-lb-backend-pool"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+resource "azurerm_lb_backend_address_pool" "lb_backend_pool" {
+  name = "${var.prefix}-lb-backend-pool"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.lb.id}"
 }
 
-resource "azurerm_lb_probe" "sd_lb_probe" {
-  name = "sd-lb-probe"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+resource "azurerm_lb_probe" "lb_probe" {
+  name = "${var.prefix}-lb-probe"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.lb.id}"
   protocol = "Http"
   port = 8080
   request_path = "/health?ready=1"
@@ -127,77 +108,73 @@ resource "azurerm_lb_probe" "sd_lb_probe" {
 }
 
 
-resource "azurerm_lb_rule" "sd_lb_rule" {
-  name = "sd-lb-rule"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  loadbalancer_id = "${azurerm_lb.sd_lb.id}"
+resource "azurerm_lb_rule" "lb_rule" {
+  name = "${var.prefix}-lb-rule"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  loadbalancer_id = "${azurerm_lb.lb.id}"
   protocol = "tcp"
-  frontend_port = 26257
-  backend_port = 26257
-  frontend_ip_configuration_name = "sd-lb-frontend"
+  frontend_port = "${var.jdbc_port}"
+  backend_port = "${var.jdbc_port}"
+  frontend_ip_configuration_name = "${local.lb_frontend}"
   enable_floating_ip = false
-  backend_address_pool_id = "${azurerm_lb_backend_address_pool.sd_lb_backend_pool.id}"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.lb_backend_pool.id}"
   idle_timeout_in_minutes = 5
-  probe_id = "${azurerm_lb_probe.sd_lb_probe.id}"
-  depends_on = ["azurerm_lb_probe.sd_lb_probe"]
+  probe_id = "${azurerm_lb_probe.lb_probe.id}"
+  depends_on = ["azurerm_lb_probe.lb_probe"]
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# provision azure node resources
-# ---------------------------------------------------------------------------------------------------------------------
+resource "azurerm_public_ip" "public_ip_node" {
+  count = "${var.node_count}"
 
-resource "azurerm_public_ip" "sd_public_ip_node" {
-  count = "${var.region_node_count}"
-
-  name = "sd-public-ip-node-${count.index}"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  name = "${var.prefix}-public-ip-node-${count.index}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
-resource "azurerm_network_interface" "sd_network_interface_node" {
-  count = "${var.region_node_count}"
+resource "azurerm_network_interface" "network_interface_node" {
+  count = "${var.node_count}"
 
-  name = "sd-network-interface-node-${count.index}"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  network_security_group_id = "${azurerm_network_security_group.sd_security_group.id}"
+  name = "${var.prefix}-network-interface-node-${count.index}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  network_security_group_id = "${azurerm_network_security_group.security_group.id}"
   enable_accelerated_networking = true
 
   ip_configuration {
-    name = "sd-network-interface-node-config-${count.index}"
-    subnet_id = "${azurerm_subnet.sd_subnet.id}"
+    name = "${var.prefix}-network-interface-node-config-${count.index}"
+    subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id = "${element(azurerm_public_ip.sd_public_ip_node.*.id, count.index)}"
+    public_ip_address_id = "${element(azurerm_public_ip.public_ip_node.*.id, count.index)}"
 
   }
 }
 
-resource "azurerm_network_interface_backend_address_pool_association" "sd_network_interface_backend_pool" {
-  count = 3
+resource "azurerm_network_interface_backend_address_pool_association" "network_interface_backend_pool" {
+  count = "${var.node_count}"
 
-  ip_configuration_name = "sd-network-interface-node-config-${count.index}"
-  backend_address_pool_id = "${azurerm_lb_backend_address_pool.sd_lb_backend_pool.id}"
-  network_interface_id = "${element(azurerm_network_interface.sd_network_interface_node.*.id, count.index)}"
+  ip_configuration_name = "${var.prefix}-network-interface-node-config-${count.index}"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.lb_backend_pool.id}"
+  network_interface_id = "${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"
 }
 
-resource "azurerm_virtual_machine" "sd_cockroach_node" {
-  count = "${var.region_node_count}"
+resource "azurerm_virtual_machine" "nodes" {
+  count = "${var.node_count}"
 
-  name = "sd-azure-central-node-${count.index}"
+  name = "${var.prefix}-node-${count.index}"
 
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  network_interface_ids = ["${element(azurerm_network_interface.sd_network_interface_node.*.id, count.index)}"]
-  vm_size = "${var.azure_machine_type}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  network_interface_ids = ["${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"]
+  vm_size = "${var.client_machine_type}"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
 
-  availability_set_id = "${azurerm_availability_set.sd_availability_set.id}"
+  availability_set_id = "${azurerm_availability_set.availability_set.id}"
 
   storage_os_disk {
-    name = "sd-os-disk-node-${count.index}"
+    name = "${var.prefix}-os-disk-node-${count.index}"
     create_option = "FromImage"
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
@@ -212,69 +189,73 @@ resource "azurerm_virtual_machine" "sd_cockroach_node" {
   }
 
   os_profile {
-    computer_name = "sd-azure-central-node-${count.index}"
-    admin_username = "${var.azure_user}"
+    computer_name = "${var.prefix}-node-${count.index}"
+    admin_username = "${var.user}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path = "/home/${var.azure_user}/.ssh/authorized_keys"
-      key_data = "${file(var.azure_public_key_path)}"
+      path = "/home/${var.user}/.ssh/authorized_keys"
+      key_data = "${file(var.public_key_path)}"
     }
   }
 
 }
 
-data "azurerm_public_ip" "sd_public_ip_node" {
-  count = "${var.region_node_count}"
+data "azurerm_public_ip" "public_ip_node_data" {
+  count = "${var.node_count}"
 
-  name = "${element(azurerm_public_ip.sd_public_ip_node.*.name, count.index)}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+  name = "${element(azurerm_public_ip.public_ip_node.*.name, count.index)}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
 
-  depends_on = ["azurerm_virtual_machine.sd_cockroach_node"]
+  depends_on = ["azurerm_virtual_machine.nodes"]
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# provision azure client resources
-# ---------------------------------------------------------------------------------------------------------------------
 
-resource "azurerm_public_ip" "sd_public_ip_client" {
-  name = "sd-public-ip-client"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+resource "azurerm_public_ip" "public_ip_client" {
+  count = "${var.client_count}"
+
+  name = "${var.prefix}-public-ip-client-${count.index}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
-resource "azurerm_network_interface" "sd_network_interface_client" {
-  name = "sd-network-interface-client"
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  network_security_group_id = "${azurerm_network_security_group.sd_security_group.id}"
+resource "azurerm_network_interface" "network_interface_client" {
+  count = "${var.client_count}"
+
+  name = "${var.prefix}-network-interface-client-${count.index}"
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  network_security_group_id = "${azurerm_network_security_group.security_group.id}"
   enable_accelerated_networking = true
 
   ip_configuration {
-    name = "sd-network-interface-client-config"
-    subnet_id = "${azurerm_subnet.sd_subnet.id}"
+    name = "${var.prefix}-network-interface-client-config-${count.index}"
+    subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id = "${azurerm_public_ip.sd_public_ip_client.id}"
+    public_ip_address_id = "${element(azurerm_public_ip.public_ip_client.*.id, count.index)}"
+
   }
 }
 
 
-resource "azurerm_virtual_machine" "sd_cockroach_client" {
-  name = "sd-azure-central-client"
+resource "azurerm_virtual_machine" "clients" {
+  count = "${var.client_count}"
 
-  location = "${azurerm_resource_group.sd_resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
-  network_interface_ids = ["${azurerm_network_interface.sd_network_interface_client.id}"]
-  vm_size = "${var.azure_machine_type_client}"
+  name = "${var.prefix}-client-${count.index}"
+
+  location = "${azurerm_resource_group.resource_group.location}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+  network_interface_ids = ["${azurerm_network_interface.network_interface_client.id}"]
+  vm_size = "${var.client_machine_type}"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
 
   storage_os_disk {
-    name = "sd-os-disk-client"
+    name = "${var.prefix}-os-disk-client-${count.index}"
     create_option = "FromImage"
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
@@ -289,109 +270,85 @@ resource "azurerm_virtual_machine" "sd_cockroach_client" {
   }
 
   os_profile {
-    computer_name = "sd-azure-central-client"
-    admin_username = "${var.azure_user}"
+    computer_name = "${var.prefix}-node-${count.index}"
+    admin_username = "${var.user}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path = "/home/${var.azure_user}/.ssh/authorized_keys"
-      key_data = "${file(var.azure_public_key_path)}"
+      path = "/home/${var.user}/.ssh/authorized_keys"
+      key_data = "${file(var.public_key_path)}"
     }
   }
 
 }
 
-data "azurerm_public_ip" "sd_public_ip_client" {
-  name = "${azurerm_public_ip.sd_public_ip_client.name}"
-  resource_group_name = "${azurerm_resource_group.sd_resource_group.name}"
+data "azurerm_public_ip" "public_ip_client_data" {
+  count = "${var.client_count}"
 
-  depends_on = ["azurerm_virtual_machine.sd_cockroach_client"]
+  name = "${element(azurerm_public_ip.public_ip_client.*.name, count.index)}"
+  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+
+  depends_on = ["azurerm_virtual_machine.clients"]
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
-# start azure cluster and client
+# null resources
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "null_resource" "azure_prep_cluster" {
+resource "null_resource" "prep_nodes" {
 
-  count = "${var.region_node_count}"
+  count = "${var.node_count}"
 
   depends_on = [
-    "data.azurerm_public_ip.sd_public_ip_node",
-    "azurerm_virtual_machine.sd_cockroach_node",
-    "null_resource.google_start_west_cluster"]
+    "data.azurerm_public_ip.public_ip_node_data",
+    "azurerm_virtual_machine.nodes"]
 
   connection {
-    user = "${var.azure_user}"
-    host = "${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    user = "${var.user}"
+    host = "${element(data.azurerm_public_ip.public_ip_node_data.*.ip_address, count.index)}"
+    private_key = "${file(var.private_key_path)}"
     timeout = "2m"
   }
 
   provisioner "remote-exec" {
-    scripts = ["scripts/startup.sh",
-      "scripts/disks.sh"]
+    scripts = ["${path.root}/scripts/startup.sh",
+      "${path.root}/scripts/disks.sh"]
   }
 
   provisioner "remote-exec" {
-    inline = ["sleep ${var.provision_sleep}"]
+    inline = ["sleep ${var.sleep}"]
   }
 
 }
 
-resource "null_resource" "azure_install_cluster" {
 
-  count = "${var.region_node_count}"
+resource "null_resource" "prep_clients" {
 
-  depends_on = ["null_resource.azure_prep_cluster"]
-
-  connection {
-    user = "${var.azure_user}"
-    host = "${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
-    timeout = "2m"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=azure,region=central --locality-advertise-addr=region=central@${element(local.azure_private_ips, count.index)} --advertise-addr=${element(data.azurerm_public_ip.sd_public_ip_node.*.ip_address, count.index)} --join=${join(",", local.google_public_ips_west)}"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = ["sleep ${var.provision_sleep}"]
-  }
-
-}
-
-resource "null_resource" "azure_prep_client" {
+  count = "${var.client_count}"
 
   depends_on = [
-    "data.azurerm_public_ip.sd_public_ip_client",
-    "azurerm_virtual_machine.sd_cockroach_client"]
+    "data.azurerm_public_ip.public_ip_client_data",
+    "azurerm_virtual_machine.clients"]
 
   connection {
-    user = "${var.azure_user}"
-    host = "${data.azurerm_public_ip.sd_public_ip_client.ip_address}"
-    private_key = "${file(var.azure_private_key_path)}"
+    user = "${var.user}"
+    host = "${element(data.azurerm_public_ip.public_ip_client_data.*.ip_address, count.index)}"
+    private_key = "${file(var.private_key_path)}"
     timeout = "2m"
   }
 
   provisioner "remote-exec" {
-    scripts = ["scripts/startup.sh"]
+    scripts = ["${path.root}/scripts/startup.sh"]
   }
 
   provisioner "remote-exec" {
-    scripts = ["scripts/client-build.sh"]
+    scripts = ["${path.root}/scripts/client-build.sh"]
   }
 
   provisioner "remote-exec" {
-    inline = ["sleep ${var.provision_sleep}"]
+    inline = ["sleep ${var.sleep}"]
   }
 
 

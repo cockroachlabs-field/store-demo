@@ -1,14 +1,24 @@
-output "azure_cockroach_public_ips" {
-  description = "Public IP's of Cockroach Nodes in Azure"
-  value = "${join(",", data.azurerm_public_ip.sd_public_ip_node.*.ip_address)}"
+output "node_public_ips" {
+  description = "Public IP's of Azure Nodes"
+  value = "${data.azurerm_public_ip.public_ip_node_data.*.ip_address}"
 }
 
-output "azure_client_public_ip" {
-  description = "Public IP of Client in Azure"
-  value = "${data.azurerm_public_ip.sd_public_ip_client.ip_address}"
+output "node_private_ips" {
+  description = "Private IP's of Azure Nodes"
+  value = "${azurerm_network_interface.network_interface_node.*.private_ip_address}"
 }
 
-output "azure_lb_private_ip" {
-  description = "Private IP of LB in Azure"
-  value = "${local.azure_lb_ip}"
+output "client_public_ips" {
+  description = "Public IP of Azure Clients"
+  value = "${data.azurerm_public_ip.public_ip_client_data.*.ip_address}"
+}
+
+output "client_private_ips" {
+  description = "Private IP's of Azure Clients"
+  value = "${azurerm_network_interface.network_interface_client.*.private_ip_address}"
+}
+
+output "lb_private_ip" {
+  description = "Private IP of Azure Load Balancer"
+  value = "${azurerm_lb.lb.private_ip_address}"
 }

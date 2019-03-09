@@ -1,11 +1,21 @@
 output "node_public_ips" {
   description = "Public IP's of Google Nodes"
-  value = "${join(",", google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip)}"
+  value = "${google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip}"
+}
+
+output "node_private_ips" {
+  description = "Private IP's of Google Nodes"
+  value = "${google_compute_instance.node_instances.*.network_interface.0.network_ip}"
 }
 
 output "client_public_ips" {
   description = "Public IP's of Google Clients"
-  value = "${join(",", google_compute_instance.client_instances.network_interface.0.access_config.0.nat_ip)}"
+  value = "${google_compute_instance.client_instances.network_interface.0.access_config.0.nat_ip}"
+}
+
+output "client_private_ips" {
+  description = "Private IP's of Google Clients"
+  value = "${google_compute_instance.client_instances.*.network_interface.0.network_ip}"
 }
 
 output "lb_private_ip" {

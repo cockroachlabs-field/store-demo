@@ -16,8 +16,8 @@ resource "google_compute_network" "compute_network" {
   auto_create_subnetworks = "true"
 }
 
-resource "google_compute_firewall" "firewall_sql" {
-  name = "${var.prefix}-allow-sql"
+resource "google_compute_firewall" "firewall_jdbc" {
+  name = "${var.prefix}-allow-jdbc"
   network = "${google_compute_network.compute_network.self_link}"
 
   allow {
@@ -154,7 +154,7 @@ resource "null_resource" "prep_nodes" {
     "google_compute_instance.node_instances"]
 
   connection {
-    user = "root"
+    user = "${var.user}"
     host = "${element(google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
     private_key = "${file(var.private_key_path)}"
   }
@@ -180,7 +180,7 @@ resource "null_resource" "prep_clients" {
     "google_compute_instance.client_instances"]
 
   connection {
-    user = "root"
+    user = "${var.user}"
     host = "${element(google_compute_instance.client_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
     private_key = "${file(var.private_key_path)}"
   }

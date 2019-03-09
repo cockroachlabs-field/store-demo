@@ -35,5 +35,7 @@ variable "sleep" {
 }
 
 variable "jdbc_port" {
+}
 
+variable "user" {
 }

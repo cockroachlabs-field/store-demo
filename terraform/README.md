@@ -21,6 +21,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 ```hcl-terraform
 gcp_project_name = "your gcp project name"
 gcp_user = "your gcp username"
+azure_user = "your azure username"
 crdb_license_org = "your license org name"
 crdb_license_key = "your license key"
 ```
