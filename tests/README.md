@@ -62,4 +62,5 @@ region | completed | update retries | insert retries
 east | 3742681 | 1 | 3
 west | 3652971 | 65 | 44
 central | 2231110 | 30 | 10
+------------ | ------------- | ------------- | -------------
 total | 9626762 | 96 | 47
