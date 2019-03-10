@@ -48,6 +48,10 @@ public class LocalityRunner implements ApplicationRunner {
     private final AtomicInteger globalInsertRetryCounter = new AtomicInteger(0);
     private final AtomicInteger globalUpdateRetryCounter = new AtomicInteger(0);
 
+    private final AtomicInteger globalUpdateCounter = new AtomicInteger(0);
+    private final AtomicInteger globalSelectCounter = new AtomicInteger(0);
+    private final AtomicInteger globalInsertCounter = new AtomicInteger(0);
+
     @Value("${crdb.region}")
     private String region;
 
@@ -178,6 +182,9 @@ public class LocalityRunner implements ApplicationRunner {
                 "\t\t# Accounts Updated: " + touchedAccounts + '\n' +
                 "\t\t# Update Retries: " + globalUpdateRetryCounter.get() + '\n' +
                 "\t\t# Insert Retries: " + globalInsertRetryCounter.get() + '\n' +
+                "\t\t# Selects: " + globalSelectCounter.get() + '\n' +
+                "\t\t# Updates: " + globalUpdateCounter.get() + '\n' +
+                "\t\t# Inserts: " + globalInsertCounter.get() + '\n' +
                 "\t\t# Balances Not Found: " + unavailableBalance.get() + '\n' +
                 "\t\tTotal Time in MS: " + sw.getTotalTimeMillis() + '\n';
 
@@ -264,6 +271,8 @@ public class LocalityRunner implements ApplicationRunner {
 
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
+            } finally {
+                globalSelectCounter.incrementAndGet();
             }
 
         } catch (SQLException e) {
@@ -340,6 +349,8 @@ public class LocalityRunner implements ApplicationRunner {
                     } else {
                         throw e;
                     }
+                } finally {
+                    globalInsertCounter.incrementAndGet();
                 }
 
             }
@@ -383,6 +394,8 @@ public class LocalityRunner implements ApplicationRunner {
                         if (updated != 1) {
                             logger.warn("unexpected update count on update authorization");
                         }
+                    } finally {
+                        globalUpdateCounter.incrementAndGet();
                     }
 
                     try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
@@ -400,6 +413,8 @@ public class LocalityRunner implements ApplicationRunner {
                         if (updated != 1) {
                             logger.warn("unexpected update count on update account");
                         }
+                    } finally {
+                        globalUpdateCounter.incrementAndGet();
                     }
 
                     connection.releaseSavepoint(sp);
@@ -417,7 +432,6 @@ public class LocalityRunner implements ApplicationRunner {
                         globalUpdateRetryCounter.incrementAndGet();
 
                         connection.rollback(sp);
-
 
                     } else {
                         throw e;
