@@ -83,9 +83,9 @@ public class LocalityRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
+        final String testId = RandomStringUtils.randomAlphanumeric(8);
 
         if (args.containsOption("run")) {
-            final String testId = RandomStringUtils.randomAlphanumeric(8);
             runTest(testId, state, duration);
         }
 
