@@ -1,8 +1,9 @@
 locals {
-  cluster_name = "modtest"
+  cluster_name = "store-demo"
 
-  client_count = "3"
-  node_count = "1"
+  node_count = "3"
+  client_count = "1"
+
   sleep = "20"
   jdbc_port = "26257"
 }
@@ -81,9 +82,6 @@ module "azure_east" {
 resource "null_resource" "start_east_cluster" {
 
   count = "${local.node_count}"
-
-  //depends_on = ["null_resource.azure_prep_cluster"]
-
 
   connection {
     user = "${var.gcp_user}"
