@@ -170,7 +170,7 @@ resource "azurerm_virtual_machine" "nodes" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"]
-  vm_size = "${var.client_machine_type}"
+  vm_size = "${var.node_machine_type}"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
