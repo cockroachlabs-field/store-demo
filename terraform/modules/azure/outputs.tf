@@ -20,5 +20,5 @@ output "client_private_ips" {
 
 output "lb_private_ip" {
   description = "Private IP of Azure Load Balancer"
-  value = "${azurerm_lb.lb.private_ip_address}"
+  value = "${azurerm_lb.lb.*.private_ip_address}"
 }

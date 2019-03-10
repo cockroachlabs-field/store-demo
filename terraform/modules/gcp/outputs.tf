@@ -20,5 +20,5 @@ output "client_private_ips" {
 
 output "lb_private_ip" {
   description = "Private IP of Google Load Balancer"
-  value = "${google_compute_forwarding_rule.forwarding_rule.ip_address}"
+  value = "${google_compute_forwarding_rule.forwarding_rule.*.ip_address}"
 }
