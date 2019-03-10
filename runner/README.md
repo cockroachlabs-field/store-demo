@@ -19,6 +19,7 @@ The following parameters must be specified as either arguments or in the appropr
 * `crdb.server` - The ip address or hostname of a CockroachDB node in region. Preferably a private ip address to prevent external routing.
 * `crdb.run.duration` - The duration in minutes this `runner` should generate load.
 * `crdb.run.threads` - The number of concurrent threads used to generate load.
-* `crdb.accts` - A number less than or equal to the # of accounts that match the records in this `crdb.state`.  Used as the upper bound of a random number generator to find valid account numbers to be used during testing.
+* `crdb.accts.total` - The total number of records in the `acct` table
+* `crdb.accts.states` - The number of states that `crdb.accts.total` is divided among
 
 

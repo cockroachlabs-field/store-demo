@@ -67,3 +67,6 @@ Test Summary
 
 ## Locality Test: 3/10/19
 3 regions, 3 nodes each; removed concurrent set for unique account number check
+
+### Screenshots
+![Screenshot](Fullscreen_3_10_19__7_12_PM.png)

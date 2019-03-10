@@ -57,8 +57,11 @@ public class LocalityRunner implements ApplicationRunner {
     @Value("${crdb.run.duration}")
     private int duration;
 
-    @Value("${crdb.accts}")
-    private int accounts;
+    @Value("${crdb.accts.total}")
+    private int totalAccounts;
+
+    @Value("${crdb.accts.states}")
+    private int numStates;
 
     @Value("${crdb.log.batch}")
     private int logBatch;
@@ -94,6 +97,8 @@ public class LocalityRunner implements ApplicationRunner {
 
     private void runTest(String testId, String state, int duration) {
 
+        int accountsPerState = totalAccounts / numStates;
+
         String startBuilder = "\n" +
                 "\tTest Details\n" +
                 "\t\tTest ID: " + testId + '\n' +
@@ -101,7 +106,8 @@ public class LocalityRunner implements ApplicationRunner {
                 "\t\tState: " + state + '\n' +
                 "\t\tRegion: " + region + '\n' +
                 "\t\t# Threads: " + threadCount + '\n' +
-                "\t\tAccount Number Upper Bound: " + accounts + '\n';
+                "\t\t# Total Accounts: " + totalAccounts + '\n' +
+                "\t\t# Accounts Per State: " + accountsPerState + '\n';
 
         logger.info(startBuilder);
 
@@ -115,7 +121,7 @@ public class LocalityRunner implements ApplicationRunner {
 
         int counter = 0;
 
-        final List<Range> ranges = Range.buildRanges(accounts, threadCount);
+        final List<Range> ranges = Range.buildRanges(accountsPerState, threadCount);
 
         while (counter < threadCount) {
 
@@ -166,6 +172,8 @@ public class LocalityRunner implements ApplicationRunner {
                 "\t\tState: " + state + '\n' +
                 "\t\tRegion: " + region + '\n' +
                 "\t\t# Threads: " + threadCount + '\n' +
+                "\t\t# Total Accounts: " + totalAccounts + '\n' +
+                "\t\t# Accounts Per State: " + accountsPerState + '\n' +
                 "\t\t# Transactions Completed: " + transactions.get() + '\n' +
                 "\t\t# Accounts Updated: " + touchedAccounts + '\n' +
                 "\t\t# Update Retries: " + globalUpdateRetryCounter.get() + '\n' +
