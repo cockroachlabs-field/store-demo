@@ -19,7 +19,7 @@ output "gcp_east_private_client_ips" {
 }
 
 output "gcp_east_private_lb_ip" {
-  value = "${join(",", module.gcp_east.lb_private_ip)}"
+  value = "${module.gcp_east.lb_private_ip}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ output "gcp_west_private_client_ips" {
 }
 
 output "gcp_west_private_lb_ip" {
-  value = "${join(",", module.gcp_west.lb_private_ip)}"
+  value = "${module.gcp_west.lb_private_ip}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -67,5 +67,5 @@ output "azure_east_private_client_ips" {
 }
 
 output "azure_east_private_lb_ip" {
-  value = "${join(",", module.azure_east.lb_private_ip)}"
+  value = "${module.azure_east.lb_private_ip}"
 }

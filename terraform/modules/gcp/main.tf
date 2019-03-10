@@ -10,9 +10,11 @@ provider "google" {
 # resources
 # ---------------------------------------------------------------------------------------------------------------------
 
+resource "random_pet" "random" {
+}
 
 resource "google_compute_network" "compute_network" {
-  name = "${var.prefix}-network"
+  name = "${var.prefix}-network-${random_pet.random.id}"
   auto_create_subnetworks = "true"
 }
 
@@ -47,7 +49,7 @@ resource "google_compute_firewall" "firewall_ssh" {
 }
 
 resource "google_compute_health_check" "health_check" {
-  name = "${var.prefix}-health-check"
+  name = "${var.prefix}-health-check-${random_pet.random.id}"
 
   http_health_check {
     port = "8080"
