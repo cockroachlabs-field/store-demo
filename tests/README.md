@@ -1,6 +1,6 @@
 # Tests
 
-## 3/10/19
+## Locality Test: 3/10/19
 3 regions, 3 nodes each
 
 ### Summary
