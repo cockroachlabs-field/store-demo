@@ -28,8 +28,8 @@
 ### Show Ranges
 Ranges and data distribution can be viewed in the UI here (http://localhost:8080/#/data-distribution) or via the following commands:
 ```bash
-docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SHOW EXPERIMENTAL_RANGES FROM TABLE auth;"
-docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SHOW EXPERIMENTAL_RANGES FROM TABLE acct;"
+docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SELECT * FROM [SHOW EXPERIMENTAL_RANGES FROM TABLE auth] WHERE \"start_key\" IS NOT NULL AND \"start_key\" NOT LIKE '%Prefix%';"
+docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_demo --execute="SELECT * FROM [SHOW EXPERIMENTAL_RANGES FROM TABLE acct] WHERE \"start_key\" IS NOT NULL AND \"start_key\" NOT LIKE '%Prefix%';"
 ```
 
 ### Open Interactive Shells
