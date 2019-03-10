@@ -4,8 +4,8 @@ echo "disable timedatectl"
 sudo timedatectl set-ntp no
 
 echo "install npt"
-sudo apt-get update -yq
-sudo apt-get install -yq ntp ntpstat
+sudo apt-get update -qq -y
+sudo apt-get install -qq -y ntp ntpstat
 
 echo "stop ntp"
 sudo service ntp stop

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-sudo apt-get update -yq
-sudo apt-get install -yq openjdk-8-jdk git
+sudo apt-get update -qq -y
+sudo apt-get install -qq -y openjdk-8-jdk git
 
-sudo git clone https://github.com/cockroachlabs/store-demo.git
+sudo git clone -q https://github.com/cockroachlabs/store-demo.git
 
 cd store-demo
 
