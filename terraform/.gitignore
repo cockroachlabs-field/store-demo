@@ -8,6 +8,7 @@
 
 gcp-account.json
 
+*.txt
 *.out
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
