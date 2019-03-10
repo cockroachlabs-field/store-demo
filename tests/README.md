@@ -68,5 +68,66 @@ Test Summary
 ## Locality Test: 3/10/19
 3 regions, 3 nodes each; removed concurrent set for unique account number check
 
+
+### Summary
+region | completed | update retries | insert retries
+------------ | ------------- | ------------- | -------------
+east | 3,788,632 | 0 | 0
+west | 4,097,895 | 2 | 9
+central | 2,128,919 | 8 | 2
+------------ | ------------- | ------------- | -------------
+__total__ | __10,015,446__ | __10__ | __11__
+
+### GCP east
+```
+Test Summary
+    Test ID: OS80nj5b
+    Duration: 30
+    State: SC
+    Region: east
+    # Threads: 256
+    # Transactions Completed: 3788632
+    # Accounts Updated: 3788632
+    # Update Retries: 0
+    # Insert Retries: 0
+    # Balances Not Found: 0
+    Total Time in MS: 1800228
+
+```
+
+### GCP west
+```
+Test Summary
+    Test ID: 2W60cwtq
+    Duration: 30
+    State: CA
+    Region: west
+    # Threads: 256
+    # Transactions Completed: 4097895
+    # Accounts Updated: 4097895
+    # Update Retries: 2
+    # Insert Retries: 9
+    # Balances Not Found: 0
+    Total Time in MS: 1800175
+
+```
+
+### Azure central
+```
+Test Summary
+    Test ID: bEZbmVm4
+    Duration: 30
+    State: TX
+    Region: central
+    # Threads: 256
+    # Transactions Completed: 2128919
+    # Accounts Updated: 2128919
+    # Update Retries: 8
+    # Insert Retries: 2
+    # Balances Not Found: 0
+    Total Time in MS: 1800343
+
+```
+
 ### Screenshots
 ![Screenshot](Fullscreen_3_10_19__7_12_PM.png)

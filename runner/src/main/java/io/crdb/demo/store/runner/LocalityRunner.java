@@ -36,7 +36,7 @@ public class LocalityRunner implements ApplicationRunner {
     private static final String SELECT_AVAILABLE_BALANCE_SQL = "select acct.ACCT_BAL_AMT, SUM(auth.AUTH_AMT) from acct left outer join auth on acct.acct_nbr = auth.acct_nbr and acct.state = auth.state and auth.AUTH_STAT_CD = 0 where acct.acct_nbr = ? and acct.state = ? and acct.ACCT_STAT_CD = 1 group by ACCT_BAL_AMT";
     private static final String INSERT_AUTHORIZATION_SQL = "insert into AUTH(ACCT_NBR, REQUEST_ID, AUTH_ID, AUTH_AMT, AUTH_STAT_CD, CRT_TS, LAST_UPD_TS, LAST_UPD_USER_ID, STATE) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_AUTHORIZATION_SQL = "update AUTH set AUTH_STAT_CD = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and STATE = ? and REQUEST_ID = ? and AUTH_STAT_CD = 0";
-    private static final String UPDATE_ACCOUNT_SQL = "update ACCT set ACCT_BAL_AMT = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ? where ACCT_NBR = ? and STATE = ? and ACCT_STAT_CD = 1";
+    private static final String UPDATE_ACCOUNT_SQL = "update ACCT set ACCT_BAL_AMT = ?, LAST_UPD_TS = ?, LAST_UPD_USER_ID = ?, STATE = ? where ACCT_NBR = ? and STATE = ? and ACCT_STAT_CD = 1";
 
     private static final String RETRY_SQL_STATE = "40001";
     private static final String SAVEPOINT = "cockroach_restart";
@@ -391,8 +391,9 @@ public class LocalityRunner implements ApplicationRunner {
                         ps.setBigDecimal(1, new BigDecimal(newBalance));
                         ps.setTimestamp(2, now);
                         ps.setString(3, authorization.getLastUpdatedUserId());
-                        ps.setString(4, authorization.getAccountNumber());
-                        ps.setString(5, authorization.getState());
+                        ps.setString(4, authorization.getState());
+                        ps.setString(5, authorization.getAccountNumber());
+                        ps.setString(6, authorization.getState());
 
                         final int updated = ps.executeUpdate();
 
