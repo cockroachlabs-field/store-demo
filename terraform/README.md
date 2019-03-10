@@ -32,7 +32,12 @@ terraform init -upgrade
 
 4) Build the cluster
 ```bash
-terraform apply -var-file="store-demo.tfvars" -auto-approve
+./apply.sh
+```
+
+4) Destroy the cluster when you are finished
+```bash
+./destroy.sh
 ```
 
 If everything is successful you should see a message like this in the console...
@@ -63,10 +68,5 @@ terraform refresh -var-file="store-demo.tfvars"
 ### View Plan
 ```bash
 terraform plan -var-file="store-demo.tfvars"
-```
-
-### Destroy Cluster
-```bash
-terraform destroy -var-file="store-demo.tfvars" -auto-approve
 ```
 

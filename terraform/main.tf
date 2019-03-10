@@ -79,7 +79,7 @@ module "azure_east" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-resource "null_resource" "start_east_cluster" {
+resource "null_resource" "start_east_nodes" {
 
   count = "${local.node_count}"
 
@@ -104,11 +104,11 @@ resource "null_resource" "start_east_cluster" {
 }
 
 
-resource "null_resource" "start_west_cluster" {
+resource "null_resource" "start_west_nodes" {
 
   count = "${local.node_count}"
 
-  depends_on = ["null_resource.start_east_cluster"]
+  depends_on = ["null_resource.start_east_nodes"]
 
 
   connection {
@@ -133,11 +133,11 @@ resource "null_resource" "start_west_cluster" {
 
 
 
-resource "null_resource" "start_azure_cluster" {
+resource "null_resource" "start_azure_nodes" {
 
   count = "${local.node_count}"
 
-  depends_on = ["null_resource.start_west_cluster"]
+  depends_on = ["null_resource.start_west_nodes"]
 
   connection {
     user = "${var.azure_user}"
@@ -167,7 +167,7 @@ resource "null_resource" "start_azure_cluster" {
 
 resource "null_resource" "global_init_cluster" {
 
-  depends_on = ["null_resource.start_azure_cluster"]
+  depends_on = ["null_resource.start_azure_nodes"]
 
   connection {
     user = "${var.gcp_user}"
