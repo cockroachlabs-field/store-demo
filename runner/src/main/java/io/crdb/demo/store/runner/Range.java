@@ -4,31 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Range {
-    private final int originInclusive;
-    private final int boundExclusive;
+    private final int start;
+    private final int end;
 
-    public Range(int originInclusive, int boundExclusive) {
-        this.originInclusive = originInclusive;
-        this.boundExclusive = boundExclusive;
+    public Range(int start, int end) {
+        this.start = start;
+        this.end = end;
     }
 
-    public int getOriginInclusive() {
-        return originInclusive;
+    public int getStart() {
+        return start;
     }
 
-    public int getBoundExclusive() {
-        return boundExclusive;
+    public int getEnd() {
+        return end;
     }
 
 
-    public static List<Range> buildRanges(int numerator, int denominator) {
-        int split = numerator / denominator;
+    public static List<Range> buildRanges(int totalRecords, int numberOfThreads) {
+        int split = totalRecords / numberOfThreads;
 
-        List<Range> ranges = new ArrayList<>(denominator);
+        List<Range> ranges = new ArrayList<>(numberOfThreads);
 
-        for (int i = 0; i < denominator; i++) {
-            final int originInclusive = i * split;
-            final Range range = new Range(originInclusive + 1, originInclusive + split);
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int start = i * split;
+            final Range range = new Range(start + 1, start + split);
             ranges.add(range);
         }
 
@@ -39,8 +39,8 @@ public class Range {
     @Override
     public String toString() {
         return "Range{" +
-                "originInclusive=" + originInclusive +
-                ", boundExclusive=" + boundExclusive +
+                "start=" + start +
+                ", end=" + end +
                 '}';
     }
 }

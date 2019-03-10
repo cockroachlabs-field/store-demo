@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -115,12 +116,25 @@ public class LocalityRunner implements ApplicationRunner {
 
         int counter = 0;
 
+        final List<Range> ranges = Range.buildRanges(accounts, threadCount);
+
         while (counter < threadCount) {
+
+            final Range range = ranges.get(counter);
 
             poolService.execute(() -> {
 
-                for (long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration); stop > System.currentTimeMillis(); ) {
-                    makePurchase(testId, state, transactions, unavailableBalance);
+                long stop = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(duration);
+
+                for (int i = range.getStart(); i < range.getEnd(); i++) {
+
+                    if (stop <= System.currentTimeMillis()) {
+                        break;
+                    }
+
+                    final String accountNumber = getAccountNumber(state, i);
+
+                    makePurchase(testId, accountNumber, state, transactions, unavailableBalance);
                 }
 
                 countDownLatch.countDown();
@@ -168,8 +182,7 @@ public class LocalityRunner implements ApplicationRunner {
         }
     }
 
-    private void makePurchase(String testId, String state, AtomicLong transactions, AtomicLong unavailableBalance) {
-        String accountNumber = getAccountNumber(state);
+    private void makePurchase(String testId, String accountNumber, String state, AtomicLong transactions, AtomicLong unavailableBalance) {
 
         logger.debug("making purchase for for account number [{}]", accountNumber);
 
@@ -193,16 +206,13 @@ public class LocalityRunner implements ApplicationRunner {
         }
     }
 
-    private String getAccountNumber(String state) {
-        final int random = ThreadLocalRandom.current().nextInt(1, accounts);
-
-        String accountNumber = state + "-" + String.format("%022d", random);
+    private String getAccountNumber(String state, int number) {
+        String accountNumber = state + "-" + String.format("%022d", number);
 
         final boolean added = uniqueAccounts.add(accountNumber);
 
         if (!added) {
-            logger.warn("account number {} has already been used, getting another...", accountNumber);
-           accountNumber = getAccountNumber(state);
+            logger.warn("account number {} has already been used...", accountNumber);
         }
 
         return accountNumber;
