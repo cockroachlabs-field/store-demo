@@ -172,10 +172,10 @@ resource "null_resource" "start_azure_nodes" {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# init global cluster
+# init cluster
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "null_resource" "global_init_cluster" {
+resource "null_resource" "init_cluster" {
 
   depends_on = ["null_resource.start_azure_nodes"]
 
