@@ -18,11 +18,12 @@ import org.springframework.util.StopWatch;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -46,8 +47,6 @@ public class LocalityRunner implements ApplicationRunner {
 
     private final AtomicInteger globalInsertRetryCounter = new AtomicInteger(0);
     private final AtomicInteger globalUpdateRetryCounter = new AtomicInteger(0);
-
-    private static final Set<String> uniqueAccounts = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Value("${crdb.region}")
     private String region;
@@ -168,7 +167,6 @@ public class LocalityRunner implements ApplicationRunner {
                 "\t\tRegion: " + region + '\n' +
                 "\t\t# Threads: " + threadCount + '\n' +
                 "\t\t# Transactions Completed: " + transactions.get() + '\n' +
-                "\t\t# Unique Accounts Used: " + uniqueAccounts.size() + '\n' +
                 "\t\t# Accounts Updated: " + touchedAccounts + '\n' +
                 "\t\t# Update Retries: " + globalUpdateRetryCounter.get() + '\n' +
                 "\t\t# Insert Retries: " + globalInsertRetryCounter.get() + '\n' +
@@ -177,8 +175,8 @@ public class LocalityRunner implements ApplicationRunner {
 
         logger.info(endBuilder);
 
-        if (touchedAccounts != uniqueAccounts.size()) {
-            logger.error("number of accounts updated {} does not equal number of unique accounts used {}", touchedAccounts, uniqueAccounts.size());
+        if (touchedAccounts != transactions.get()) {
+            logger.error("number of accounts updated {} does not equal number of transactions completed {}", touchedAccounts, transactions.get());
         }
     }
 
@@ -207,15 +205,7 @@ public class LocalityRunner implements ApplicationRunner {
     }
 
     private String getAccountNumber(String state, int number) {
-        String accountNumber = state + "-" + String.format("%022d", number);
-
-        final boolean added = uniqueAccounts.add(accountNumber);
-
-        if (!added) {
-            logger.warn("account number {} has already been used...", accountNumber);
-        }
-
-        return accountNumber;
+        return state + "-" + String.format("%022d", number);
     }
 
     private int getTouchedAccounts(String testId, String state) {
