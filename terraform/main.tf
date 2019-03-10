@@ -93,7 +93,7 @@ resource "null_resource" "start_east_nodes" {
     inline = [
       "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
       "sudo cp -i cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=region=east@${element(module.gcp_east.node_private_ips, count.index)} --advertise-addr=${element(module.gcp_east.node_public_ips, count.index)} --join=${join(",", module.gcp_east.node_public_ips)}"
+      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=country=us,cloud=gcp,region=east --locality-advertise-addr=region=east@${element(module.gcp_east.node_private_ips, count.index)} --advertise-addr=${element(module.gcp_east.node_public_ips, count.index)} --join=${join(",", module.gcp_east.node_private_ips)}"
     ]
   }
 
@@ -130,7 +130,6 @@ resource "null_resource" "start_west_nodes" {
   }
 
 }
-
 
 
 resource "null_resource" "start_azure_nodes" {

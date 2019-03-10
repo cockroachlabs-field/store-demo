@@ -133,7 +133,7 @@ resource "azurerm_public_ip" "public_ip_node" {
   name = "${local.prefix}-public-ip-node-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_network_interface" "network_interface_node" {
@@ -223,7 +223,7 @@ resource "azurerm_public_ip" "public_ip_client" {
   name = "${local.prefix}-public-ip-client-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_network_interface" "network_interface_client" {
