@@ -274,7 +274,7 @@ resource "azurerm_virtual_machine" "clients" {
   }
 
   os_profile {
-    computer_name = "${local.prefix}-node-${count.index}"
+    computer_name = "${local.prefix}-client-${count.index}"
     admin_username = "${var.user}"
   }
 
