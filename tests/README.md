@@ -3,6 +3,15 @@
 ## 3/10/19
 3 regions, 3 nodes each
 
+### Summary
+region | completed | update retries | insert retries
+------------ | ------------- | ------------- | -------------
+east | 3,742,681 | 1 | 3
+west | 3,652,971 | 65 | 44
+central | 2,231,110 | 30 | 10
+------------ | ------------- | ------------- | -------------
+__total__ | __9,626,762__ | __96__ | __47__
+
 ### GCP east
 ```
 Test Summary
@@ -53,12 +62,5 @@ Test Summary
     # Balances Not Found: 0
     Total Time in MS: 1800229
 ```
+### Screenshots
 ![Screenshot](Fullscreen_3_10_19__6_04_PM.png)
-
-region | completed | update retries | insert retries
------------- | ------------- | ------------- | -------------
-east | 3,742,681 | 1 | 3
-west | 3,652,971 | 65 | 44
-central | 2,231,110 | 30 | 10
------------- | ------------- | ------------- | -------------
-__total__ | __9,626,762__ | __96__ | __47__
