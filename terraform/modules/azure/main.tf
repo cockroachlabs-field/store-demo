@@ -1,8 +1,12 @@
 provider "azurerm" {
 }
 
+resource "random_pet" "random" {
+}
+
 locals {
-  lb_frontend = "${var.prefix}-lb-frontend"
+  prefix = "${var.cluster_name}-${random_pet.random.id}"
+  lb_frontend = "${local.prefix}-lb-frontend"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -11,33 +15,33 @@ locals {
 
 
 resource "azurerm_resource_group" "resource_group" {
-  name = "${var.prefix}-resource-group"
+  name = "${local.prefix}-resource-group"
   location = "${var.location}"
 }
 
 resource "azurerm_availability_set" "availability_set" {
-  name = "${var.prefix}-availability-set"
+  name = "${local.prefix}-availability-set"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   managed = "true"
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
-  name = "${var.prefix}-virtual-network"
+  name = "${local.prefix}-virtual-network"
   address_space = ["10.0.0.0/16"]
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
 }
 
 resource "azurerm_subnet" "subnet" {
-  name = "${var.prefix}-subnet"
+  name = "${local.prefix}-subnet"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   virtual_network_name = "${azurerm_virtual_network.virtual_network.name}"
   address_prefix = "10.0.2.0/24"
 }
 
 resource "azurerm_network_security_group" "security_group" {
-  name = "${var.prefix}-network-security-group"
+  name = "${local.prefix}-network-security-group"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
 
@@ -79,7 +83,7 @@ resource "azurerm_network_security_group" "security_group" {
 }
 
 resource "azurerm_lb" "lb" {
-  name = "${var.prefix}-lb"
+  name = "${local.prefix}-lb"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   location = "${azurerm_resource_group.resource_group.location}"
 
@@ -91,13 +95,13 @@ resource "azurerm_lb" "lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "lb_backend_pool" {
-  name = "${var.prefix}-lb-backend-pool"
+  name = "${local.prefix}-lb-backend-pool"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   loadbalancer_id = "${azurerm_lb.lb.id}"
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
-  name = "${var.prefix}-lb-probe"
+  name = "${local.prefix}-lb-probe"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   loadbalancer_id = "${azurerm_lb.lb.id}"
   protocol = "Http"
@@ -109,7 +113,7 @@ resource "azurerm_lb_probe" "lb_probe" {
 
 
 resource "azurerm_lb_rule" "lb_rule" {
-  name = "${var.prefix}-lb-rule"
+  name = "${local.prefix}-lb-rule"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   loadbalancer_id = "${azurerm_lb.lb.id}"
   protocol = "tcp"
@@ -126,7 +130,7 @@ resource "azurerm_lb_rule" "lb_rule" {
 resource "azurerm_public_ip" "public_ip_node" {
   count = "${var.node_count}"
 
-  name = "${var.prefix}-public-ip-node-${count.index}"
+  name = "${local.prefix}-public-ip-node-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   public_ip_address_allocation = "Dynamic"
@@ -135,14 +139,14 @@ resource "azurerm_public_ip" "public_ip_node" {
 resource "azurerm_network_interface" "network_interface_node" {
   count = "${var.node_count}"
 
-  name = "${var.prefix}-network-interface-node-${count.index}"
+  name = "${local.prefix}-network-interface-node-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_security_group_id = "${azurerm_network_security_group.security_group.id}"
   enable_accelerated_networking = true
 
   ip_configuration {
-    name = "${var.prefix}-network-interface-node-config-${count.index}"
+    name = "${local.prefix}-network-interface-node-config-${count.index}"
     subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "dynamic"
     public_ip_address_id = "${element(azurerm_public_ip.public_ip_node.*.id, count.index)}"
@@ -153,7 +157,7 @@ resource "azurerm_network_interface" "network_interface_node" {
 resource "azurerm_network_interface_backend_address_pool_association" "network_interface_backend_pool" {
   count = "${var.node_count}"
 
-  ip_configuration_name = "${var.prefix}-network-interface-node-config-${count.index}"
+  ip_configuration_name = "${local.prefix}-network-interface-node-config-${count.index}"
   backend_address_pool_id = "${azurerm_lb_backend_address_pool.lb_backend_pool.id}"
   network_interface_id = "${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"
 }
@@ -161,7 +165,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "network_i
 resource "azurerm_virtual_machine" "nodes" {
   count = "${var.node_count}"
 
-  name = "${var.prefix}-node-${count.index}"
+  name = "${local.prefix}-node-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
@@ -174,7 +178,7 @@ resource "azurerm_virtual_machine" "nodes" {
   availability_set_id = "${azurerm_availability_set.availability_set.id}"
 
   storage_os_disk {
-    name = "${var.prefix}-os-disk-node-${count.index}"
+    name = "${local.prefix}-os-disk-node-${count.index}"
     create_option = "FromImage"
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
@@ -189,7 +193,7 @@ resource "azurerm_virtual_machine" "nodes" {
   }
 
   os_profile {
-    computer_name = "${var.prefix}-node-${count.index}"
+    computer_name = "${local.prefix}-node-${count.index}"
     admin_username = "${var.user}"
   }
 
@@ -216,7 +220,7 @@ data "azurerm_public_ip" "public_ip_node_data" {
 resource "azurerm_public_ip" "public_ip_client" {
   count = "${var.client_count}"
 
-  name = "${var.prefix}-public-ip-client-${count.index}"
+  name = "${local.prefix}-public-ip-client-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   public_ip_address_allocation = "Dynamic"
@@ -225,14 +229,14 @@ resource "azurerm_public_ip" "public_ip_client" {
 resource "azurerm_network_interface" "network_interface_client" {
   count = "${var.client_count}"
 
-  name = "${var.prefix}-network-interface-client-${count.index}"
+  name = "${local.prefix}-network-interface-client-${count.index}"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_security_group_id = "${azurerm_network_security_group.security_group.id}"
   enable_accelerated_networking = true
 
   ip_configuration {
-    name = "${var.prefix}-network-interface-client-config-${count.index}"
+    name = "${local.prefix}-network-interface-client-config-${count.index}"
     subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "dynamic"
     public_ip_address_id = "${element(azurerm_public_ip.public_ip_client.*.id, count.index)}"
@@ -244,7 +248,7 @@ resource "azurerm_network_interface" "network_interface_client" {
 resource "azurerm_virtual_machine" "clients" {
   count = "${var.client_count}"
 
-  name = "${var.prefix}-client-${count.index}"
+  name = "${local.prefix}-client-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
@@ -255,7 +259,7 @@ resource "azurerm_virtual_machine" "clients" {
   delete_data_disks_on_termination = true
 
   storage_os_disk {
-    name = "${var.prefix}-os-disk-client-${count.index}"
+    name = "${local.prefix}-os-disk-client-${count.index}"
     create_option = "FromImage"
     caching = "None"
     disk_size_gb = "${var.os_disk_size}"
@@ -270,7 +274,7 @@ resource "azurerm_virtual_machine" "clients" {
   }
 
   os_profile {
-    computer_name = "${var.prefix}-node-${count.index}"
+    computer_name = "${local.prefix}-node-${count.index}"
     admin_username = "${var.user}"
   }
 

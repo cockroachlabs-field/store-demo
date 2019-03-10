@@ -1,9 +1,6 @@
 variable "location" {
 }
 
-variable "prefix" {
-}
-
 variable "jdbc_port" {
 
 }
@@ -33,4 +30,7 @@ variable "sleep" {
 }
 
 variable "user" {
+}
+
+variable "cluster_name" {
 }

@@ -1,5 +1,5 @@
 locals {
-  prefix = "modtest"
+  cluster_name = "modtest"
 
   client_count = "3"
   node_count = "1"
@@ -24,8 +24,8 @@ module "gcp_east" {
   private_key_path = "${var.gcp_private_key_path}"
   user = "${var.gcp_user}"
 
-  project = "${var.gcp_project_name}"
-  prefix = "${local.prefix}"
+  project_id = "${var.gcp_project_id}"
+  cluster_name = "${local.cluster_name}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
   jdbc_port = "${local.jdbc_port}"
@@ -45,8 +45,8 @@ module "gcp_west" {
   user = "${var.gcp_user}"
 
 
-  project = "${var.gcp_project_name}"
-  prefix = "${local.prefix}"
+  project_id = "${var.gcp_project_id}"
+  cluster_name = "${local.cluster_name}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
   jdbc_port = "${local.jdbc_port}"
@@ -65,7 +65,7 @@ module "azure_east" {
   public_key_path = "${var.azure_public_key_path}"
   user = "${var.azure_user}"
 
-  prefix = "${local.prefix}"
+  cluster_name = "${local.cluster_name}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
   jdbc_port = "${local.jdbc_port}"

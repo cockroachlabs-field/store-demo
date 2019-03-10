@@ -4,13 +4,10 @@ variable "region" {
 variable "zone" {
 }
 
-variable "project" {
+variable "project_id" {
 }
 
 variable "credentials_file" {
-}
-
-variable "prefix" {
 }
 
 variable "node_count" {
@@ -38,4 +35,7 @@ variable "jdbc_port" {
 }
 
 variable "user" {
+}
+
+variable "cluster_name" {
 }

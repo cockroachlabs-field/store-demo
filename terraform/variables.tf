@@ -2,8 +2,8 @@
 # required
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "gcp_project_name" {
-  description = "your google project name"
+variable "gcp_project_id" {
+  description = "your google project id"
 }
 
 variable "gcp_user" {

@@ -1,25 +1,30 @@
 provider "google" {
   region = "${var.region}"
   zone = "${var.zone}"
-  project = "${var.project}"
+  project = "${var.project_id}"
 
   credentials = "${file(var.credentials_file)}"
+}
+
+resource "random_pet" "random" {
+}
+
+locals {
+  prefix = "${var.cluster_name}-${random_pet.random.id}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # resources
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "random_pet" "random" {
-}
 
 resource "google_compute_network" "compute_network" {
-  name = "${var.prefix}-network-${random_pet.random.id}"
+  name = "${local.prefix}-network"
   auto_create_subnetworks = "true"
 }
 
 resource "google_compute_firewall" "firewall_jdbc" {
-  name = "${var.prefix}-allow-jdbc"
+  name = "${local.prefix}-allow-jdbc"
   network = "${google_compute_network.compute_network.self_link}"
 
   allow {
@@ -29,7 +34,7 @@ resource "google_compute_firewall" "firewall_jdbc" {
 }
 
 resource "google_compute_firewall" "firewall_ui" {
-  name = "${var.prefix}-allow-ui"
+  name = "${local.prefix}-allow-ui"
   network = "${google_compute_network.compute_network.self_link}"
 
   allow {
@@ -39,7 +44,7 @@ resource "google_compute_firewall" "firewall_ui" {
 }
 
 resource "google_compute_firewall" "firewall_ssh" {
-  name = "${var.prefix}-allow-ssh"
+  name = "${local.prefix}-allow-ssh"
   network = "${google_compute_network.compute_network.self_link}"
 
   allow {
@@ -49,7 +54,7 @@ resource "google_compute_firewall" "firewall_ssh" {
 }
 
 resource "google_compute_health_check" "health_check" {
-  name = "${var.prefix}-health-check-${random_pet.random.id}"
+  name = "${local.prefix}-health-check"
 
   http_health_check {
     port = "8080"
@@ -61,7 +66,7 @@ resource "google_compute_instance" "node_instances" {
 
   count = "${var.node_count}"
 
-  name = "${var.prefix}-node-${count.index}"
+  name = "${local.prefix}-node-${count.index}"
   machine_type = "${var.node_machine_type}"
   min_cpu_platform = "Intel Skylake"
 
@@ -86,7 +91,7 @@ resource "google_compute_instance" "node_instances" {
 }
 
 resource "google_compute_instance_group" "node_instance_group" {
-  name = "${var.prefix}-node-group"
+  name = "${local.prefix}-node-group"
 
   instances = ["${google_compute_instance.node_instances.*.self_link}"]
 
@@ -94,7 +99,7 @@ resource "google_compute_instance_group" "node_instance_group" {
 }
 
 resource "google_compute_region_backend_service" "backend_service" {
-  name = "${var.prefix}-backend-service"
+  name = "${local.prefix}-backend-service"
   health_checks = ["${google_compute_health_check.health_check.self_link}"]
   region = "${var.region}"
 
@@ -105,7 +110,7 @@ resource "google_compute_region_backend_service" "backend_service" {
 }
 
 resource "google_compute_forwarding_rule" "forwarding_rule" {
-  name = "${var.prefix}-forwarding-rule"
+  name = "${local.prefix}-forwarding-rule"
   load_balancing_scheme = "INTERNAL"
   ip_protocol = "TCP"
   region = "${var.region}"
@@ -119,7 +124,7 @@ resource "google_compute_instance" "client_instances" {
 
   count = "${var.client_count}"
 
-  name = "${var.prefix}-client-${count.index}"
+  name = "${local.prefix}-client-${count.index}"
   machine_type = "${var.client_machine_type}"
   min_cpu_platform = "Intel Skylake"
 
