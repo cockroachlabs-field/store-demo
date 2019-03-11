@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done
+while [[ ! -f /var/lib/cloud/instance/boot-finished ]]; do echo 'Waiting for cloud-init...'; sleep 1; done
 
 sudo apt-get update --fix-missing
 sudo apt-get upgrade -y
