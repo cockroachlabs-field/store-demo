@@ -70,6 +70,9 @@ public class LocalityRunner implements ApplicationRunner {
     @Value("${crdb.log.batch}")
     private int logBatch;
 
+    @Value("${crdb.max.retry}")
+    private int maxRetryCount;
+
     private int threadCount;
 
     @Autowired
@@ -89,7 +92,6 @@ public class LocalityRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-
 
 
         if (args.containsOption("run")) {
@@ -265,124 +267,141 @@ public class LocalityRunner implements ApplicationRunner {
                     }
                 }
             }
+
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
+
         return count;
     }
 
 
     private Double getAvailableBalance(String accountNumber, String accountState) {
 
-        try (Connection connection = dataSource.getConnection()) {
+        Double balance = null;
 
-            try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
+        int retryCount = 0;
 
-                ps.setString(1, accountNumber);
-                ps.setString(2, accountState);
+        while (retryCount < maxRetryCount) {
 
-                try (ResultSet rs = ps.executeQuery()) {
+            try (Connection connection = dataSource.getConnection()) {
 
-                    if (rs != null) {
-                        if (rs.next()) {
-                            double accountBalance = rs.getDouble(1);
-                            double holds = rs.getDouble(2);
+                try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
 
-                            return accountBalance - holds;
+                    ps.setString(1, accountNumber);
+                    ps.setString(2, accountState);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+
+                        if (rs != null) {
+                            if (rs.next()) {
+                                double accountBalance = rs.getDouble(1);
+                                double holds = rs.getDouble(2);
+                                balance = accountBalance - holds;
+                            }
                         }
                     }
+                } finally {
+                    globalSelectCounter.incrementAndGet();
                 }
 
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            } finally {
-                globalSelectCounter.incrementAndGet();
-            }
+                break;
 
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+            } catch (SQLException e) {
+                logger.error("attempt " + retryCount + ", problem getting available balance: " + e.getMessage(), e);
+                retryCount++;
+            }
         }
 
-        return null;
-
-
+        return balance;
     }
 
     private Authorization createAuthorization(String accountNumber, String authorizationState, String testId) {
 
         Authorization auth = null;
 
-        try (Connection connection = dataSource.getConnection()) {
+        int retryCount = 0;
 
-            connection.setAutoCommit(false);
+        while (retryCount < maxRetryCount) {
 
-            int localRetryCount = 1;
+            try (Connection connection = dataSource.getConnection()) {
 
-            while (true) {
+                connection.setAutoCommit(false);
 
-                Savepoint sp = connection.setSavepoint(SAVEPOINT);
+                int localRetryCount = 1;
 
-                try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
+                while (true) {
 
-                    final Timestamp now = new Timestamp(System.currentTimeMillis());
+                    Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
-                    auth = new Authorization();
-                    auth.setAccountNumber(accountNumber);
-                    auth.setRequestId(UUID.randomUUID());
-                    auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
-                    auth.setAuthorizationAmount(new BigDecimal(PURCHASE_AMOUNT));
-                    auth.setAuthorizationStatus(0);
-                    auth.setCreatedTimestamp(now);
-                    auth.setLastUpdatedTimestamp(now);
-                    auth.setLastUpdatedUserId(testId);
-                    auth.setState(authorizationState);
+                    try (PreparedStatement ps = connection.prepareStatement(INSERT_AUTHORIZATION_SQL)) {
 
-                    ps.setString(1, auth.getAccountNumber());
-                    ps.setObject(2, auth.getRequestId());
-                    ps.setString(3, auth.getAuthorizationId());
-                    ps.setBigDecimal(4, auth.getAuthorizationAmount());
-                    ps.setInt(5, auth.getAuthorizationStatus());
-                    ps.setTimestamp(6, auth.getCreatedTimestamp());
-                    ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
-                    ps.setString(8, auth.getLastUpdatedUserId());
-                    ps.setString(9, auth.getState());
+                        final Timestamp now = new Timestamp(System.currentTimeMillis());
 
-                    final int updated = ps.executeUpdate();
+                        auth = new Authorization();
+                        auth.setAccountNumber(accountNumber);
+                        auth.setRequestId(UUID.randomUUID());
+                        auth.setAuthorizationId(RandomStringUtils.randomAlphanumeric(64));
+                        auth.setAuthorizationAmount(new BigDecimal(PURCHASE_AMOUNT));
+                        auth.setAuthorizationStatus(0);
+                        auth.setCreatedTimestamp(now);
+                        auth.setLastUpdatedTimestamp(now);
+                        auth.setLastUpdatedUserId(testId);
+                        auth.setState(authorizationState);
 
-                    if (updated != 1) {
-                        logger.warn("unexpected update count on create authorization");
+                        ps.setString(1, auth.getAccountNumber());
+                        ps.setObject(2, auth.getRequestId());
+                        ps.setString(3, auth.getAuthorizationId());
+                        ps.setBigDecimal(4, auth.getAuthorizationAmount());
+                        ps.setInt(5, auth.getAuthorizationStatus());
+                        ps.setTimestamp(6, auth.getCreatedTimestamp());
+                        ps.setTimestamp(7, auth.getLastUpdatedTimestamp());
+                        ps.setString(8, auth.getLastUpdatedUserId());
+                        ps.setString(9, auth.getState());
+
+                        final int updated = ps.executeUpdate();
+
+                        if (updated != 1) {
+                            logger.warn("unexpected update count on create authorization");
+                        }
+
+                        connection.releaseSavepoint(sp);
+
+                        connection.commit();
+
+                        break;
+
+                    } catch (SQLException e) {
+
+                        String sqlState = e.getSQLState();
+
+                        if (RETRY_SQL_STATE.equals(sqlState)) {
+                            logger.warn("attempt {}: rolling back INSERT for account number {}", localRetryCount, accountNumber);
+                            localRetryCount++;
+                            globalInsertRetryCounter.incrementAndGet();
+
+                            connection.rollback(sp);
+
+                        } else {
+                            throw e;
+                        }
+
+                    } finally {
+                        globalInsertCounter.incrementAndGet();
                     }
 
-                    connection.releaseSavepoint(sp);
-
-                    connection.commit();
-
-                    break;
-
-                } catch (SQLException e) {
-
-                    String sqlState = e.getSQLState();
-
-                    if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt {}: rolling back INSERT for account number {}", localRetryCount, accountNumber);
-                        localRetryCount++;
-                        globalInsertRetryCounter.incrementAndGet();
-
-                        connection.rollback(sp);
-
-                    } else {
-                        throw e;
-                    }
-                } finally {
-                    globalInsertCounter.incrementAndGet();
                 }
 
+                connection.setAutoCommit(true);
+
+                break;
+
+            } catch (SQLException e) {
+                logger.error("attempt " + retryCount + ", problem creating authorization: " + e.getMessage(), e);
+
+                retryCount++;
             }
 
-            connection.setAutoCommit(true);
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
         }
 
         return auth;
@@ -391,82 +410,92 @@ public class LocalityRunner implements ApplicationRunner {
 
     private void updateRecords(Authorization authorization, String accountState, double newBalance) {
 
-        try (Connection connection = dataSource.getConnection()) {
+        int retryCount = 0;
 
-            connection.setAutoCommit(false);
+        while (retryCount < maxRetryCount) {
 
-            int localRetryCount = 1;
+            try (Connection connection = dataSource.getConnection()) {
 
-            while (true) {
+                connection.setAutoCommit(false);
 
-                Savepoint sp = connection.setSavepoint(SAVEPOINT);
+                int localRetryCount = 1;
 
-                try {
+                while (true) {
 
-                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
-                        Timestamp now = new Timestamp(System.currentTimeMillis());
+                    Savepoint sp = connection.setSavepoint(SAVEPOINT);
 
-                        ps.setInt(1, 1);
-                        ps.setTimestamp(2, now);
-                        ps.setString(3, authorization.getLastUpdatedUserId());
-                        ps.setString(4, authorization.getAccountNumber());
-                        ps.setString(5, authorization.getState());
-                        ps.setObject(6, authorization.getRequestId());
+                    try {
 
-                        final int updated = ps.executeUpdate();
+                        try (PreparedStatement ps = connection.prepareStatement(UPDATE_AUTHORIZATION_SQL)) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
 
-                        if (updated != 1) {
-                            logger.warn("unexpected update count on update authorization");
+                            ps.setInt(1, 1);
+                            ps.setTimestamp(2, now);
+                            ps.setString(3, authorization.getLastUpdatedUserId());
+                            ps.setString(4, authorization.getAccountNumber());
+                            ps.setString(5, authorization.getState());
+                            ps.setObject(6, authorization.getRequestId());
+
+                            final int updated = ps.executeUpdate();
+
+                            if (updated != 1) {
+                                logger.warn("unexpected update count on update authorization");
+                            }
+                        } finally {
+                            globalUpdateCounter.incrementAndGet();
                         }
-                    } finally {
-                        globalUpdateCounter.incrementAndGet();
-                    }
 
-                    try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
-                        Timestamp now = new Timestamp(System.currentTimeMillis());
+                        try (PreparedStatement ps = connection.prepareStatement(UPDATE_ACCOUNT_SQL)) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
 
-                        ps.setBigDecimal(1, new BigDecimal(newBalance));
-                        ps.setTimestamp(2, now);
-                        ps.setString(3, authorization.getLastUpdatedUserId());
-                        ps.setString(4, authorization.getState());
-                        ps.setString(5, authorization.getAccountNumber());
-                        ps.setString(6, accountState);
+                            ps.setBigDecimal(1, new BigDecimal(newBalance));
+                            ps.setTimestamp(2, now);
+                            ps.setString(3, authorization.getLastUpdatedUserId());
+                            ps.setString(4, authorization.getState());
+                            ps.setString(5, authorization.getAccountNumber());
+                            ps.setString(6, accountState);
 
-                        final int updated = ps.executeUpdate();
+                            final int updated = ps.executeUpdate();
 
-                        if (updated != 1) {
-                            logger.warn("unexpected update count on update account");
+                            if (updated != 1) {
+                                logger.warn("unexpected update count on update account");
+                            }
+                        } finally {
+                            globalUpdateCounter.incrementAndGet();
                         }
-                    } finally {
-                        globalUpdateCounter.incrementAndGet();
-                    }
 
-                    connection.releaseSavepoint(sp);
+                        connection.releaseSavepoint(sp);
 
-                    connection.commit();
+                        connection.commit();
 
-                    break;
+                        break;
 
-                } catch (SQLException e) {
-                    String sqlState = e.getSQLState();
+                    } catch (SQLException e) {
+                        String sqlState = e.getSQLState();
 
-                    if (RETRY_SQL_STATE.equals(sqlState)) {
-                        logger.warn("attempt {}: rolling back UPDATE for account number {}", localRetryCount, authorization.getAccountNumber());
-                        localRetryCount++;
-                        globalUpdateRetryCounter.incrementAndGet();
+                        if (RETRY_SQL_STATE.equals(sqlState)) {
+                            logger.warn("attempt {}: rolling back UPDATE for account number {}", localRetryCount, authorization.getAccountNumber());
+                            localRetryCount++;
+                            globalUpdateRetryCounter.incrementAndGet();
 
-                        connection.rollback(sp);
+                            connection.rollback(sp);
 
-                    } else {
-                        throw e;
+                        } else {
+                            throw e;
+                        }
                     }
                 }
+
+                connection.setAutoCommit(true);
+
+                break;
+
+            } catch (SQLException e) {
+                logger.error("attempt " + retryCount + ", problem updating account and authorization: " + e.getMessage(), e);
+
+                retryCount++;
             }
 
-            connection.setAutoCommit(true);
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
         }
 
     }
