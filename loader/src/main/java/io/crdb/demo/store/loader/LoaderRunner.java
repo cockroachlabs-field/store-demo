@@ -418,7 +418,7 @@ public class LoaderRunner implements ApplicationRunner {
 
                     if (i != 0 && (i % batchSize) == 0) {
                         ps.executeBatch();
-                        logger.debug("loaded ACCT batch {}", i);
+                        logger.trace("loaded ACCT batch {}", i);
                     }
 
                     if (i != 0 && (i % logBatch) == 0) {
@@ -489,7 +489,7 @@ public class LoaderRunner implements ApplicationRunner {
 
                     if (i != 0 && (i % batchSize) == 0) {
                         ps.executeBatch();
-                        logger.debug("loaded AUTH batch {}", i);
+                        logger.trace("loaded AUTH batch {}", i);
                     }
 
                     if (i != 0 && (i % logBatch) == 0) {
