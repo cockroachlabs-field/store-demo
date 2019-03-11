@@ -98,7 +98,6 @@ public class LocalityRunner implements ApplicationRunner {
 
         if (args.containsOption("locality")) {
             runTest(testId, state, duration);
-            runTest(testId, state, duration);
         }
 
         SpringApplication.exit(context, () -> 0);
