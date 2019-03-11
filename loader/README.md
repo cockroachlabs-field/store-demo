@@ -13,6 +13,7 @@ java -jar loader-2019.1-BETA.jar --generate
 * `crdb.generate.states` - a comma separated list of "states" to generate data for. These "states" should map to partitions which will in turn be used in zone constaints 
 * `crdb.generate.accts` - number of records to create for the `acct` table
 * `crdb.generate.auths` - number of records to create for the `auth` table
+* `crdb.generate.origin.state` - a state code where all initial cards belong
 
 For example, this command would result in the creation of 2 files `accts-1000.csv` and `auths-100.csv` in current directory.  These files can be used for future `load` or `import` commands.
 ```bash

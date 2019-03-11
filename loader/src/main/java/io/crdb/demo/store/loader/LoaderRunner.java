@@ -156,9 +156,13 @@ public class LoaderRunner implements ApplicationRunner {
 
         final int authRowCount = environment.getRequiredProperty("crdb.generate.auths", Integer.class);
 
+        final String origin = environment.getProperty("crdb.generate.origin.state");
 
         logger.info("generating {} acct records and {} auth records for state {}", acctRowCount, authRowCount, environment.getRequiredProperty("crdb.generate.states"));
 
+        if (StringUtils.isNotBlank(origin)) {
+            logger.info("all records will have origin [{}]", origin);
+        }
 
         List<String> states = Ordering.natural().sortedCopy(Splitter.on(',').split(environment.getRequiredProperty("crdb.generate.states")));
 
@@ -283,7 +287,7 @@ public class LoaderRunner implements ApplicationRunner {
                                                     authorizationCreatedTimestamp,
                                                     authorizationLastUpdatedTimestamp,
                                                     USER_ID,
-                                                    state);
+                                                    StringUtils.isNotBlank(origin) ? origin : state);
 
                                     authCounter++;
                                     authTotalCount++;
@@ -307,7 +311,7 @@ public class LoaderRunner implements ApplicationRunner {
                                         lastUpdatedTimestamp,
                                         lastUpdatedUserId,
                                         lastBalanceInquiry,
-                                        state);
+                                        StringUtils.isNotBlank(origin) ? origin : state);
 
                         acctTotalCount++;
 
