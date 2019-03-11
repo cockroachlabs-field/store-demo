@@ -90,10 +90,10 @@ public class LocalityRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        final String testId = RandomStringUtils.randomAlphanumeric(8);
+
 
         if (args.containsOption("run")) {
-            runTest(testId, state, state, state, duration);
+            runTest(state, state, state, duration);
         }
 
         if (args.containsOption("follower")) {
@@ -103,20 +103,22 @@ public class LocalityRunner implements ApplicationRunner {
             String authorizationState = state;
 
             logger.info("follower test first pass:  account number prefix {}, account state {}, authorization state {}", accountNumberPrefix, accountState, authorizationState);
-            runTest(testId, accountNumberPrefix, accountState, authorizationState, duration);
+            runTest(accountNumberPrefix, accountState, authorizationState, duration);
 
             accountNumberPrefix = state;
             accountState = state;
             authorizationState = state;
 
             logger.info("follower test second pass:  account number prefix {}, account state {}, authorization state {}", accountNumberPrefix, accountState, authorizationState);
-            runTest(testId, accountNumberPrefix, accountState, authorizationState, duration);
+            runTest(accountNumberPrefix, accountState, authorizationState, duration);
         }
 
         SpringApplication.exit(context, () -> 0);
     }
 
-    private void runTest(String testId, String accountNumberPrefix, String accountState, String authorizationState, int duration) {
+    private void runTest(String accountNumberPrefix, String accountState, String authorizationState, int duration) {
+
+        final String testId = RandomStringUtils.randomAlphanumeric(8);
 
         int accountsPerState = totalAccounts / numStates;
 
@@ -186,7 +188,8 @@ public class LocalityRunner implements ApplicationRunner {
 
         sw.stop();
 
-        int touchedAccounts = getTouchedAccounts(testId, accountState);
+        // we pass authorization state here because accounts will be updated to this state during run
+        int touchedAccounts = getTouchedAccounts(testId, authorizationState);
 
         String endBuilder = "\n" +
                 "\tTest Summary\n" +
