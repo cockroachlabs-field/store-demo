@@ -93,17 +93,30 @@ public class LocalityRunner implements ApplicationRunner {
         final String testId = RandomStringUtils.randomAlphanumeric(8);
 
         if (args.containsOption("run")) {
-            runTest(testId, state, duration);
+            runTest(testId, state, state, state, duration);
         }
 
-        if (args.containsOption("locality")) {
-            runTest(testId, state, duration);
+        if (args.containsOption("follower")) {
+
+            String accountNumberPrefix = state;
+            String accountState = "TX";
+            String authorizationState = state;
+
+            logger.info("follower test first pass:  account number prefix {}, account state {}, authorization state {}", accountNumberPrefix, accountState, authorizationState);
+            runTest(testId, accountNumberPrefix, accountState, authorizationState, duration);
+
+            accountNumberPrefix = state;
+            accountState = state;
+            authorizationState = state;
+
+            logger.info("follower test second pass:  account number prefix {}, account state {}, authorization state {}", accountNumberPrefix, accountState, authorizationState);
+            runTest(testId, accountNumberPrefix, accountState, authorizationState, duration);
         }
 
         SpringApplication.exit(context, () -> 0);
     }
 
-    private void runTest(String testId, String state, int duration) {
+    private void runTest(String testId, String accountNumberPrefix, String accountState, String authorizationState, int duration) {
 
         int accountsPerState = totalAccounts / numStates;
 
@@ -111,7 +124,9 @@ public class LocalityRunner implements ApplicationRunner {
                 "\tTest Details\n" +
                 "\t\tTest ID: " + testId + '\n' +
                 "\t\tDuration: " + duration + '\n' +
-                "\t\tState: " + state + '\n' +
+                "\t\tAccount State: " + accountState + '\n' +
+                "\t\tAuthorization State: " + authorizationState + '\n' +
+                "\t\tAccount Number Prefix: " + accountNumberPrefix + '\n' +
                 "\t\tRegion: " + region + '\n' +
                 "\t\t# Threads: " + threadCount + '\n' +
                 "\t\t# Total Accounts: " + totalAccounts + '\n' +
@@ -145,9 +160,9 @@ public class LocalityRunner implements ApplicationRunner {
                         break;
                     }
 
-                    final String accountNumber = getAccountNumber(state, i);
+                    final String accountNumber = getAccountNumber(accountNumberPrefix, i);
 
-                    makePurchase(testId, accountNumber, state, transactions, unavailableBalance);
+                    makePurchase(testId, accountNumber, accountState, authorizationState, transactions, unavailableBalance);
                 }
 
                 countDownLatch.countDown();
@@ -171,13 +186,15 @@ public class LocalityRunner implements ApplicationRunner {
 
         sw.stop();
 
-        int touchedAccounts = getTouchedAccounts(testId, state);
+        int touchedAccounts = getTouchedAccounts(testId, accountState);
 
         String endBuilder = "\n" +
                 "\tTest Summary\n" +
                 "\t\tTest ID: " + testId + '\n' +
                 "\t\tDuration: " + duration + '\n' +
-                "\t\tState: " + state + '\n' +
+                "\t\tAccount State: " + accountState + '\n' +
+                "\t\tAuthorization State: " + authorizationState + '\n' +
+                "\t\tAccount Number Prefix: " + accountNumberPrefix + '\n' +
                 "\t\tRegion: " + region + '\n' +
                 "\t\t# Threads: " + threadCount + '\n' +
                 "\t\t# Total Accounts: " + totalAccounts + '\n' +
@@ -199,27 +216,27 @@ public class LocalityRunner implements ApplicationRunner {
         }
     }
 
-    private void makePurchase(String testId, String accountNumber, String state, AtomicLong transactions, AtomicLong unavailableBalance) {
+    private void makePurchase(String testId, String accountNumber, String accountState, String authorizationState, AtomicLong transactions, AtomicLong unavailableBalance) {
 
         logger.debug("making purchase for for account number [{}]", accountNumber);
 
-        Double availableBalance = getAvailableBalance(accountNumber, state);
+        Double availableBalance = getAvailableBalance(accountNumber, accountState);
 
         if (availableBalance != null) {
 
             // for now we are ignoring balance
-            Authorization authorization = createAuthorization(accountNumber, state, testId);
+            Authorization authorization = createAuthorization(accountNumber, authorizationState, testId);
 
             double newBalance = availableBalance - PURCHASE_AMOUNT;
 
-            updateRecords(authorization, newBalance);
+            updateRecords(authorization, accountState, newBalance);
 
             if (transactions.getAndIncrement() % logBatch == 0) {
                 logger.info("processed {} transactions", transactions.get());
             }
         } else {
             unavailableBalance.incrementAndGet();
-            logger.warn("unable to find balance for account number {} and state {}", accountNumber, state);
+            logger.warn("unable to find balance for account number {} and state {}", accountNumber, accountState);
         }
     }
 
@@ -252,14 +269,14 @@ public class LocalityRunner implements ApplicationRunner {
     }
 
 
-    private Double getAvailableBalance(String accountNumber, String state) {
+    private Double getAvailableBalance(String accountNumber, String accountState) {
 
         try (Connection connection = dataSource.getConnection()) {
 
             try (PreparedStatement ps = connection.prepareStatement(SELECT_AVAILABLE_BALANCE_SQL)) {
 
                 ps.setString(1, accountNumber);
-                ps.setString(2, state);
+                ps.setString(2, accountState);
 
                 try (ResultSet rs = ps.executeQuery()) {
 
@@ -288,7 +305,7 @@ public class LocalityRunner implements ApplicationRunner {
 
     }
 
-    private Authorization createAuthorization(String accountNumber, String state, String testId) {
+    private Authorization createAuthorization(String accountNumber, String authorizationState, String testId) {
 
         Authorization auth = null;
 
@@ -315,7 +332,7 @@ public class LocalityRunner implements ApplicationRunner {
                     auth.setCreatedTimestamp(now);
                     auth.setLastUpdatedTimestamp(now);
                     auth.setLastUpdatedUserId(testId);
-                    auth.setState(state);
+                    auth.setState(authorizationState);
 
                     ps.setString(1, auth.getAccountNumber());
                     ps.setObject(2, auth.getRequestId());
@@ -369,7 +386,7 @@ public class LocalityRunner implements ApplicationRunner {
     }
 
 
-    private void updateRecords(Authorization authorization, double newBalance) {
+    private void updateRecords(Authorization authorization, String accountState, double newBalance) {
 
         try (Connection connection = dataSource.getConnection()) {
 
@@ -410,7 +427,7 @@ public class LocalityRunner implements ApplicationRunner {
                         ps.setString(3, authorization.getLastUpdatedUserId());
                         ps.setString(4, authorization.getState());
                         ps.setString(5, authorization.getAccountNumber());
-                        ps.setString(6, authorization.getState());
+                        ps.setString(6, accountState);
 
                         final int updated = ps.executeUpdate();
 
