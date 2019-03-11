@@ -221,7 +221,7 @@ public class LocalityRunner implements ApplicationRunner {
 
     private void makePurchase(String testId, String accountNumber, String accountState, String authorizationState, AtomicLong transactions, AtomicLong unavailableBalance) {
 
-        logger.debug("making purchase for for account number [{}]", accountNumber);
+        logger.trace("making purchase for for account number [{}]", accountNumber);
 
         Double availableBalance = getAvailableBalance(accountNumber, accountState);
 
