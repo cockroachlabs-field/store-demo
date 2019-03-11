@@ -30,22 +30,6 @@ variable "os_disk_size" {
   default = 100
 }
 
-variable "gcp_east_region" {
-  default = "us-east1"
-}
-
-variable "gcp_east_zone" {
-  default = "us-east1-b"
-}
-
-variable "gcp_west_region" {
-  default = "us-west2"
-}
-
-variable "gcp_west_zone" {
-  default = "us-west2-b"
-}
-
 variable "gcp_machine_type" {
   default = "n1-standard-16"
 }
@@ -76,10 +60,6 @@ variable "azure_private_key_path" {
 
 variable "azure_public_key_path" {
   default = "~/.ssh/id_rsa.pub"
-}
-
-variable "azure_east_location" {
-  default = "eastus2"
 }
 
 variable "crdb_version" {

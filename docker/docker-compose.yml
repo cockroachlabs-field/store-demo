@@ -1,141 +1,65 @@
 version: '3.5'
 
-networks:
-  shared:
-    driver: bridge
-  east:
-    driver: bridge
-  central:
-    driver: bridge
-  west:
-    driver: bridge
-
 services:
 
-  east-1:
-    container_name: east-1
-    hostname: east-1
+  gcp-east:
+    container_name: gcp-east
+    hostname: gcp-east
     image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - east
-    command: start --logtostderr --insecure --locality=region=east
+    command: start --logtostderr --insecure --locality=region=gcp-east
 
-  east-2:
-    container_name: east-2
-    hostname: east-2
+  azure-east:
+    container_name: azure-east
+    hostname: azure-east
     image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - east
-    command: start --logtostderr --insecure --locality=region=east --join=east-1
+    command: start --logtostderr --insecure --locality=region=azure-east --join=gcp-east
     depends_on:
-      - east-1
+      - gcp-east
 
-  east-3:
-    container_name: east-3
-    hostname: east-3
+  gcp-central:
+    container_name: gcp-central
+    hostname: gcp-central
     image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - east
-    command: start --logtostderr --insecure --locality=region=east --join=east-1
+    command: start --logtostderr --insecure --locality=region=gcp-central --join=gcp-east
     depends_on:
-      - east-1
+      - gcp-east
 
-  central-1:
-    container_name: central-1
-    hostname: central-1
+  gcp-west:
+    container_name: gcp-west
+    hostname: gcp-west
     image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - central
-    command: start --logtostderr --insecure --locality=region=central --join=east-1
+    command: start --logtostderr --insecure --locality=region=gcp-west --join=gcp-east
     depends_on:
-      - east-1
+      - gcp-east
 
-  central-2:
-    container_name: central-2
-    hostname: central-2
+  azure-west:
+    container_name: azure-west
+    hostname: azure-west
     image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - central
-    command: start --logtostderr --insecure --locality=region=central --join=east-1
+    command: start --logtostderr --insecure --locality=region=azure-west --join=gcp-east
     depends_on:
-      - east-1
+      - gcp-east
 
-  central-3:
-    container_name: central-3
-    hostname: central-3
-    image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - central
-    command: start --logtostderr --insecure --locality=region=central --join=east-1
-    depends_on:
-      - east-1
-
-  west-1:
-    container_name: west-1
-    hostname: west-1
-    image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - west
-    command: start --logtostderr --insecure --locality=region=west --join=east-1
-    depends_on:
-      - east-1
-
-  west-2:
-    container_name: west-2
-    hostname: west-2
-    image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - west
-    command: start --logtostderr --insecure --locality=region=west --join=east-1
-    depends_on:
-      - east-1
-
-  west-3:
-    container_name: west-3
-    hostname: west-3
-    image: cockroachdb/cockroach:v2.1.5
-    networks:
-      - shared
-      - west
-    command: start --logtostderr --insecure --locality=region=west --join=east-1
-    depends_on:
-      - east-1
 
   lb:
     container_name: lb
     hostname: lb
     build: haproxy
-    networks:
-      - shared
     ports:
       - "5432:5432"
       - "8080:8080"
       - "8081:8081"
     links:
-      - east-1
-      - east-2
-      - east-3
-      - central-1
-      - central-2
-      - central-3
-      - west-1
-      - west-2
-      - west-3
+      - gcp-east
+      - azure-east
+      - gcp-central
+      - gcp-west
+      - azure-west
 
   prometheus:
     container_name: prometheus
     hostname: prometheus
     build: ./prometheus
-    networks:
-      - shared
     ports:
       - "9090:9090"
     depends_on:
@@ -145,8 +69,6 @@ services:
     container_name: grafana
     hostname: grafana
     build: ./grafana
-    networks:
-      - shared
     ports:
       - "3000:3000"
     depends_on:

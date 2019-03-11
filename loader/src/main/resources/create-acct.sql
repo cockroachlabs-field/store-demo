@@ -11,6 +11,8 @@ CREATE TABLE ACCT (
   STATE            STRING(2)      NOT NULL,
   PRIMARY KEY (STATE ASC, ACCT_NBR ASC))
   PARTITION BY LIST (STATE) (
-    PARTITION east VALUES IN ('SC'),
-    PARTITION central VALUES IN ('TX'),
-    PARTITION west VALUES IN ('CA'));
+    PARTITION gcp_east VALUES IN ('SC'),
+    PARTITION azure_east VALUES IN ('VA'),
+    PARTITION gcp_central VALUES IN ('IA'),
+    PARTITION gcp_west VALUES IN ('CA'),
+    PARTITION azure_west VALUES IN ('WA'));
