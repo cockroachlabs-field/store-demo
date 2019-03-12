@@ -319,7 +319,7 @@ resource "null_resource" "prep_nodes" {
   provisioner "remote-exec" {
     scripts = ["${path.root}/scripts/startup.sh",
       "${path.root}/scripts/disks.sh",
-      "${path.root}/scripts/install-crdb.sh",
+      "${path.root}/scripts/node-install-crdb.sh",
       "${path.root}/scripts/node-ready.sh"
     ]
   }

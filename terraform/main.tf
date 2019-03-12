@@ -179,14 +179,14 @@ resource "null_resource" "start_a_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.a.name} ${element(module.a.node_private_ips, count.index)} ${element(module.a.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.a.name} ${element(module.a.node_private_ips, count.index)} ${element(module.a.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -209,14 +209,14 @@ resource "null_resource" "start_b_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.b.name} ${element(module.b.node_private_ips, count.index)} ${element(module.b.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.b.name} ${element(module.b.node_private_ips, count.index)} ${element(module.b.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -240,14 +240,14 @@ resource "null_resource" "start_c_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.c.name} ${element(module.c.node_private_ips, count.index)} ${element(module.c.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.c.name} ${element(module.c.node_private_ips, count.index)} ${element(module.c.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -271,14 +271,14 @@ resource "null_resource" "start_d_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.d.name} ${element(module.d.node_private_ips, count.index)} ${element(module.d.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.d.name} ${element(module.d.node_private_ips, count.index)} ${element(module.d.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -302,14 +302,14 @@ resource "null_resource" "start_e_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.e.name} ${element(module.e.node_private_ips, count.index)} ${element(module.e.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.e.name} ${element(module.e.node_private_ips, count.index)} ${element(module.e.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -333,14 +333,14 @@ resource "null_resource" "start_f_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/start-node.sh"
-    destination = "/tmp/start-node.sh"
+    source      = "${path.root}/scripts/node-start.sh"
+    destination = "/tmp/node-start.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/start-node.sh",
-      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.f.name} ${element(module.f.node_private_ips, count.index)} ${element(module.f.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/node-start.sh",
+      "/tmp/node-start.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.f.name} ${element(module.f.node_private_ips, count.index)} ${element(module.f.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
