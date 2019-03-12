@@ -2,43 +2,51 @@ version: '3.5'
 
 services:
 
-  gcp-east:
-    container_name: gcp-east
-    hostname: gcp-east
+  node-a:
+    container_name: node-a
+    hostname: node-a
     image: cockroachdb/cockroach:v2.1.5
-    command: start --logtostderr --insecure --locality=region=gcp-east
+    command: start --logtostderr --insecure --locality=region=A
 
-  azure-east:
-    container_name: azure-east
-    hostname: azure-east
+  node-b:
+    container_name: node-b
+    hostname: node-b
     image: cockroachdb/cockroach:v2.1.5
-    command: start --logtostderr --insecure --locality=region=azure-east --join=gcp-east
+    command: start --logtostderr --insecure --locality=region=B --join=node-a
     depends_on:
-      - gcp-east
+      - node-a
 
-  gcp-central:
-    container_name: gcp-central
-    hostname: gcp-central
+  node-c:
+    container_name: node-c
+    hostname: node-c
     image: cockroachdb/cockroach:v2.1.5
-    command: start --logtostderr --insecure --locality=region=gcp-central --join=gcp-east
+    command: start --logtostderr --insecure --locality=region=C --join=node-a
     depends_on:
-      - gcp-east
+      - node-a
 
-  gcp-west:
-    container_name: gcp-west
-    hostname: gcp-west
+  node-d:
+    container_name: node-d
+    hostname: node-d
     image: cockroachdb/cockroach:v2.1.5
-    command: start --logtostderr --insecure --locality=region=gcp-west --join=gcp-east
+    command: start --logtostderr --insecure --locality=region=D --join=node-a
     depends_on:
-      - gcp-east
+      - node-a
 
-  azure-west:
-    container_name: azure-west
-    hostname: azure-west
+  node-e:
+    container_name: node-e
+    hostname: node-e
     image: cockroachdb/cockroach:v2.1.5
-    command: start --logtostderr --insecure --locality=region=azure-west --join=gcp-east
+    command: start --logtostderr --insecure --locality=region=E --join=node-a
     depends_on:
-      - gcp-east
+      - node-a
+
+  node-f:
+    container_name: node-f
+    hostname: node-f
+    image: cockroachdb/cockroach:v2.1.5
+    command: start --logtostderr --insecure --locality=region=F --join=node-a
+    depends_on:
+      - node-a
 
 
   lb:
@@ -50,11 +58,12 @@ services:
       - "8080:8080"
       - "8081:8081"
     links:
-      - gcp-east
-      - azure-east
-      - gcp-central
-      - gcp-west
-      - azure-west
+      - node-a
+      - node-b
+      - node-c
+      - node-d
+      - node-e
+      - node-f
 
   prometheus:
     container_name: prometheus
