@@ -37,7 +37,7 @@ if [[ -z "$CRDB_JOIN" ]]; then
     exit 1
 fi
 
-while [[ ! -f /tmp/instance-ready ]]; do echo 'waiting for node to be ready...'; sleep 1; done
+while [[ ! -f /tmp/node-ready ]]; do echo 'waiting for node to be ready...'; sleep 1; done
 
 cockroach start \
     --background \
