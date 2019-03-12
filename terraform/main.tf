@@ -16,7 +16,7 @@ locals {
 
 
 module "a" {
-  name = "a"
+  name = "A"
   source = "./modules/azure"
   location = "eastus2"
   lat = "36.6681"
@@ -37,7 +37,7 @@ module "a" {
 }
 
 module "b" {
-  name = "b"
+  name = "B"
   source = "./modules/azure"
   location = "eastus2"
   lat = "36.6681"
@@ -59,7 +59,7 @@ module "b" {
 
 
 module "c" {
-  name = "c"
+  name = "C"
   source = "./modules/gcp"
   region = "us-central1"
   zone = "us-central1-a"
@@ -83,7 +83,7 @@ module "c" {
 
 
 module "d" {
-  name = "d"
+  name = "D"
   source = "./modules/gcp"
   region = "us-central1"
   zone = "us-central1-b"
@@ -106,7 +106,7 @@ module "d" {
 }
 
 module "e" {
-  name = "e"
+  name = "E"
   source = "./modules/gcp"
   region = "us-west2"
   zone = "us-west2-a"
@@ -129,7 +129,7 @@ module "e" {
 }
 
 module "f" {
-  name = "f"
+  name = "F"
   source = "./modules/gcp"
   region = "us-west2"
   zone = "us-west2-b"
