@@ -1,71 +1,11 @@
-# ---------------------------------------------------------------------------------------------------------------------
-# gcp east
-# ---------------------------------------------------------------------------------------------------------------------
-
-output "gcp_east_public_node_ips" {
-  value = "${join(",", module.gcp_east.node_public_ips)}"
+output "node_public_ips" {
+  value = "${map("a", module.a.node_public_ips, "b", module.b.node_public_ips, "c", module.c.node_public_ips, "d", module.d.node_public_ips, "e", module.e.node_public_ips, "f", module.f.node_public_ips)}"
 }
 
-output "gcp_east_private_node_ips" {
-  value = "${join(",", module.gcp_east.node_private_ips)}"
+output "client_public_ips" {
+  value = "${map("a", module.a.client_public_ips, "b", module.b.client_public_ips, "c", module.c.client_public_ips, "d", module.d.client_public_ips, "e", module.e.client_public_ips, "f", module.f.client_public_ips)}"
 }
 
-output "gcp_east_public_client_ips" {
-  value = "${join(",", module.gcp_east.client_public_ips)}"
-}
-
-output "gcp_east_private_client_ips" {
-  value = "${join(",", module.gcp_east.client_private_ips)}"
-}
-
-output "gcp_east_private_lb_ip" {
-  value = "${join(",", module.gcp_east.lb_private_ip)}"
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# gcp west
-# ---------------------------------------------------------------------------------------------------------------------
-
-output "gcp_west_public_node_ips" {
-  value = "${join(",", module.gcp_west.node_public_ips)}"
-}
-
-output "gcp_west_private_node_ips" {
-  value = "${join(",", module.gcp_west.node_private_ips)}"
-}
-
-output "gcp_west_public_client_ips" {
-  value = "${join(",", module.gcp_west.client_public_ips)}"
-}
-
-output "gcp_west_private_client_ips" {
-  value = "${join(",", module.gcp_west.client_private_ips)}"
-}
-
-output "gcp_west_private_lb_ip" {
-  value = "${join(",", module.gcp_west.lb_private_ip)}"
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# azure east
-# ---------------------------------------------------------------------------------------------------------------------
-
-output "azure_east_public_node_ips" {
-  value = "${join(",", module.azure_east.node_public_ips)}"
-}
-
-output "azure_east_private_node_ips" {
-  value = "${join(",", module.azure_east.node_private_ips)}"
-}
-
-output "azure_east_public_client_ips" {
-  value = "${join(",", module.azure_east.client_public_ips)}"
-}
-
-output "azure_east_private_client_ips" {
-  value = "${join(",", module.azure_east.client_private_ips)}"
-}
-
-output "azure_east_private_lb_ip" {
-  value = "${join(",", module.azure_east.lb_private_ip)}"
+output "loadbalancer_private_ips" {
+  value = "${map("a", module.a.lb_private_ip, "b", module.b.lb_private_ip, "c", module.c.lb_private_ip, "d", module.d.lb_private_ip, "e", module.e.lb_private_ip, "f", module.f.lb_private_ip)}"
 }

@@ -39,3 +39,12 @@ variable "user" {
 
 variable "cluster_name" {
 }
+
+variable "name" {
+}
+
+variable "lat" {
+}
+
+variable "long" {
+}

@@ -22,3 +22,15 @@ output "lb_private_ip" {
   description = "Private IP of Azure Load Balancer"
   value = "${azurerm_lb.lb.*.private_ip_address}"
 }
+
+output "name" {
+  value = "${var.name}"
+}
+
+output "lat" {
+  value = "${var.lat}"
+}
+
+output "long" {
+  value = "${var.long}"
+}

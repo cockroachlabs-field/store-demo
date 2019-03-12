@@ -19,12 +19,12 @@ resource "azurerm_resource_group" "resource_group" {
   location = "${var.location}"
 }
 
-resource "azurerm_availability_set" "availability_set" {
-  name = "${local.prefix}-availability-set"
-  location = "${azurerm_resource_group.resource_group.location}"
-  resource_group_name = "${azurerm_resource_group.resource_group.name}"
-  managed = "true"
-}
+//resource "azurerm_availability_set" "availability_set" {
+//  name = "${local.prefix}-availability-set"
+//  location = "${azurerm_resource_group.resource_group.location}"
+//  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+//  managed = "true"
+//}
 
 resource "azurerm_virtual_network" "virtual_network" {
   name = "${local.prefix}-virtual-network"
@@ -91,6 +91,7 @@ resource "azurerm_lb" "lb" {
     name = "${local.lb_frontend}"
     subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "Dynamic"
+    zones = ["${var.zone}"]
   }
 }
 
@@ -134,6 +135,7 @@ resource "azurerm_public_ip" "public_ip_node" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
+  zones = ["${var.zone}"]
 }
 
 resource "azurerm_network_interface" "network_interface_node" {
@@ -168,6 +170,7 @@ resource "azurerm_virtual_machine" "nodes" {
   name = "${local.prefix}-node-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
+  zones = ["${var.zone}"]
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"]
   vm_size = "${var.node_machine_type}"
@@ -175,7 +178,7 @@ resource "azurerm_virtual_machine" "nodes" {
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
 
-  availability_set_id = "${azurerm_availability_set.availability_set.id}"
+  #availability_set_id = "${azurerm_availability_set.availability_set.id}"
 
   storage_os_disk {
     name = "${local.prefix}-os-disk-node-${count.index}"
@@ -224,6 +227,7 @@ resource "azurerm_public_ip" "public_ip_client" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
+  zones = ["${var.zone}"]
 }
 
 resource "azurerm_network_interface" "network_interface_client" {
@@ -251,6 +255,7 @@ resource "azurerm_virtual_machine" "clients" {
   name = "${local.prefix}-client-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
+  zones = ["${var.zone}"]
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.network_interface_client.*.id, count.index)}"]
   vm_size = "${var.client_machine_type}"
