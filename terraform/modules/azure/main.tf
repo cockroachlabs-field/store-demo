@@ -91,7 +91,6 @@ resource "azurerm_lb" "lb" {
     name = "${local.lb_frontend}"
     subnet_id = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "Dynamic"
-    //zones = ["${var.zone}"]
   }
 }
 
@@ -135,7 +134,6 @@ resource "azurerm_public_ip" "public_ip_node" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
-  //zones = ["${var.zone}"]
 }
 
 resource "azurerm_network_interface" "network_interface_node" {
@@ -170,7 +168,6 @@ resource "azurerm_virtual_machine" "nodes" {
   name = "${local.prefix}-node-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
-  //zones = ["${var.zone}"]
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.network_interface_node.*.id, count.index)}"]
   vm_size = "${var.node_machine_type}"
@@ -227,7 +224,6 @@ resource "azurerm_public_ip" "public_ip_client" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
-  //zones = ["${var.zone}"]
 }
 
 resource "azurerm_network_interface" "network_interface_client" {
@@ -255,7 +251,6 @@ resource "azurerm_virtual_machine" "clients" {
   name = "${local.prefix}-client-${count.index}"
 
   location = "${azurerm_resource_group.resource_group.location}"
-  //zones = ["${var.zone}"]
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   network_interface_ids = ["${element(azurerm_network_interface.network_interface_client.*.id, count.index)}"]
   vm_size = "${var.client_machine_type}"
@@ -323,7 +318,10 @@ resource "null_resource" "prep_nodes" {
 
   provisioner "remote-exec" {
     scripts = ["${path.root}/scripts/startup.sh",
-      "${path.root}/scripts/disks.sh"]
+      "${path.root}/scripts/disks.sh",
+      "${path.root}/scripts/install-crdb.sh",
+      "${path.root}/scripts/node-ready.sh"
+    ]
   }
 
   provisioner "remote-exec" {
@@ -349,16 +347,12 @@ resource "null_resource" "prep_clients" {
   }
 
   provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/startup.sh"]
-  }
-
-  provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/client-build.sh"]
+    scripts = ["${path.root}/scripts/startup.sh",
+      "${path.root}/scripts/client-build.sh"
+    ]
   }
 
   provisioner "remote-exec" {
     inline = ["sleep ${var.sleep}"]
   }
-
-
 }

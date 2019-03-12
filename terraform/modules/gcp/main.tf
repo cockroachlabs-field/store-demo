@@ -168,7 +168,10 @@ resource "null_resource" "prep_nodes" {
 
   provisioner "remote-exec" {
     scripts = ["${path.root}/scripts/startup.sh",
-      "${path.root}/scripts/disks.sh"]
+      "${path.root}/scripts/disks.sh",
+      "${path.root}/scripts/install-crdb.sh",
+      "${path.root}/scripts/node-ready.sh"
+    ]
   }
 
   provisioner "remote-exec" {
@@ -193,11 +196,9 @@ resource "null_resource" "prep_clients" {
   }
 
   provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/startup.sh"]
-  }
-
-  provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/client-build.sh"]
+    scripts = ["${path.root}/scripts/startup.sh",
+      "${path.root}/scripts/client-build.sh"
+    ]
   }
 
   provisioner "remote-exec" {

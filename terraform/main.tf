@@ -166,7 +166,6 @@ resource "null_resource" "start_trigger" {
     f_public_ips = "${join(",", module.f.node_public_ips)}"
   }
 }
-
 resource "null_resource" "start_a_nodes" {
 
   count = "${local.node_count}"
@@ -179,11 +178,15 @@ resource "null_resource" "start_a_nodes" {
     private_key = "${file(var.azure_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.a.name} --locality-advertise-addr=region=${module.a.name}@${element(module.a.node_private_ips, count.index)} --advertise-addr=${element(module.a.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.a.name} ${element(module.a.node_private_ips, count.index)} ${element(module.a.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -205,11 +208,15 @@ resource "null_resource" "start_b_nodes" {
     private_key = "${file(var.azure_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.b.name} --locality-advertise-addr=region=${module.b.name}@${element(module.b.node_private_ips, count.index)} --advertise-addr=${element(module.b.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.b.name} ${element(module.b.node_private_ips, count.index)} ${element(module.b.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -232,11 +239,15 @@ resource "null_resource" "start_c_nodes" {
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.c.name} --locality-advertise-addr=region=${module.c.name}@${element(module.c.node_private_ips, count.index)} --advertise-addr=${element(module.c.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.c.name} ${element(module.c.node_private_ips, count.index)} ${element(module.c.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -259,11 +270,15 @@ resource "null_resource" "start_d_nodes" {
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.d.name} --locality-advertise-addr=region=${module.d.name}@${element(module.d.node_private_ips, count.index)} --advertise-addr=${element(module.d.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.d.name} ${element(module.d.node_private_ips, count.index)} ${element(module.d.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -286,11 +301,15 @@ resource "null_resource" "start_e_nodes" {
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.e.name} --locality-advertise-addr=region=${module.e.name}@${element(module.e.node_private_ips, count.index)} --advertise-addr=${element(module.e.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.e.name} ${element(module.e.node_private_ips, count.index)} ${element(module.e.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
@@ -313,11 +332,15 @@ resource "null_resource" "start_f_nodes" {
     private_key = "${file(var.gcp_private_key_path)}"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/start-node.sh"
+    destination = "/tmp/start-node.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "wget -qO- https://binaries.cockroachdb.com/cockroach-${var.crdb_version}.linux-amd64.tgz | tar xvz",
-      "sudo cp -fv cockroach-${var.crdb_version}.linux-amd64/cockroach /usr/local/bin",
-      "cockroach start --insecure --logtostderr=NONE --log-dir=/mnt/disks/cockroach --store=/mnt/disks/cockroach --cache=${var.crdb_cache} --max-sql-memory=${var.crdb_max_sql_memory} --background --locality=region=${module.f.name} --locality-advertise-addr=region=${module.f.name}@${element(module.f.node_private_ips, count.index)} --advertise-addr=${element(module.f.node_public_ips, count.index)} --join=${join(",", module.a.node_private_ips)}"
+      "chmod +x /tmp/start-node.sh",
+      "/tmp/start-node.sh ${var.crdb_cache} ${var.crdb_max_sql_memory} ${module.f.name} ${element(module.f.node_private_ips, count.index)} ${element(module.f.node_public_ips, count.index)} ${join(",", module.a.node_private_ips)}"
     ]
   }
 
