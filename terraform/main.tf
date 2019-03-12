@@ -22,6 +22,7 @@ module "a" {
   lat = "36.6681"
   long = "-78.3889"
 
+  crdb_version = "${var.crdb_version}"
   node_machine_type = "${var.azure_machine_type}"
   client_machine_type = "${var.azure_machine_type_client}"
   os_disk_size = "${var.os_disk_size}"
@@ -43,6 +44,7 @@ module "b" {
   lat = "36.6681"
   long = "-78.3889"
 
+  crdb_version = "${var.crdb_version}"
   node_machine_type = "${var.azure_machine_type}"
   client_machine_type = "${var.azure_machine_type_client}"
   os_disk_size = "${var.os_disk_size}"
@@ -66,6 +68,7 @@ module "c" {
   lat = "42.032974"
   long = "-93.581543"
 
+  crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
   node_machine_type = "${var.gcp_machine_type}"
   client_machine_type = "${var.gcp_machine_type_client}"
@@ -90,6 +93,8 @@ module "d" {
   lat = "42.032974"
   long = "-93.581543"
 
+
+  crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
   node_machine_type = "${var.gcp_machine_type}"
   client_machine_type = "${var.gcp_machine_type_client}"
@@ -113,6 +118,7 @@ module "e" {
   lat = "34.052235"
   long = "-118.243683"
 
+  crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
   node_machine_type = "${var.gcp_machine_type}"
   client_machine_type = "${var.gcp_machine_type_client}"
@@ -136,6 +142,7 @@ module "f" {
   lat = "34.052235"
   long = "-118.243683"
 
+  crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
   node_machine_type = "${var.gcp_machine_type}"
   client_machine_type = "${var.gcp_machine_type_client}"
@@ -367,9 +374,9 @@ resource "null_resource" "init_cluster" {
   ]
 
   connection {
-    user = "${var.gcp_user}"
+    user = "${var.azure_user}"
     host = "${element(module.a.node_public_ips, 0)}"
-    private_key = "${file(var.gcp_private_key_path)}"
+    private_key = "${file(var.azure_private_key_path)}"
   }
 
   provisioner "remote-exec" {

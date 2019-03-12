@@ -166,13 +166,29 @@ resource "null_resource" "prep_nodes" {
     private_key = "${file(var.private_key_path)}"
   }
 
+
+  provisioner "file" {
+    source = "${path.root}/scripts/node-install-crdb.sh"
+    destination = "/tmp/node-install-crdb.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = ["${path.root}/scripts/startup.sh",
-      "${path.root}/scripts/disks.sh",
-      "${path.root}/scripts/node-install-crdb.sh",
-      "${path.root}/scripts/node-ready.sh"
+      "${path.root}/scripts/disks.sh"
     ]
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/node-install-crdb.sh",
+      "/tmp/node-install-crdb.sh ${var.crdb_version}"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    scripts = ["${path.root}/scripts/node-ready.sh"]
+  }
+
 
   provisioner "remote-exec" {
     inline = ["sleep ${var.sleep}"]
