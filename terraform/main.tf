@@ -19,7 +19,6 @@ module "a" {
   name = "a"
   source = "./modules/azure"
   location = "eastus2"
-  zone = "1"
   lat = "36.6681"
   long = "-78.3889"
 
@@ -41,7 +40,6 @@ module "b" {
   name = "b"
   source = "./modules/azure"
   location = "eastus2"
-  zone = "2"
   lat = "36.6681"
   long = "-78.3889"
 

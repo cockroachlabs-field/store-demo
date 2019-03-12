@@ -35,9 +35,6 @@ variable "user" {
 variable "cluster_name" {
 }
 
-variable "zone" {
-}
-
 variable "name" {
 }
 

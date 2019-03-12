@@ -62,6 +62,7 @@ variable "azure_public_key_path" {
   default = "~/.ssh/id_rsa.pub"
 }
 
+
 variable "crdb_version" {
   default = "v2.1.5"
 }
