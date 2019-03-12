@@ -179,7 +179,7 @@ resource "null_resource" "start_a_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
@@ -209,7 +209,7 @@ resource "null_resource" "start_b_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
@@ -240,7 +240,7 @@ resource "null_resource" "start_c_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
@@ -271,7 +271,7 @@ resource "null_resource" "start_d_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
@@ -302,7 +302,7 @@ resource "null_resource" "start_e_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
@@ -333,7 +333,7 @@ resource "null_resource" "start_f_nodes" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/scripts/node-start.sh"
+    source = "${path.root}/scripts/node-start.sh"
     destination = "/tmp/node-start.sh"
   }
 
