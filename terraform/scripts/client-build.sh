@@ -5,9 +5,9 @@ sudo apt-get install -yqq openjdk-8-jdk git
 
 sudo git clone -q https://github.com/cockroachlabs/store-demo.git
 
-sudo git checkout -f 5node
-
 cd store-demo
+
+sudo git checkout -f 5node
 
 sudo ./mvnw -q clean compile package -DskipTests
 
