@@ -24,6 +24,8 @@ resource "azurerm_availability_set" "availability_set" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   managed = "true"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
@@ -31,6 +33,8 @@ resource "azurerm_virtual_network" "virtual_network" {
   address_space = ["10.0.0.0/16"]
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 }
 
 resource "azurerm_subnet" "subnet" {
@@ -44,6 +48,8 @@ resource "azurerm_network_security_group" "security_group" {
   name = "${local.prefix}-network-security-group"
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 
   security_rule {
     name = "ssh"
@@ -86,6 +92,8 @@ resource "azurerm_lb" "lb" {
   name = "${local.prefix}-lb"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   location = "${azurerm_resource_group.resource_group.location}"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 
   frontend_ip_configuration {
     name = "${local.lb_frontend}"
@@ -134,6 +142,8 @@ resource "azurerm_public_ip" "public_ip_node" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 }
 
 resource "azurerm_network_interface" "network_interface_node" {
@@ -224,6 +234,8 @@ resource "azurerm_public_ip" "public_ip_client" {
   location = "${azurerm_resource_group.resource_group.location}"
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   allocation_method = "Dynamic"
+
+  depends_on = ["azurerm_resource_group.resource_group"]
 }
 
 resource "azurerm_network_interface" "network_interface_client" {
