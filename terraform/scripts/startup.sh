@@ -4,7 +4,7 @@ while [[ ! -f /var/lib/cloud/instance/boot-finished ]]; do echo 'waiting for clo
 
 sudo apt-get update --fix-missing
 sudo apt-get upgrade -y
-sudo apt-get install -yqq ntp ntpstat
+sudo apt-get install -yqq ntp ntpstat iostat
 
 sudo timedatectl set-ntp no
 
