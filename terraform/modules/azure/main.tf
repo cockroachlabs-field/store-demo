@@ -328,16 +328,27 @@ resource "null_resource" "prep_nodes" {
     timeout = "2m"
   }
 
+  provisioner "remote-exec" {
+    scripts = ["${path.root}/scripts/startup.sh",]
+  }
+
+  provisioner "file" {
+    source = "${path.root}/scripts/disks.sh"
+    destination = "/tmp/disks.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/disks.sh",
+      "/tmp/disks.sh /dev/sdb"
+    ]
+  }
+
   provisioner "file" {
     source = "${path.root}/scripts/node-install-crdb.sh"
     destination = "/tmp/node-install-crdb.sh"
   }
 
-  provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/startup.sh",
-      "${path.root}/scripts/disks.sh"
-    ]
-  }
 
   provisioner "remote-exec" {
     inline = [

@@ -167,15 +167,25 @@ resource "null_resource" "prep_nodes" {
   }
 
 
+  provisioner "remote-exec" {
+    scripts = ["${path.root}/scripts/startup.sh"]
+  }
+
   provisioner "file" {
-    source = "${path.root}/scripts/node-install-crdb.sh"
-    destination = "/tmp/node-install-crdb.sh"
+    source = "${path.root}/scripts/disks.sh"
+    destination = "/tmp/disks.sh"
   }
 
   provisioner "remote-exec" {
-    scripts = ["${path.root}/scripts/startup.sh",
-      "${path.root}/scripts/disks.sh"
+    inline = [
+      "chmod +x /tmp/disks.sh",
+      "/tmp/disks.sh /dev/nvme0n1"
     ]
+  }
+
+  provisioner "file" {
+    source = "${path.root}/scripts/node-install-crdb.sh"
+    destination = "/tmp/node-install-crdb.sh"
   }
 
   provisioner "remote-exec" {

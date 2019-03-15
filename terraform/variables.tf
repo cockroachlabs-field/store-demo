@@ -47,11 +47,11 @@ variable "gcp_credentials_file" {
 }
 
 variable "azure_machine_type" {
-  default = "Standard_L16s_v2"
+  default = "Standard_F16s_v2"
 }
 
 variable "azure_machine_type_client" {
-  default = "Standard_L8s_v2"
+  default = "Standard_F8s_v2"
 }
 
 variable "azure_private_key_path" {

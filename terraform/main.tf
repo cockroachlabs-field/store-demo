@@ -18,7 +18,7 @@ locals {
 module "a" {
   name = "A"
   source = "./modules/azure"
-  location = "eastus2"
+  location = "eastus"
   lat = "36.6681"
   long = "-78.3889"
 
@@ -40,7 +40,7 @@ module "a" {
 module "b" {
   name = "B"
   source = "./modules/azure"
-  location = "eastus2"
+  location = "eastus"
   lat = "36.6681"
   long = "-78.3889"
 
