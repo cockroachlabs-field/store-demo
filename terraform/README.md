@@ -1,16 +1,12 @@
 # Store Demo - Terraform
 
-Terraform is used to provision a 9 node CockroachDB cluster across 3 geographically disperse US Data Centers and 2 cloud providers.  Again, the intent is to demonstrate survivability across Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
-* Data Center 1 - Google's `us-east1` region in South Carolina on the Eastern Interconnection grid
-* Data Center 2 - Microsoft's `southcentralus` region in Texas on the Texas Interconnection grid
-* Data Center 3 - Google's `us-west2` region in southern California on the Western Interconnection grid
-
-* A - azure, eastus, 1, lat:36.6681,long:-78.3889, SC (actually in VA; should fix)
-* B - azure, eastus, 2, lat:36.6681,long:-78.3889, GA (actually in VA; should fix)
-* C - gcp, us-central1, us-central1-a, lat:42.032974, long:-93.581543, IA
-* D - gcp, us-central1, us-central1-b, lat:42.032974, long:-93.581543, MO
-* E - gcp, us-west2, us-west2-a, lat:34.052235, long:-118.243683, CA
-* F - gcp, us-west2, us-west2-b, lat:34.052235, long:-118.243683, AZ
+Terraform is used to provision a 18 node CockroachDB cluster across 3 geographically disperse US Data Centers and 2 cloud providers.  Again, the intent is to demonstrate survivability across Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+* Data Center A - Azure's `eastus` region, zone `1` in Virginia on the Eastern Interconnection grid
+* Data Center B - Azure's `eastus` region, zone `2` in Virginia on the Eastern Interconnection grid
+* Data Center C - Google's `us-central1` region, zone `us-central1-a` in Iowa on the Eastern Interconnection grid
+* Data Center D - Google's `us-central1` region, zone `us-central1-b` in Iowa on the Eastern Interconnection grid
+* Data Center E - Google's `us-west2` region, zone `us-west2-a` in Iowa on the Western Interconnection grid
+* Data Center F - Google's `us-west2` region, zone `us-west2-b` in Iowa on the Western Interconnection grid
 
 ## Default Cluster Specifications
 todo
