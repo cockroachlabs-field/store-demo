@@ -16,7 +16,7 @@ The following parameters must be specified as either arguments or in the appropr
 
 * `crdb.state` - The state code that this `runner` will use to query database.  For best performance the `crdb.state` should map to `crdb.region`.
 * `crdb.region` - The region where this `runner` is located.
-* `crdb.server` - The ip address or hostname of a CockroachDB node in region. Preferably a private ip address to prevent external routing.
+* `crdb.servers` - A comma separated list of ip address' or hostname's of a CockroachDB nodes in region. Preferably a private ip address' to prevent external routing.
 * `crdb.run.duration` - The duration in minutes this `runner` should generate load.
 * `crdb.run.threads` - The number of concurrent threads used to generate load.
 * `crdb.accts.total` - The total number of records in the `acct` table
