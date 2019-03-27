@@ -14,13 +14,13 @@ locals {
 # build clusters
 # ---------------------------------------------------------------------------------------------------------------------
 
-
+# SC
 module "a" {
   name = "A"
   source = "./modules/azure"
   location = "eastus"
-  lat = "36.6681"
-  long = "-78.3889"
+  lat = "32.784618"
+  long = "-79.940918"
 
   crdb_version = "${var.crdb_version}"
   node_machine_type = "${var.azure_machine_type}"
@@ -37,12 +37,13 @@ module "a" {
   sleep = "${local.sleep}"
 }
 
+# GA
 module "b" {
   name = "B"
   source = "./modules/azure"
   location = "eastus"
-  lat = "36.6681"
-  long = "-78.3889"
+  lat = "33.753746"
+  long = "-84.386330"
 
   crdb_version = "${var.crdb_version}"
   node_machine_type = "${var.azure_machine_type}"
@@ -59,14 +60,14 @@ module "b" {
   sleep = "${local.sleep}"
 }
 
-
+# IA
 module "c" {
   name = "C"
   source = "./modules/gcp"
   region = "us-central1"
   zone = "us-central1-a"
-  lat = "42.032974"
-  long = "-93.581543"
+  lat = "41.661129"
+  long = "-91.530167"
 
   crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
@@ -84,14 +85,14 @@ module "c" {
   sleep = "${local.sleep}"
 }
 
-
+# MO
 module "d" {
   name = "D"
   source = "./modules/gcp"
   region = "us-central1"
   zone = "us-central1-b"
-  lat = "42.032974"
-  long = "-93.581543"
+  lat = "38.627003"
+  long = "-90.199402"
 
 
   crdb_version = "${var.crdb_version}"
@@ -110,6 +111,7 @@ module "d" {
   sleep = "${local.sleep}"
 }
 
+# CA
 module "e" {
   name = "E"
   source = "./modules/gcp"
@@ -134,13 +136,14 @@ module "e" {
   sleep = "${local.sleep}"
 }
 
+# AZ
 module "f" {
   name = "F"
   source = "./modules/gcp"
   region = "us-west2"
   zone = "us-west2-b"
-  lat = "34.052235"
-  long = "-118.243683"
+  lat = "33.4484"
+  long = "-112.074036"
 
   crdb_version = "${var.crdb_version}"
   credentials_file = "${var.gcp_credentials_file}"
