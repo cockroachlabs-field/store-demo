@@ -5,8 +5,8 @@ Terraform is used to provision a 18 node CockroachDB cluster across 3 geographic
 * Data Center B - Azure's `eastus` region, zone `2` in Virginia on the Eastern Interconnection grid
 * Data Center C - Google's `us-central1` region, zone `us-central1-a` in Iowa on the Eastern Interconnection grid
 * Data Center D - Google's `us-central1` region, zone `us-central1-b` in Iowa on the Eastern Interconnection grid
-* Data Center E - Google's `us-west2` region, zone `us-west2-a` in Iowa on the Western Interconnection grid
-* Data Center F - Google's `us-west2` region, zone `us-west2-b` in Iowa on the Western Interconnection grid
+* Data Center E - Google's `us-west2` region, zone `us-west2-a` in California on the Western Interconnection grid
+* Data Center F - Google's `us-west2` region, zone `us-west2-b` in California on the Western Interconnection grid
 
 ## Default Cluster Specifications
 todo
