@@ -5,13 +5,13 @@ services:
   node-a:
     container_name: node-a
     hostname: node-a
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=A
 
   node-b:
     container_name: node-b
     hostname: node-b
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=B --join=node-a
     depends_on:
       - node-a
@@ -19,7 +19,7 @@ services:
   node-c:
     container_name: node-c
     hostname: node-c
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=C --join=node-a
     depends_on:
       - node-a
@@ -27,7 +27,7 @@ services:
   node-d:
     container_name: node-d
     hostname: node-d
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=D --join=node-a
     depends_on:
       - node-a
@@ -35,7 +35,7 @@ services:
   node-e:
     container_name: node-e
     hostname: node-e
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=E --join=node-a
     depends_on:
       - node-a
@@ -43,7 +43,7 @@ services:
   node-f:
     container_name: node-f
     hostname: node-f
-    image: cockroachdb/cockroach:v2.1.5
+    image: cockroachdb/cockroach:v2.1.6
     command: start --logtostderr --insecure --locality=region=F --join=node-a
     depends_on:
       - node-a
