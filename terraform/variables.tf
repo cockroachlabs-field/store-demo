@@ -64,7 +64,7 @@ variable "azure_public_key_path" {
 
 
 variable "crdb_version" {
-  default = "v2.1.6"
+  default = "v19.1.0"
 }
 
 variable "crdb_max_sql_memory" {
