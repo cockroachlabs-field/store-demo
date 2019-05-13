@@ -7,7 +7,7 @@ sudo git clone -q https://github.com/cockroachlabs/store-demo.git
 
 cd store-demo
 
-sudo git checkout -f 5node
+sudo git checkout -f master
 
 sudo ./mvnw -q clean compile package -DskipTests
 
