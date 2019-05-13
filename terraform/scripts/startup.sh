@@ -2,11 +2,11 @@
 
 while [[ ! -f /var/lib/cloud/instance/boot-finished ]]; do echo 'waiting for cloud-init...'; sleep 1; done
 
+sudo timedatectl set-ntp no
+
 sudo apt-get update --fix-missing
 sudo apt-get upgrade -y
-sudo apt-get install -yqq ntp ntpstat iostat
-
-sudo timedatectl set-ntp no
+sudo apt-get install -yqq ntp ntpstat sysstat
 
 sudo service ntp stop
 
