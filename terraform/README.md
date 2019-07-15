@@ -7,9 +7,6 @@ Terraform is used to provision a 18 node CockroachDB cluster across 3 geographic
 * Data Center D - Google's `us-central1` region, zone `us-central1-b` in Iowa on the Eastern Interconnection grid
 * Data Center E - Google's `us-west2` region, zone `us-west2-a` in California on the Western Interconnection grid
 * Data Center F - Google's `us-west2` region, zone `us-west2-b` in California on the Western Interconnection grid
-
-## Default Cluster Specifications
-todo
  
 ## Prerequisites
 All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
@@ -21,38 +18,34 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
 2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf).
-```hcl-terraform
-gcp_project_id = "your gcp project id"
-gcp_user = "your gcp username"
-azure_user = "your azure username"
-crdb_license_org = "your license org name"
-crdb_license_key = "your license key"
-```
+    ```hcl-terraform
+    gcp_project_id = "your gcp project id"
+    gcp_user = "your gcp username"
+    azure_user = "your azure username"
+    crdb_license_org = "your license org name"
+    crdb_license_key = "your license key"
+    ```
 3) Initialize Terraform
-```bash
-terraform init -upgrade
-```
+    ```bash
+    terraform init -upgrade
+    ```
 
 4) Build the cluster
-```bash
-./apply.sh
-```
+    ```bash
+    ./apply.sh
+    ```
 
-4) Destroy the cluster when you are finished
-```bash
-./destroy.sh
-```
+    If everything is successful you should see a message like this in the console...
+    ```text
+    Apply complete! Resources: 74 added, 0 changed, 0 destroyed.
+    ```
+5) Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
 
-If everything is successful you should see a message like this in the console...
-```text
-Apply complete! Resources: 74 added, 0 changed, 0 destroyed.
 
-Outputs:
-
-...
-```
-
-Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
+6) Destroy the cluster when you are finished
+    ```bash
+    ./destroy.sh
+    ```
 
 ## Other Helpful Commands
 
