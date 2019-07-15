@@ -93,7 +93,7 @@ resource "google_compute_instance" "node_instances" {
 resource "google_compute_instance_group" "node_instance_group" {
   name = "${local.prefix}-node-group"
 
-  instances = ["${google_compute_instance.node_instances.*.self_link}"]
+  instances = "${google_compute_instance.node_instances.*.self_link}"
 
   zone = "${var.zone}"
 }
