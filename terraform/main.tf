@@ -186,6 +186,7 @@ resource "null_resource" "start_a_nodes" {
     user = "${var.azure_user}"
     host = "${element(module.a.node_public_ips, count.index)}"
     private_key = "${file(var.azure_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -216,6 +217,7 @@ resource "null_resource" "start_b_nodes" {
     user = "${var.azure_user}"
     host = "${element(module.b.node_public_ips, count.index)}"
     private_key = "${file(var.azure_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -247,6 +249,7 @@ resource "null_resource" "start_c_nodes" {
     user = "${var.gcp_user}"
     host = "${element(module.c.node_public_ips, count.index)}"
     private_key = "${file(var.gcp_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -278,6 +281,7 @@ resource "null_resource" "start_d_nodes" {
     user = "${var.gcp_user}"
     host = "${element(module.d.node_public_ips, count.index)}"
     private_key = "${file(var.gcp_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -309,6 +313,7 @@ resource "null_resource" "start_e_nodes" {
     user = "${var.gcp_user}"
     host = "${element(module.e.node_public_ips, count.index)}"
     private_key = "${file(var.gcp_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -340,6 +345,7 @@ resource "null_resource" "start_f_nodes" {
     user = "${var.gcp_user}"
     host = "${element(module.f.node_public_ips, count.index)}"
     private_key = "${file(var.gcp_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "file" {
@@ -380,6 +386,7 @@ resource "null_resource" "init_cluster" {
     user = "${var.azure_user}"
     host = "${element(module.a.node_public_ips, 0)}"
     private_key = "${file(var.azure_private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "remote-exec" {

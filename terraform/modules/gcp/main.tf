@@ -164,6 +164,7 @@ resource "null_resource" "prep_nodes" {
     user = "${var.user}"
     host = "${element(google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
     private_key = "${file(var.private_key_path)}"
+    timeout = "2m"
   }
 
 
@@ -219,6 +220,7 @@ resource "null_resource" "prep_clients" {
     user = "${var.user}"
     host = "${element(google_compute_instance.client_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
     private_key = "${file(var.private_key_path)}"
+    timeout = "2m"
   }
 
   provisioner "remote-exec" {
