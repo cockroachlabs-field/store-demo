@@ -46,16 +46,21 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
     ```bash
     ./destroy.sh
     ```
+   
+   If everything is successful you should see a message like this in the console...
+   ```text
+   Destroy complete! Resources: 146 destroyed.
+   ```
 
 ## Other Helpful Commands
 
 ### Refresh State
 ```bash
-terraform refresh -var-file="store-demo.tfvars"
+./refresh.sh
 ```
 
 ### View Plan
 ```bash
-terraform plan -var-file="store-demo.tfvars"
+./plan.sh
 ```
 
