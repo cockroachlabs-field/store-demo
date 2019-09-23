@@ -2,6 +2,7 @@
 
 export TF_LOG="DEBUG"
 export TF_LOG_PATH="destroy.log"
+export TF_WARN_OUTPUT_ERRORS=1
 
 rm -rf destroy.log destroy.txt
 
