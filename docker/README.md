@@ -1,16 +1,12 @@
 # Store Demo - Docker
 
 ## Services
-* `east-1` - CockroachDB node in `east` data center
-* `east-2` - CockroachDB node in `east` data center
-* `east-3` - CockroachDB node in `east` data center
-* `central-1` - CockroachDB node in `central` data center
-* `central-2` - CockroachDB node in `central` data center
-* `central-3` - CockroachDB node in `central` data center
-* `west-1` - CockroachDB node in `west` data center
-* `west-2` - CockroachDB node in `west` data center
-* `west-3` - CockroachDB node in `west` data center
-* `west-3` - CockroachDB node in `west` data center
+* `node-a` - CockroachDB node in region `A`
+* `node-b` - CockroachDB node in region `B`
+* `node-c` - CockroachDB node in region `C`
+* `node-d` - CockroachDB node in region `D`
+* `node-e` - CockroachDB node in region `E`
+* `node-f` - CockroachDB node in region `F`
 * `lb` - HAProxy acting as load balancer
 * `prometheus` - Prometheus server
 * `grafana` - Grafana UI
@@ -34,13 +30,10 @@ docker-compose exec east-1 /cockroach/cockroach sql --insecure --database=store_
 
 ### Open Interactive Shells
 ```bash
-docker exec -ti east-1 /bin/bash
-docker exec -ti east-2 /bin/bash
-docker exec -ti east-3 /bin/bash
-docker exec -ti central-1 /bin/bash
-docker exec -ti central-2 /bin/bash
-docker exec -ti central-3 /bin/bash
-docker exec -ti west-1 /bin/bash
-docker exec -ti west-2 /bin/bash
-docker exec -ti west-3 /bin/bash
+docker exec -ti node-a /bin/bash
+docker exec -ti node-b /bin/bash
+docker exec -ti node-c /bin/bash
+docker exec -ti node-d /bin/bash
+docker exec -ti node-e /bin/bash
+docker exec -ti node-f /bin/bash
 ```
