@@ -19,11 +19,11 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 
 2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf).
     ```hcl-terraform
-    gcp_project_id = "your gcp project id"
-    gcp_user = "your gcp username"
-    azure_user = "your azure username"
-    crdb_license_org = "your license org name"
-    crdb_license_key = "your license key"
+    gcp_project_id = "your google project id"
+    gcp_user = "user used to ssh into google instances"
+    azure_user = "user used to ssh into azure instances"
+    crdb_license_org = "crdb license org"
+    crdb_license_key = "crdb license key"
     ```
 3) Initialize Terraform
     ```bash
@@ -37,7 +37,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 
     If everything is successful you should see a message like this in the console...
     ```text
-    Apply complete! Resources: 74 added, 0 changed, 0 destroyed.
+    Apply complete! Resources: 146 added, 0 changed, 0 destroyed.
     ```
 5) Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
 
