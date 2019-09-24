@@ -187,9 +187,9 @@ resource "null_resource" "start_a_nodes" {
   depends_on = ["null_resource.start_trigger"]
 
   connection {
-    user = "${var.azure_user}"
+    user = "${var.gcp_user}"
     host = "${element(module.a.node_public_ips, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    private_key = "${file(var.gcp_private_key_path)}"
     timeout = "2m"
   }
 
@@ -218,9 +218,9 @@ resource "null_resource" "start_b_nodes" {
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.azure_user}"
+    user = "${var.gcp_user}"
     host = "${element(module.b.node_public_ips, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    private_key = "${file(var.gcp_private_key_path)}"
     timeout = "2m"
   }
 
