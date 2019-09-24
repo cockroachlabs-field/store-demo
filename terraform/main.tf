@@ -17,19 +17,21 @@ locals {
 # SC
 module "a" {
   name = "A"
-  source = "./modules/azure"
-  location = "eastus"
-  lat = "32.784618"
-  long = "-79.940918"
+  source = "./modules/gcp"
+  region = "us-east1"
+  zone = "us-east1-b"
+  lat = "33.836082"
+  long = "-81.163727"
 
   crdb_version = "${var.crdb_version}"
-  node_machine_type = "${var.azure_machine_type}"
-  client_machine_type = "${var.azure_machine_type_client}"
+  credentials_file = "${var.gcp_credentials_file}"
+  node_machine_type = "${var.gcp_machine_type}"
+  client_machine_type = "${var.gcp_machine_type_client}"
   os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.azure_private_key_path}"
-  public_key_path = "${var.azure_public_key_path}"
-  user = "${var.azure_user}"
+  private_key_path = "${var.gcp_private_key_path}"
+  user = "${var.gcp_user}"
 
+  project_id = "${var.gcp_project_id}"
   cluster_name = "${local.cluster_name}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
@@ -37,22 +39,24 @@ module "a" {
   sleep = "${local.sleep}"
 }
 
-# GA
+# VA
 module "b" {
   name = "B"
-  source = "./modules/azure"
-  location = "eastus"
-  lat = "33.753746"
-  long = "-84.386330"
+  source = "./modules/gcp"
+  region = "us-east4"
+  zone = "us-east4-a"
+  lat = "37.478397"
+  long = "-76.453077"
 
   crdb_version = "${var.crdb_version}"
-  node_machine_type = "${var.azure_machine_type}"
-  client_machine_type = "${var.azure_machine_type_client}"
+  credentials_file = "${var.gcp_credentials_file}"
+  node_machine_type = "${var.gcp_machine_type}"
+  client_machine_type = "${var.gcp_machine_type_client}"
   os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.azure_private_key_path}"
-  public_key_path = "${var.azure_public_key_path}"
-  user = "${var.azure_user}"
+  private_key_path = "${var.gcp_private_key_path}"
+  user = "${var.gcp_user}"
 
+  project_id = "${var.gcp_project_id}"
   cluster_name = "${local.cluster_name}"
   node_count = "${local.node_count}"
   client_count = "${local.client_count}"
