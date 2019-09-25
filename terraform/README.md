@@ -23,6 +23,16 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
     crdb_license_org = "crdb license org"
     crdb_license_key = "crdb license key"
     ```
+3) Optional: if running in Google's Cloud Shell, it may be necessary to initialize your SSH keys
+    ```bash
+    gcloud compute config-ssh
+    ```       
+   
+   After running, verify that the following private key file is present, as it is required for connectivity
+   ```bash
+   ~/.ssh/google_compute_engine
+   ```  
+   
 3) Initialize Terraform
     ```bash
     terraform init -upgrade
