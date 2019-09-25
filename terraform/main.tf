@@ -387,9 +387,9 @@ resource "null_resource" "init_cluster" {
   ]
 
   connection {
-    user = "${var.azure_user}"
+    user = "${var.gcp_user}"
     host = "${element(module.a.node_public_ips, 0)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    private_key = "${file(var.gcp_private_key_path)}"
     timeout = "2m"
   }
 

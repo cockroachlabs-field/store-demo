@@ -64,3 +64,6 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 ./plan.sh
 ```
 
+
+"file" failed: no file exists at /home/tv/.ssh/id_rsa.
+
