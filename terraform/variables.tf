@@ -8,10 +8,12 @@ variable "gcp_project_id" {
 
 variable "gcp_user" {
   description = "user used to ssh into google instances"
+  default = "root"
 }
 
 variable "azure_user" {
   description = "user used to ssh into azure instances"
+  default = "root"
 }
 
 variable "crdb_license_org" {

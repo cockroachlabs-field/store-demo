@@ -1,18 +1,17 @@
-# Store Demo - Terraform
+# Store Demo - Terraform, GCP Only
 
-Terraform is used to provision a 18 node CockroachDB cluster across 3 geographically disperse US Data Centers and 2 cloud providers.  Again, the intent is to demonstrate survivability across Data Centers, Cloud Providers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
-* Data Center A - Azure's `eastus` region, zone `1` in Virginia on the Eastern Interconnection grid
-* Data Center B - Azure's `eastus` region, zone `2` in Virginia on the Eastern Interconnection grid
+Terraform is used to provision a 18 node CockroachDB cluster across 4 geographically disperse US Data Centers.  Again, the intent is to demonstrate survivability across Data Centers and the Continental U.S. [power transmission grid](https://en.wikipedia.org/wiki/Continental_U.S._power_transmission_grid).
+* Data Center A - Google's `us-east1` region, zone `us-east1-b` in South Carolina on the Eastern Interconnection grid
+* Data Center B - Google's `us-east4` region, zone `us-east4-a` in Virginia on the Eastern Interconnection grid
 * Data Center C - Google's `us-central1` region, zone `us-central1-a` in Iowa on the Eastern Interconnection grid
 * Data Center D - Google's `us-central1` region, zone `us-central1-b` in Iowa on the Eastern Interconnection grid
 * Data Center E - Google's `us-west2` region, zone `us-west2-a` in California on the Western Interconnection grid
 * Data Center F - Google's `us-west2` region, zone `us-west2-b` in California on the Western Interconnection grid
  
 ## Prerequisites
-All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
+All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google you will need an account and credentials.
 * Terraform - https://www.terraform.io/downloads.html
 * Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos
-* Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest
 
 ## Building the Cluster
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
@@ -21,7 +20,6 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
     ```hcl-terraform
     gcp_project_id = "your google project id"
     gcp_user = "user used to ssh into google instances"
-    azure_user = "user used to ssh into azure instances"
     crdb_license_org = "crdb license org"
     crdb_license_key = "crdb license key"
     ```
@@ -63,7 +61,3 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 ```bash
 ./plan.sh
 ```
-
-
-"file" failed: no file exists at /home/tv/.ssh/id_rsa.
-
