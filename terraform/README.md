@@ -45,7 +45,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
 
     If everything is successful you should see a message like this in the console...
     ```text
-    Apply complete! Resources: 146 added, 0 changed, 0 destroyed.
+    Apply complete! Resources: 122 added, 0 changed, 0 destroyed.
     ```
 5) Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
 
@@ -57,7 +57,7 @@ All of my development was done on a Mac running macOS Mohave.  Your mileage may 
    
    If everything is successful you should see a message like this in the console...
    ```text
-   Destroy complete! Resources: 146 destroyed.
+   Destroy complete! Resources: 122 destroyed.
    ```
 
 ## Other Helpful Commands
