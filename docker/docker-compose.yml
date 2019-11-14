@@ -2,52 +2,35 @@ version: '3.5'
 
 services:
 
-  node-a:
-    container_name: node-a
-    hostname: node-a
+  ATL1:
+    container_name: ATL1
+    hostname: ATL1
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=A
+    command: start --logtostderr --insecure --locality=region=ATL1
 
-  node-b:
-    container_name: node-b
-    hostname: node-b
+  ATL2:
+    container_name: ATL2
+    hostname: ATL2
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=B --join=node-a
+    command: start --logtostderr --insecure --locality=region=ATL2 --join=ATL1
     depends_on:
-      - node-a
+      - ATL1
 
-  node-c:
-    container_name: node-c
-    hostname: node-c
+  TX1:
+    container_name: TX1
+    hostname: TX1
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=C --join=node-a
+    command: start --logtostderr --insecure --locality=region=TX1 --join=ATL1
     depends_on:
-      - node-a
+      - ATL1
 
-  node-d:
-    container_name: node-d
-    hostname: node-d
+  TX2:
+    container_name: TX2
+    hostname: TX2
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=D --join=node-a
+    command: start --logtostderr --insecure --locality=region=TX2 --join=ATL1
     depends_on:
-      - node-a
-
-  node-e:
-    container_name: node-e
-    hostname: node-e
-    image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=E --join=node-a
-    depends_on:
-      - node-a
-
-  node-f:
-    container_name: node-f
-    hostname: node-f
-    image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=F --join=node-a
-    depends_on:
-      - node-a
-
+      - ATL1
 
   lb:
     container_name: lb
@@ -58,12 +41,10 @@ services:
       - "8080:8080"
       - "8081:8081"
     links:
-      - node-a
-      - node-b
-      - node-c
-      - node-d
-      - node-e
-      - node-f
+      - ATL1
+      - ATL2
+      - TX1
+      - TX2
 
   prometheus:
     container_name: prometheus

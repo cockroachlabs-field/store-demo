@@ -16,4 +16,4 @@ scrape_configs:
   - job_name: 'cockroachdb'
     metrics_path: '/_status/vars'
     static_configs:
-      - targets: ['node-a:8080', 'node-b:8080', 'node-c:8080', 'node-d:8080', 'node-e:8080', 'node-f:8080']
+      - targets: ['ATL1:8080', 'ATL2:8080', 'TX1:8080', 'TX2:8080']
