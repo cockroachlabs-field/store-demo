@@ -1,0 +1,33 @@
+{
+  "properties": [
+    {
+      "name": "crdb.run.duration",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.run.duration."
+    },
+    {
+      "name": "crdb.max.retry",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.max.retry."
+    },
+    {
+      "name": "crdb.accts.total",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.accts.total."
+    },
+    {
+      "name": "crdb.accts.states",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.accts.states."
+    },
+    {
+      "name": "crdb.log.batch",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.log.batch."
+    },
+    {
+      "name": "crdb.run.threads",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.run.threads."
+    }
+  ] }
