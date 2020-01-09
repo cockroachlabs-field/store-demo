@@ -1,0 +1,58 @@
+{
+  "properties": [
+    {
+      "name": "crdb.generate.states",
+      "type": "java.lang.String",
+      "description": "Description for crdb.generate.states."
+    },
+    {
+      "name": "crdb.generate.accts",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.generate.accts."
+    },
+    {
+      "name": "crdb.generate.auths",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.generate.auths."
+    },
+    {
+      "name": "crdb.load.batch",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.load.batch."
+    },
+    {
+      "name": "crdb.load.accts.data.file",
+      "type": "java.lang.String",
+      "description": "Description for crdb.load.accts.data.file."
+    },
+    {
+      "name": "crdb.load.auths.data.file",
+      "type": "java.lang.String",
+      "description": "Description for crdb.load.auths.data.file."
+    },
+    {
+      "name": "crdb.import.accts.create.url",
+      "type": "java.lang.String",
+      "description": "Description for crdb.import.accts.create.url."
+    },
+    {
+      "name": "crdb.import.accts.data.url",
+      "type": "java.lang.String",
+      "description": "Description for crdb.import.accts.data.url."
+    },
+    {
+      "name": "crdb.import.auths.create.url",
+      "type": "java.lang.String",
+      "description": "Description for crdb.import.auths.create.url."
+    },
+    {
+      "name": "crdb.import.auths.data.url",
+      "type": "java.lang.String",
+      "description": "Description for crdb.import.auths.data.url."
+    },
+    {
+      "name": "crdb.log.batch",
+      "type": "java.lang.Integer",
+      "description": "Description for crdb.log.batch."
+    }
+  ] }
