@@ -15,6 +15,15 @@ All of my development was done on a Mac running the latest version of macOS.  Yo
 * Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos or `brew cask install google-cloud-sdk`
 * Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest or `brew install azure-cli`
 
+Tested with...
+```
+Terraform v0.13.5
++ provider registry.terraform.io/hashicorp/azurerm v2.33.0
++ provider registry.terraform.io/hashicorp/google v3.44.0
++ provider registry.terraform.io/hashicorp/null v3.0.0
++ provider registry.terraform.io/hashicorp/random v3.0.0
+```
+
 ## Building the Cluster
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
