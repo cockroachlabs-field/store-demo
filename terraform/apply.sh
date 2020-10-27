@@ -1,7 +1,8 @@
 #!/bin/bash
 
-export TF_LOG="DEBUG"
+export TF_LOG="WARN"
 export TF_LOG_PATH="apply.log"
+export TF_WARN_OUTPUT_ERRORS=1
 
 rm -rf apply.log apply.txt
 

@@ -43,6 +43,9 @@ variable "gcp_private_key_path" {
   default = "~/.ssh/google_compute_engine"
 }
 
+// the contents of this file can be downloaded from google.  default configuration expects a file named `gcp-account.json` located in the same directory as this file.
+// see https://www.terraform.io/docs/providers/google/guides/provider_reference.html#credentials
+// see https://cloud.google.com/iam/docs/creating-managing-service-account-keys
 variable "gcp_credentials_file" {
   default = "gcp-account.json"
 }
@@ -55,10 +58,12 @@ variable "azure_machine_type_client" {
   default = "Standard_F8s_v2"
 }
 
+// see https://docs.microsoft.com/en-us/azure/virtual-machines/linux/mac-create-ssh-keys
 variable "azure_private_key_path" {
   default = "~/.ssh/id_rsa"
 }
 
+// see https://docs.microsoft.com/en-us/azure/virtual-machines/linux/mac-create-ssh-keys
 variable "azure_public_key_path" {
   default = "~/.ssh/id_rsa.pub"
 }
