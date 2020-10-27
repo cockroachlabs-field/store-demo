@@ -1,9 +1,9 @@
 provider "google" {
-  region = "${var.region}"
-  zone = "${var.zone}"
-  project = "${var.project_id}"
+  region = var.region
+  zone = var.zone
+  project = var.project_id
 
-  credentials = "${file(var.credentials_file)}"
+  credentials = file(var.credentials_file)
 }
 
 resource "random_pet" "random" {
@@ -25,17 +25,17 @@ resource "google_compute_network" "compute_network" {
 
 resource "google_compute_firewall" "firewall_jdbc" {
   name = "${local.prefix}-allow-jdbc"
-  network = "${google_compute_network.compute_network.self_link}"
+  network = google_compute_network.compute_network.self_link
 
   allow {
     protocol = "tcp"
-    ports = ["${var.jdbc_port}"]
+    ports = [var.jdbc_port]
   }
 }
 
 resource "google_compute_firewall" "firewall_ui" {
   name = "${local.prefix}-allow-ui"
-  network = "${google_compute_network.compute_network.self_link}"
+  network = google_compute_network.compute_network.self_link
 
   allow {
     protocol = "tcp"
@@ -45,7 +45,7 @@ resource "google_compute_firewall" "firewall_ui" {
 
 resource "google_compute_firewall" "firewall_ssh" {
   name = "${local.prefix}-allow-ssh"
-  network = "${google_compute_network.compute_network.self_link}"
+  network = google_compute_network.compute_network.self_link
 
   allow {
     protocol = "tcp"
@@ -64,16 +64,16 @@ resource "google_compute_health_check" "health_check" {
 
 resource "google_compute_instance" "node_instances" {
 
-  count = "${var.node_count}"
+  count = var.node_count
 
   name = "${local.prefix}-node-${count.index}"
-  machine_type = "${var.node_machine_type}"
+  machine_type = var.node_machine_type
   min_cpu_platform = "Intel Skylake"
 
   boot_disk {
     initialize_params {
       image = "ubuntu-os-cloud/ubuntu-1804-lts"
-      size = "${var.os_disk_size}"
+      size = var.os_disk_size
       type = "pd-ssd"
     }
   }
@@ -83,7 +83,7 @@ resource "google_compute_instance" "node_instances" {
   }
 
   network_interface {
-    network = "${google_compute_network.compute_network.self_link}"
+    network = google_compute_network.compute_network.self_link
 
     access_config {}
   }
@@ -93,18 +93,18 @@ resource "google_compute_instance" "node_instances" {
 resource "google_compute_instance_group" "node_instance_group" {
   name = "${local.prefix}-node-group"
 
-  instances = "${google_compute_instance.node_instances.*.self_link}"
+  instances = google_compute_instance.node_instances.*.self_link
 
-  zone = "${var.zone}"
+  zone = var.zone
 }
 
 resource "google_compute_region_backend_service" "backend_service" {
   name = "${local.prefix}-backend-service"
-  health_checks = ["${google_compute_health_check.health_check.self_link}"]
-  region = "${var.region}"
+  health_checks = [google_compute_health_check.health_check.self_link]
+  region = var.region
 
   backend {
-    group = "${google_compute_instance_group.node_instance_group.self_link}"
+    group = google_compute_instance_group.node_instance_group.self_link
   }
 
 }
@@ -113,25 +113,25 @@ resource "google_compute_forwarding_rule" "forwarding_rule" {
   name = "${local.prefix}-forwarding-rule"
   load_balancing_scheme = "INTERNAL"
   ip_protocol = "TCP"
-  region = "${var.region}"
-  ports = ["${var.jdbc_port}"]
-  network = "${google_compute_network.compute_network.self_link}"
-  backend_service = "${google_compute_region_backend_service.backend_service.self_link}"
+  region = var.region
+  ports = [var.jdbc_port]
+  network = google_compute_network.compute_network.self_link
+  backend_service = google_compute_region_backend_service.backend_service.self_link
 }
 
 
 resource "google_compute_instance" "client_instances" {
 
-  count = "${var.client_count}"
+  count = var.client_count
 
   name = "${local.prefix}-client-${count.index}"
-  machine_type = "${var.client_machine_type}"
+  machine_type = var.client_machine_type
   min_cpu_platform = "Intel Skylake"
 
   boot_disk {
     initialize_params {
       image = "ubuntu-os-cloud/ubuntu-1804-lts"
-      size = "${var.os_disk_size}"
+      size = var.os_disk_size
       type = "pd-ssd"
     }
   }
@@ -141,7 +141,7 @@ resource "google_compute_instance" "client_instances" {
   }
 
   network_interface {
-    network = "${google_compute_network.compute_network.self_link}"
+    network = google_compute_network.compute_network.self_link
 
     access_config {}
   }
@@ -154,16 +154,16 @@ resource "google_compute_instance" "client_instances" {
 
 resource "null_resource" "prep_nodes" {
 
-  count = "${var.node_count}"
+  count = var.node_count
 
   depends_on = [
     "google_compute_firewall.firewall_ssh",
     "google_compute_instance.node_instances"]
 
   connection {
-    user = "${var.user}"
-    host = "${element(google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
-    private_key = "${file(var.private_key_path)}"
+    user = var.user
+    host = element(google_compute_instance.node_instances.*.network_interface.0.access_config.0.nat_ip, count.index)
+    private_key = file(var.private_key_path)
     timeout = "2m"
   }
 
@@ -210,16 +210,16 @@ resource "null_resource" "prep_nodes" {
 
 resource "null_resource" "prep_clients" {
 
-  count = "${var.client_count}"
+  count = var.client_count
 
   depends_on = [
     "google_compute_firewall.firewall_ssh",
     "google_compute_instance.client_instances"]
 
   connection {
-    user = "${var.user}"
-    host = "${element(google_compute_instance.client_instances.*.network_interface.0.access_config.0.nat_ip, count.index)}"
-    private_key = "${file(var.private_key_path)}"
+    user = var.user
+    host = element(google_compute_instance.client_instances.*.network_interface.0.access_config.0.nat_ip, count.index)
+    private_key = file(var.private_key_path)
     timeout = "2m"
   }
 

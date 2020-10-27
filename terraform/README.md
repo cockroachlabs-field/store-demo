@@ -9,10 +9,11 @@ Terraform is used to provision a 18 node CockroachDB cluster across 3 geographic
 * Data Center F - Google's `us-west2` region, zone `us-west2-b` in California on the Western Interconnection grid
  
 ## Prerequisites
-All of my development was done on a Mac running macOS Mohave.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
-* Terraform - https://www.terraform.io/downloads.html
-* Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos
-* Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest
+All of my development was done on a Mac running the latest version of macOS.  Your mileage may vary on other platforms.  You will need to download and install the following.  For Google and Azure you will need an account and credentials.
+* Homebrew - https://brew.sh/
+* Terraform - https://www.terraform.io/downloads.html or `brew install terraform`
+* Google Cloud SDK - https://cloud.google.com/sdk/docs/quickstart-macos or `brew cask install google-cloud-sdk`
+* Azure CLI - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest or `brew install azure-cli`
 
 ## Building the Cluster
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.

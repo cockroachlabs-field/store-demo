@@ -22,19 +22,19 @@ module "a" {
   lat = "32.784618"
   long = "-79.940918"
 
-  crdb_version = "${var.crdb_version}"
-  node_machine_type = "${var.azure_machine_type}"
-  client_machine_type = "${var.azure_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.azure_private_key_path}"
-  public_key_path = "${var.azure_public_key_path}"
-  user = "${var.azure_user}"
+  crdb_version = var.crdb_version
+  node_machine_type = var.azure_machine_type
+  client_machine_type = var.azure_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.azure_private_key_path
+  public_key_path = var.azure_public_key_path
+  user = var.azure_user
 
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 # GA
@@ -45,19 +45,19 @@ module "b" {
   lat = "33.753746"
   long = "-84.386330"
 
-  crdb_version = "${var.crdb_version}"
-  node_machine_type = "${var.azure_machine_type}"
-  client_machine_type = "${var.azure_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.azure_private_key_path}"
-  public_key_path = "${var.azure_public_key_path}"
-  user = "${var.azure_user}"
+  crdb_version = var.crdb_version
+  node_machine_type = var.azure_machine_type
+  client_machine_type = var.azure_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.azure_private_key_path
+  public_key_path = var.azure_public_key_path
+  user = var.azure_user
 
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 # IA
@@ -69,20 +69,20 @@ module "c" {
   lat = "41.661129"
   long = "-91.530167"
 
-  crdb_version = "${var.crdb_version}"
-  credentials_file = "${var.gcp_credentials_file}"
-  node_machine_type = "${var.gcp_machine_type}"
-  client_machine_type = "${var.gcp_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.gcp_private_key_path}"
-  user = "${var.gcp_user}"
+  crdb_version = var.crdb_version
+  credentials_file = var.gcp_credentials_file
+  node_machine_type = var.gcp_machine_type
+  client_machine_type = var.gcp_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.gcp_private_key_path
+  user = var.gcp_user
 
-  project_id = "${var.gcp_project_id}"
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  project_id = var.gcp_project_id
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 # MO
@@ -95,20 +95,20 @@ module "d" {
   long = "-90.199402"
 
 
-  crdb_version = "${var.crdb_version}"
-  credentials_file = "${var.gcp_credentials_file}"
-  node_machine_type = "${var.gcp_machine_type}"
-  client_machine_type = "${var.gcp_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.gcp_private_key_path}"
-  user = "${var.gcp_user}"
+  crdb_version = var.crdb_version
+  credentials_file = var.gcp_credentials_file
+  node_machine_type = var.gcp_machine_type
+  client_machine_type = var.gcp_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.gcp_private_key_path
+  user = var.gcp_user
 
-  project_id = "${var.gcp_project_id}"
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  project_id = var.gcp_project_id
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 # CA
@@ -120,20 +120,20 @@ module "e" {
   lat = "34.052235"
   long = "-118.243683"
 
-  crdb_version = "${var.crdb_version}"
-  credentials_file = "${var.gcp_credentials_file}"
-  node_machine_type = "${var.gcp_machine_type}"
-  client_machine_type = "${var.gcp_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.gcp_private_key_path}"
-  user = "${var.gcp_user}"
+  crdb_version = var.crdb_version
+  credentials_file = var.gcp_credentials_file
+  node_machine_type = var.gcp_machine_type
+  client_machine_type = var.gcp_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.gcp_private_key_path
+  user = var.gcp_user
 
-  project_id = "${var.gcp_project_id}"
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  project_id = var.gcp_project_id
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 # AZ
@@ -145,20 +145,20 @@ module "f" {
   lat = "33.4484"
   long = "-112.074036"
 
-  crdb_version = "${var.crdb_version}"
-  credentials_file = "${var.gcp_credentials_file}"
-  node_machine_type = "${var.gcp_machine_type}"
-  client_machine_type = "${var.gcp_machine_type_client}"
-  os_disk_size = "${var.os_disk_size}"
-  private_key_path = "${var.gcp_private_key_path}"
-  user = "${var.gcp_user}"
+  crdb_version = var.crdb_version
+  credentials_file = var.gcp_credentials_file
+  node_machine_type = var.gcp_machine_type
+  client_machine_type = var.gcp_machine_type_client
+  os_disk_size = var.os_disk_size
+  private_key_path = var.gcp_private_key_path
+  user = var.gcp_user
 
-  project_id = "${var.gcp_project_id}"
-  cluster_name = "${local.cluster_name}"
-  node_count = "${local.node_count}"
-  client_count = "${local.client_count}"
-  jdbc_port = "${local.jdbc_port}"
-  sleep = "${local.sleep}"
+  project_id = var.gcp_project_id
+  cluster_name = local.cluster_name
+  node_count = local.node_count
+  client_count = local.client_count
+  jdbc_port = local.jdbc_port
+  sleep = local.sleep
 }
 
 
@@ -168,24 +168,24 @@ module "f" {
 
 resource "null_resource" "start_trigger" {
   triggers = {
-    a_public_ips = "${join(",", module.a.node_public_ips)}"
-    b_public_ips = "${join(",", module.b.node_public_ips)}"
-    c_public_ips = "${join(",", module.c.node_public_ips)}"
-    d_public_ips = "${join(",", module.d.node_public_ips)}"
-    e_public_ips = "${join(",", module.e.node_public_ips)}"
-    f_public_ips = "${join(",", module.f.node_public_ips)}"
+    a_public_ips = join(",", module.a.node_public_ips)
+    b_public_ips = join(",", module.b.node_public_ips)
+    c_public_ips = join(",", module.c.node_public_ips)
+    d_public_ips = join(",", module.d.node_public_ips)
+    e_public_ips = join(",", module.e.node_public_ips)
+    f_public_ips = join(",", module.f.node_public_ips)
   }
 }
 resource "null_resource" "start_a_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_trigger"]
 
   connection {
-    user = "${var.azure_user}"
-    host = "${element(module.a.node_public_ips, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    user = var.azure_user
+    host = element(module.a.node_public_ips, count.index)
+    private_key = file(var.azure_private_key_path)
     timeout = "2m"
   }
 
@@ -209,14 +209,14 @@ resource "null_resource" "start_a_nodes" {
 
 resource "null_resource" "start_b_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.azure_user}"
-    host = "${element(module.b.node_public_ips, count.index)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    user = var.azure_user
+    host = element(module.b.node_public_ips, count.index)
+    private_key = file(var.azure_private_key_path)
     timeout = "2m"
   }
 
@@ -241,14 +241,14 @@ resource "null_resource" "start_b_nodes" {
 
 resource "null_resource" "start_c_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.gcp_user}"
-    host = "${element(module.c.node_public_ips, count.index)}"
-    private_key = "${file(var.gcp_private_key_path)}"
+    user = var.gcp_user
+    host = element(module.c.node_public_ips, count.index)
+    private_key = file(var.gcp_private_key_path)
     timeout = "2m"
   }
 
@@ -273,14 +273,14 @@ resource "null_resource" "start_c_nodes" {
 
 resource "null_resource" "start_d_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.gcp_user}"
-    host = "${element(module.d.node_public_ips, count.index)}"
-    private_key = "${file(var.gcp_private_key_path)}"
+    user = var.gcp_user
+    host = element(module.d.node_public_ips, count.index)
+    private_key = file(var.gcp_private_key_path)
     timeout = "2m"
   }
 
@@ -305,14 +305,14 @@ resource "null_resource" "start_d_nodes" {
 
 resource "null_resource" "start_e_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.gcp_user}"
-    host = "${element(module.e.node_public_ips, count.index)}"
-    private_key = "${file(var.gcp_private_key_path)}"
+    user = var.gcp_user
+    host = element(module.e.node_public_ips, count.index)
+    private_key = file(var.gcp_private_key_path)
     timeout = "2m"
   }
 
@@ -337,14 +337,14 @@ resource "null_resource" "start_e_nodes" {
 
 resource "null_resource" "start_f_nodes" {
 
-  count = "${local.node_count}"
+  count = local.node_count
 
   depends_on = ["null_resource.start_a_nodes"]
 
   connection {
-    user = "${var.gcp_user}"
-    host = "${element(module.f.node_public_ips, count.index)}"
-    private_key = "${file(var.gcp_private_key_path)}"
+    user = var.gcp_user
+    host = element(module.f.node_public_ips, count.index)
+    private_key = file(var.gcp_private_key_path)
     timeout = "2m"
   }
 
@@ -383,9 +383,9 @@ resource "null_resource" "init_cluster" {
   ]
 
   connection {
-    user = "${var.azure_user}"
-    host = "${element(module.a.node_public_ips, 0)}"
-    private_key = "${file(var.azure_private_key_path)}"
+    user = var.azure_user
+    host = element(module.a.node_public_ips, 0)
+    private_key = file(var.azure_private_key_path)
     timeout = "2m"
   }
 
