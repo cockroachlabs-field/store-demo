@@ -1,13 +1,9 @@
 locals {
   cluster_name = "store-demo"
   database_name = "store_demo"
-
-  node_count = "3"
   client_count = "1"
-
   sleep = "20"
   jdbc_port = "26257"
-
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -22,7 +18,6 @@ module "a" {
   lat = "32.784618"
   long = "-79.940918"
 
-  crdb_version = var.crdb_version
   node_machine_type = var.azure_machine_type
   client_machine_type = var.azure_machine_type_client
   os_disk_size = var.os_disk_size
@@ -31,7 +26,7 @@ module "a" {
   user = var.azure_user
 
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -45,7 +40,6 @@ module "b" {
   lat = "33.753746"
   long = "-84.386330"
 
-  crdb_version = var.crdb_version
   node_machine_type = var.azure_machine_type
   client_machine_type = var.azure_machine_type_client
   os_disk_size = var.os_disk_size
@@ -54,7 +48,7 @@ module "b" {
   user = var.azure_user
 
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -69,7 +63,6 @@ module "c" {
   lat = "41.661129"
   long = "-91.530167"
 
-  crdb_version = var.crdb_version
   credentials_file = var.gcp_credentials_file
   node_machine_type = var.gcp_machine_type
   client_machine_type = var.gcp_machine_type_client
@@ -79,7 +72,7 @@ module "c" {
 
   project_id = var.gcp_project_id
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -94,8 +87,6 @@ module "d" {
   lat = "38.627003"
   long = "-90.199402"
 
-
-  crdb_version = var.crdb_version
   credentials_file = var.gcp_credentials_file
   node_machine_type = var.gcp_machine_type
   client_machine_type = var.gcp_machine_type_client
@@ -105,7 +96,7 @@ module "d" {
 
   project_id = var.gcp_project_id
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -120,7 +111,6 @@ module "e" {
   lat = "34.052235"
   long = "-118.243683"
 
-  crdb_version = var.crdb_version
   credentials_file = var.gcp_credentials_file
   node_machine_type = var.gcp_machine_type
   client_machine_type = var.gcp_machine_type_client
@@ -130,7 +120,7 @@ module "e" {
 
   project_id = var.gcp_project_id
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -145,7 +135,6 @@ module "f" {
   lat = "33.4484"
   long = "-112.074036"
 
-  crdb_version = var.crdb_version
   credentials_file = var.gcp_credentials_file
   node_machine_type = var.gcp_machine_type
   client_machine_type = var.gcp_machine_type_client
@@ -155,7 +144,7 @@ module "f" {
 
   project_id = var.gcp_project_id
   cluster_name = local.cluster_name
-  node_count = local.node_count
+  node_count = var.crdb_nodes_per_region
   client_count = local.client_count
   jdbc_port = local.jdbc_port
   sleep = local.sleep
@@ -178,7 +167,7 @@ resource "null_resource" "start_trigger" {
 }
 resource "null_resource" "start_a_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_trigger"]
 
@@ -209,7 +198,7 @@ resource "null_resource" "start_a_nodes" {
 
 resource "null_resource" "start_b_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_a_nodes"]
 
@@ -241,7 +230,7 @@ resource "null_resource" "start_b_nodes" {
 
 resource "null_resource" "start_c_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_a_nodes"]
 
@@ -273,7 +262,7 @@ resource "null_resource" "start_c_nodes" {
 
 resource "null_resource" "start_d_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_a_nodes"]
 
@@ -305,7 +294,7 @@ resource "null_resource" "start_d_nodes" {
 
 resource "null_resource" "start_e_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_a_nodes"]
 
@@ -337,7 +326,7 @@ resource "null_resource" "start_e_nodes" {
 
 resource "null_resource" "start_f_nodes" {
 
-  count = local.node_count
+  count = var.crdb_nodes_per_region
 
   depends_on = ["null_resource.start_a_nodes"]
 

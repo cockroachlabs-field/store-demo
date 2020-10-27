@@ -22,6 +22,7 @@ variable "crdb_license_key" {
   description = "crdb license key"
 }
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 # optional
 # ---------------------------------------------------------------------------------------------------------------------
@@ -62,15 +63,14 @@ variable "azure_public_key_path" {
   default = "~/.ssh/id_rsa.pub"
 }
 
-
-variable "crdb_version" {
-  default = "v19.1.4"
-}
-
 variable "crdb_max_sql_memory" {
   default = ".25"
 }
 
 variable "crdb_cache" {
   default = ".25"
+}
+
+variable "crdb_nodes_per_region" {
+  default = "3"
 }

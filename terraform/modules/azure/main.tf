@@ -362,7 +362,7 @@ resource "null_resource" "prep_nodes" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/node-install-crdb.sh",
-      "/tmp/node-install-crdb.sh ${var.crdb_version}"
+      "/tmp/node-install-crdb.sh"
     ]
   }
 

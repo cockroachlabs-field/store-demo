@@ -48,7 +48,3 @@ variable "lat" {
 
 variable "long" {
 }
-
-variable "crdb_version" {
-
-}
