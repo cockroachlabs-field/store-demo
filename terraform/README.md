@@ -27,7 +27,11 @@ Terraform v0.13.5
 ## Building the Cluster
 1) Create a Google Cloud [Service Account Key](https://cloud.google.com/docs/authentication/getting-started) and download it as a `.json` file called `gcp-account.json` and place it in this directory.
 
-2) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf).
+2) Optional for Google: If you have never used SSH to connect to a `gcloud` compute instance, you may need to run `gcloud compute config-ssh` to create the required `gcloud` SSH keys referenced by the variable `gcp_private_key_path` in [variables.tf](variables.tf).  See [here](see https://cloud.google.com/sdk/gcloud/reference/compute/config-ssh) for more details.
+
+3) Optional for Azure: If you have never used SSH to connect to an `azure` compute instance, you may need to run `ssh-keygen -m PEM -t rsa -b 4096` to create the required `azure` SSH keys referenced by the variables `azure_private_key_path` and `azure_public_key_path` in [variables.tf](variables.tf).  See [here](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/mac-create-ssh-keys) for more details.
+
+4) Create a file called `store-demo.tfvars` and place it in this directory.  Contents of the file must include the following required variables with values appropriate for your environment.  For additional configuration options see [variables.tf](variables.tf).
     ```hcl-terraform
     gcp_project_id = "your google project id"
     gcp_user = "user used to ssh into google instances"
@@ -35,12 +39,12 @@ Terraform v0.13.5
     crdb_license_org = "crdb license org"
     crdb_license_key = "crdb license key"
     ```
-3) Initialize Terraform
+5) Initialize Terraform
     ```bash
     terraform init -upgrade
     ```
 
-4) Build the cluster
+6) Build the cluster
     ```bash
     ./apply.sh
     ```
@@ -49,10 +53,10 @@ Terraform v0.13.5
     ```text
     Apply complete! Resources: 146 added, 0 changed, 0 destroyed.
     ```
-5) Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
+7) Pick one of the public IP's listed above and visit the CockroachDB UI, `http://PICK_PUBLIC_IP_FROM_ABOVE:8080`
 
 
-6) Destroy the cluster when you are finished
+8) Destroy the cluster when you are finished
     ```bash
     ./destroy.sh
     ```

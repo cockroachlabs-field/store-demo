@@ -163,7 +163,7 @@ resource "azurerm_network_interface" "network_interface_node" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "network_interface_security_group" {
+resource "azurerm_network_interface_security_group_association" "network_interface_security_group_nodes" {
   count = var.node_count
 
   network_interface_id      = element(azurerm_network_interface.network_interface_node.*.id, count.index)
@@ -260,8 +260,8 @@ resource "azurerm_network_interface" "network_interface_client" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "network_interface_client_security_group" {
-  count = var.node_count
+resource "azurerm_network_interface_security_group_association" "network_interface_security_group_clients" {
+  count = var.client_count
 
   network_interface_id      = element(azurerm_network_interface.network_interface_client.*.id, count.index)
   network_security_group_id = azurerm_network_security_group.security_group.id

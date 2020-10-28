@@ -39,6 +39,8 @@ variable "gcp_machine_type_client" {
   default = "n1-standard-8"
 }
 
+// you may need to run the following command to create local GCP keys... `gcloud compute config-ssh`
+// see https://cloud.google.com/sdk/gcloud/reference/compute/config-ssh
 variable "gcp_private_key_path" {
   default = "~/.ssh/google_compute_engine"
 }
