@@ -1,6 +1,6 @@
 # Store Demo - Loader
 
-This Spring Boot application is used to generate test data files and load data into the `store_demo` database.
+This Spring Boot application is used to generate test data files and load data into the `store_demo` database.  The `loader` application uses Spring profiles and profile specific `application-{profile}.properties` files.  The default active profile is `production`.  To use the local Docker instance start the `loader` application with the following parameter `-Dspring.profiles.active=docker`.
 
 ## Generating Data
 To generate data run the following command:
@@ -10,12 +10,12 @@ java -jar loader-2019.1-BETA.jar --generate
 ```
 
 `generate` accepts the following additional parameters:
-* `crdb.generate.states` - a comma separated list of "states" to generate data for. These "states" should map to partitions which will in turn be used in zone constaints 
+* `crdb.generate.states` - a comma separated list of "states" to generate data for. These "states" should map to partitions which will in turn be used in zone constraints. 
 * `crdb.generate.accts` - number of records to create for the `acct` table
 * `crdb.generate.auths` - number of records to create for the `auth` table
 * `crdb.generate.origin.state` - a state code where all initial cards belong
 
-For example, this command would result in the creation of 2 files `accts-1000.csv` and `auths-100.csv` in current directory.  These files can be used for future `load` or `import` commands.
+For example, this command would result in the creation of 2 files `accts-1000.csv` and `auths-100.csv` in the current directory.  These files can be used for future `load` or `import` commands.
 ```bash
 java -jar loader-2019.1-BETA.jar --generate --crdb.generate.states=SC,TX,CA --crdb.generate.accts=1000 --crdb.generate.auths=100
 ```

@@ -12,12 +12,20 @@
 * `grafana` - Grafana UI
 
 ## Getting started
-1) Because operation order is important, execute `./start.sh <MY LICENSE ORG> <MY LICENSE KEY>` instead of `docker-compose up`.  Replace `<MY LICENSE ORG>` with the organization associated with your enterprise license and `<MY LICENSE KEY>` with your enterprise license key.
-2) Visit the CockroachDB UI @ http://localhost:8080
-3) Visit the HAProxy UI @ http://localhost:8081
-3) Visit the Grafana UI @ http://localhost:3000.  Default username and password are `admin`/`admin`.
-3) Visit the Prometheus UI @ http://localhost:9090
-3) Have fun!
+1) Create a file called `.env` in the root of the `docker` folder with the following content...
+    ```
+    ORG=<MY LICENSE ORG>
+    KEY=<MY LICENSE KEY>
+    ```
+    Replace `<MY LICENSE ORG>` with the organization associated with your enterprise license and `<MY LICENSE KEY>` with your enterprise license key.
+2) Run `./up.sh` or `docker-compose up -d` to start the Docker services   
+3) Visit the CockroachDB UI @ http://localhost:8080
+4) Visit the HAProxy UI @ http://localhost:8081
+5) Visit the Grafana UI @ http://localhost:3000.  Default username and password are `admin`/`admin`.
+6) Visit the Prometheus UI @ http://localhost:9090
+7) Have fun!
+
+You can run `./down.sh` to stop the Docker services and `./prune.sh` to do a Docker system prune when you are finished.
 
 ## Helpful Commands
 

@@ -6,13 +6,13 @@ services:
     container_name: node-a
     hostname: node-a
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=A
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=A
 
   node-b:
     container_name: node-b
     hostname: node-b
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=B --join=node-a
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=B --join=node-a
     depends_on:
       - node-a
 
@@ -20,7 +20,7 @@ services:
     container_name: node-c
     hostname: node-c
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=C --join=node-a
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=C --join=node-a
     depends_on:
       - node-a
 
@@ -28,7 +28,7 @@ services:
     container_name: node-d
     hostname: node-d
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=D --join=node-a
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=D --join=node-a
     depends_on:
       - node-a
 
@@ -36,7 +36,7 @@ services:
     container_name: node-e
     hostname: node-e
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=E --join=node-a
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=E --join=node-a
     depends_on:
       - node-a
 
@@ -44,10 +44,9 @@ services:
     container_name: node-f
     hostname: node-f
     image: cockroachdb/cockroach:latest
-    command: start --logtostderr --insecure --locality=region=F --join=node-a
+    command: start --cluster-name=store-demo --logtostderr=WARNING --log-file-verbosity=WARNING --insecure --locality=region=F --join=node-a
     depends_on:
       - node-a
-
 
   lb:
     container_name: lb
@@ -64,6 +63,19 @@ services:
       - node-d
       - node-e
       - node-f
+
+  crdb-init:
+    container_name: crdb-init
+    hostname: crdb-init
+    image: timveil/cockroachdb-remote-client:latest
+    environment:
+      - COCKROACH_HOST=lb:5432
+      - COCKROACH_INSECURE=true
+      - DATABASE_NAME=store_demo
+      - COCKROACH_ORG=${ORG}
+      - COCKROACH_LICENSE_KEY=${KEY}
+    depends_on:
+      - lb
 
   prometheus:
     container_name: prometheus

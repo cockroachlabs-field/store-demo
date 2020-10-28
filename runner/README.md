@@ -1,5 +1,5 @@
 # Store Demo - Runner
-This Spring Boot application is used to generate load on the CockroachDB cluster.  A `runner` should be deployed in each region you want to test.
+This Spring Boot application is used to generate load on the CockroachDB cluster.  A `runner` should be deployed in each region you want to test.  The `runner` application uses Spring profiles and profile specific `application-{profile}.properties` files.  The default active profile is `production`.  To use the local Docker instance start the `runner` application with the following parameter `-Dspring.profiles.active=docker`.
 
 The `runner` is designed to simulate purchases with something like a store "credit" card.  For each "swipe" of the card, the following occurs:
 * The customers account balance is queried based on account number.

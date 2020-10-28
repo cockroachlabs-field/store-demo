@@ -29,5 +29,15 @@
       "name": "crdb.run.threads",
       "type": "java.lang.Integer",
       "description": "Description for crdb.run.threads."
+    },
+    {
+      "name": "crdb.region",
+      "type": "java.lang.String",
+      "description": "Description for crdb.region."
+    },
+    {
+      "name": "crdb.state",
+      "type": "java.lang.String",
+      "description": "Description for crdb.state."
     }
   ] }
