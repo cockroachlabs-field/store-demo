@@ -26,7 +26,7 @@ resource "azurerm_availability_set" "availability_set" {
   resource_group_name = azurerm_resource_group.resource_group.name
   managed = "true"
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
@@ -35,7 +35,7 @@ resource "azurerm_virtual_network" "virtual_network" {
   location = azurerm_resource_group.resource_group.location
   resource_group_name = azurerm_resource_group.resource_group.name
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 }
 
 resource "azurerm_subnet" "subnet" {
@@ -50,7 +50,7 @@ resource "azurerm_network_security_group" "security_group" {
   location = azurerm_resource_group.resource_group.location
   resource_group_name = azurerm_resource_group.resource_group.name
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 
   security_rule {
     name = "ssh"
@@ -94,7 +94,7 @@ resource "azurerm_lb" "lb" {
   resource_group_name = azurerm_resource_group.resource_group.name
   location = azurerm_resource_group.resource_group.location
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 
   frontend_ip_configuration {
     name = local.lb_frontend
@@ -133,7 +133,7 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.lb_backend_pool.id
   idle_timeout_in_minutes = 5
   probe_id = azurerm_lb_probe.lb_probe.id
-  depends_on = ["azurerm_lb_probe.lb_probe"]
+  depends_on = [azurerm_lb_probe.lb_probe]
 }
 
 resource "azurerm_public_ip" "public_ip_node" {
@@ -144,7 +144,7 @@ resource "azurerm_public_ip" "public_ip_node" {
   resource_group_name = azurerm_resource_group.resource_group.name
   allocation_method = "Dynamic"
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 }
 
 resource "azurerm_network_interface" "network_interface_node" {
@@ -229,7 +229,7 @@ data "azurerm_public_ip" "public_ip_node_data" {
   name = element(azurerm_public_ip.public_ip_node.*.name, count.index)
   resource_group_name = azurerm_resource_group.resource_group.name
 
-  depends_on = ["azurerm_virtual_machine.nodes"]
+  depends_on = [azurerm_virtual_machine.nodes]
 }
 
 
@@ -241,7 +241,7 @@ resource "azurerm_public_ip" "public_ip_client" {
   resource_group_name = azurerm_resource_group.resource_group.name
   allocation_method = "Dynamic"
 
-  depends_on = ["azurerm_resource_group.resource_group"]
+  depends_on = [azurerm_resource_group.resource_group]
 }
 
 resource "azurerm_network_interface" "network_interface_client" {
@@ -316,7 +316,7 @@ data "azurerm_public_ip" "public_ip_client_data" {
   name = element(azurerm_public_ip.public_ip_client.*.name, count.index)
   resource_group_name = azurerm_resource_group.resource_group.name
 
-  depends_on = ["azurerm_virtual_machine.clients"]
+  depends_on = [azurerm_virtual_machine.clients]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -328,8 +328,9 @@ resource "null_resource" "prep_nodes" {
   count = var.node_count
 
   depends_on = [
-    "data.azurerm_public_ip.public_ip_node_data",
-    "azurerm_virtual_machine.nodes"]
+    data.azurerm_public_ip.public_ip_node_data,
+    azurerm_virtual_machine.nodes
+  ]
 
   connection {
     user = var.user
@@ -382,8 +383,10 @@ resource "null_resource" "prep_clients" {
   count = var.client_count
 
   depends_on = [
-    "data.azurerm_public_ip.public_ip_client_data",
-    "azurerm_virtual_machine.clients"]
+    data.azurerm_public_ip.public_ip_client_data,
+    azurerm_virtual_machine.clients
+  ]
+
 
   connection {
     user = var.user

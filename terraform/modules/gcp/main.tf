@@ -157,8 +157,9 @@ resource "null_resource" "prep_nodes" {
   count = var.node_count
 
   depends_on = [
-    "google_compute_firewall.firewall_ssh",
-    "google_compute_instance.node_instances"]
+    google_compute_firewall.firewall_ssh,
+    google_compute_instance.node_instances
+  ]
 
   connection {
     user = var.user
@@ -213,8 +214,9 @@ resource "null_resource" "prep_clients" {
   count = var.client_count
 
   depends_on = [
-    "google_compute_firewall.firewall_ssh",
-    "google_compute_instance.client_instances"]
+    google_compute_firewall.firewall_ssh,
+    google_compute_instance.client_instances
+  ]
 
   connection {
     user = var.user

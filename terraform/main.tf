@@ -169,7 +169,7 @@ resource "null_resource" "start_a_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_trigger"]
+  depends_on = [null_resource.start_trigger]
 
   connection {
     user = var.azure_user
@@ -200,7 +200,7 @@ resource "null_resource" "start_b_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_a_nodes"]
+  depends_on = [null_resource.start_a_nodes]
 
   connection {
     user = var.azure_user
@@ -232,7 +232,7 @@ resource "null_resource" "start_c_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_a_nodes"]
+  depends_on = [null_resource.start_a_nodes]
 
   connection {
     user = var.gcp_user
@@ -264,7 +264,7 @@ resource "null_resource" "start_d_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_a_nodes"]
+  depends_on = [null_resource.start_a_nodes]
 
   connection {
     user = var.gcp_user
@@ -296,7 +296,7 @@ resource "null_resource" "start_e_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_a_nodes"]
+  depends_on = [null_resource.start_a_nodes]
 
   connection {
     user = var.gcp_user
@@ -328,7 +328,7 @@ resource "null_resource" "start_f_nodes" {
 
   count = var.crdb_nodes_per_region
 
-  depends_on = ["null_resource.start_a_nodes"]
+  depends_on = [null_resource.start_a_nodes]
 
   connection {
     user = var.gcp_user
@@ -363,12 +363,12 @@ resource "null_resource" "start_f_nodes" {
 resource "null_resource" "init_cluster" {
 
   depends_on = [
-    "null_resource.start_a_nodes",
-    "null_resource.start_b_nodes",
-    "null_resource.start_c_nodes",
-    "null_resource.start_d_nodes",
-    "null_resource.start_e_nodes",
-    "null_resource.start_f_nodes"
+    null_resource.start_a_nodes,
+    null_resource.start_b_nodes,
+    null_resource.start_c_nodes,
+    null_resource.start_d_nodes,
+    null_resource.start_e_nodes,
+    null_resource.start_f_nodes
   ]
 
   connection {
