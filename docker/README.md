@@ -1,4 +1,5 @@
 # Store Demo - Docker
+This module creates a local 6 node docker cluster that is useful for integration testing the `runner` and `loader` modules but not suitable for performance testing.  For true performance testing, use the `terraform` module.
 
 ## Services
 * `node-a` - CockroachDB node in region `A`
